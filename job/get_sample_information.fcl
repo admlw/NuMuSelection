@@ -1,0 +1,33 @@
+#include "services_microboone.fcl"
+#include "messageservice.fcl"
+#include "time_memory_tracker_microboone.fcl"
+
+process_name: sampleinformation
+
+services:
+{
+
+    TFileService:  {fileName: "truthInformation.root"}
+    TimeTracker:   @local::microboone_time_tracker
+    MemoryTracker: @local::microboone_memory_tracker
+    @table::microboone_simulation_services
+
+} # services
+
+physics:
+{
+    analyzers:
+    {
+        numusel:
+        {
+
+            module_type:            "SampleInformation"
+       
+       }
+    }
+
+    analysis: [ numusel ]
+    end_paths: [ analysis ]
+} #physics
+
+services.DetectorClocksService.InheritClockConfig: false
