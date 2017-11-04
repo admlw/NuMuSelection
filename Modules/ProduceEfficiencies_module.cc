@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       produceEfficiencies
+// Class:       ProduceEfficiencies
 // Plugin Type: analyzer (art v2_05_00)
-// File:        produceEfficiencies_module.cc
+// File:        ProduceEfficiencies_module.cc
 //
 // Generated at Fri Nov  3 16:49:57 2017 by Adam Lister using cetskelgen
 // from cetlib version v1_21_00.
@@ -37,20 +37,20 @@
 
 // FMWK Includes
 
-class produceEfficiencies;
+class ProduceEfficiencies;
 
 
-class produceEfficiencies : public art::EDAnalyzer {
+class ProduceEfficiencies : public art::EDAnalyzer {
   public:
-    explicit produceEfficiencies(fhicl::ParameterSet const & p);
+    explicit ProduceEfficiencies(fhicl::ParameterSet const & p);
     // The compiler-generated destructor is fine for non-base
     // classes without bare pointers or other resource use.
 
     // Plugins should not be copied or assigned.
-    produceEfficiencies(produceEfficiencies const &) = delete;
-    produceEfficiencies(produceEfficiencies &&) = delete;
-    produceEfficiencies & operator = (produceEfficiencies const &) = delete;
-    produceEfficiencies & operator = (produceEfficiencies &&) = delete;
+    ProduceEfficiencies(ProduceEfficiencies const &) = delete;
+    ProduceEfficiencies(ProduceEfficiencies &&) = delete;
+    ProduceEfficiencies & operator = (ProduceEfficiencies const &) = delete;
+    ProduceEfficiencies & operator = (ProduceEfficiencies &&) = delete;
 
     // Required functions.
     void analyze(art::Event const & e) override;
@@ -73,13 +73,13 @@ class produceEfficiencies : public art::EDAnalyzer {
 };
 
 
-produceEfficiencies::produceEfficiencies(fhicl::ParameterSet const & p)
+ProduceEfficiencies::ProduceEfficiencies(fhicl::ParameterSet const & p)
   :
     EDAnalyzer(p)  // ,
     // More initializers here.
 {}
 
-void produceEfficiencies::analyze(art::Event const & e)
+void ProduceEfficiencies::analyze(art::Event const & e)
 {
 
   // get MC neutrino
@@ -125,7 +125,7 @@ void produceEfficiencies::analyze(art::Event const & e)
 
 }
 
-void produceEfficiencies::beginJob()
+void ProduceEfficiencies::beginJob()
 {
   // Implementation of optional member function here.
   selectionEfficiency = tfs->make<TTree>("selectionEfficiency", "selectionEfficiency");
@@ -133,9 +133,9 @@ void produceEfficiencies::beginJob()
 
 }
 
-void produceEfficiencies::endJob()
+void ProduceEfficiencies::endJob()
 {
   // Implementation of optional member function here.
 }
 
-DEFINE_ART_MODULE(produceEfficiencies)
+DEFINE_ART_MODULE(ProduceEfficiencies)

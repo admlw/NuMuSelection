@@ -2,12 +2,12 @@
 #include "messageservice.fcl"
 #include "time_memory_tracker_microboone.fcl"
 
-process_name: sampleinformation
+process_name: prodeff
 
 services:
 {
 
-    TFileService:  {fileName: "truthInformation.root"}
+    TFileService:  {fileName: "selectionEfficiencies.root"}
     TimeTracker:   @local::microboone_time_tracker
     MemoryTracker: @local::microboone_memory_tracker
     @table::microboone_simulation_services
@@ -21,7 +21,7 @@ physics:
         numusel:
         {
 
-            module_type:            "SampleInformation"
+            module_type:            "ProduceEfficiencies"
        
        }
     }
