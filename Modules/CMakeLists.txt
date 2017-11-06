@@ -13,6 +13,8 @@ art_make(
     SignalShapingServiceMicroBooNE_service
     nusimdata_SimulationBase
     uboone_RawData
+    uboonecode_uboone_UBXSec_Algorithms
+    uboonecode_uboone_UBXSec_DataTypes
     ${LARRECO_LIB}
     ${LARDATA_LIB}
     ${ART_FRAMEWORK_CORE}

@@ -28,6 +28,7 @@
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
+#include "larcore/Geometry/Geometry.h"
 
 // ROOT Includes
 #include "TTree.h"
@@ -35,6 +36,7 @@
 
 // UBXSec Includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"
+#include "uboone/UBXSec/Algorithms/FiducialVolume.h"
 
 // FMWK Includes
 
@@ -62,8 +64,10 @@ class ProduceEfficiencies : public art::EDAnalyzer {
 
   private:
 
+    art::ServiceHandle< geo::Geometry > geo;
     art::ServiceHandle< art::TFileService > tfs;
     TTree* selectionEfficiency;
+    ubana::FiducialVolume fiducialVolume;  
 
     // vars
     bool isEventPassed = false;
@@ -84,19 +88,27 @@ ProduceEfficiencies::ProduceEfficiencies(fhicl::ParameterSet const & p)
     EDAnalyzer(p)  // ,
 {
 
+  // configure
+  fiducialVolume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+      geo->DetHalfHeight(),
+      2.*geo->DetHalfWidth(),
+      geo->DetLength());
+
+  fiducialVolume.PrintConfig();
 
 }
 
 void ProduceEfficiencies::analyze(art::Event const & e)
 {
 
-  // get MC neutrino
+  // MC neutrino
   art::Handle< std::vector<simb::MCTruth> > mcTruthHandle;
   e.getByLabel("generator", mcTruthHandle);
   if (!mcTruthHandle.isValid()) return;
   std::vector< art::Ptr<simb::MCTruth> > mcTruthVec;
   art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
 
+  // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
   e.getByLabel("UBXSec", selectionHandle);
   if (!selectionHandle.isValid()){
@@ -113,14 +125,15 @@ void ProduceEfficiencies::analyze(art::Event const & e)
     return;
   }
 
+  // MC truth
   art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   const simb::MCNeutrino& mcNu = mcTruth->GetNeutrino();
   const simb::MCParticle& mcNuP = mcNu.Nu();
 
-  vx = mcNuP.Vx();
-  vy = mcNuP.Vy();
-  vz = mcNuP.Vz();
-  mcNuCCNC   = mcNu.CCNC();
+  double vx = (double)mcNuP.Vx();
+  double vy = (double)mcNuP.Vy();
+  double vz = (double)mcNuP.Vz();
+  mcNuCCNC  = mcNu.CCNC();
   
   mcNuEnergy = mcNuP.E();
 
@@ -132,7 +145,7 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
   }
 
-  if (){
+  if (fiducialVolume.InFV(vx, vy, vz)){
 
     std::cout << "interaction vertex " << vx << ", " << vy << ", " << vz
       << "is out of TPC! " << std::endl;
