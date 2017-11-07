@@ -23,6 +23,7 @@
 
 // art Includes
 #include "art/Framework/Services/Optional/TFileService.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
 // LArSoft Includes
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -36,6 +37,7 @@
 
 // UBXSec Includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"
+#include "uboone/UBXSec/DataTypes/TPCObject.h"
 #include "uboone/UBXSec/Algorithms/FiducialVolume.h"
 
 // FMWK Includes
@@ -72,10 +74,13 @@ class ProduceEfficiencies : public art::EDAnalyzer {
     // vars
     bool isEventPassed = false;
     bool isCC0pi = true;
-    double mcNuEnergy;
+    bool isBeamNeutrino;
+    bool isRecoInTPC;
     int mcNuCCNC;
 
     double vx, vy, vz;
+
+    double mcNuEnergy;
 
     // Efficiency histograms
     TEfficiency* mcNuEnergyEff;
@@ -101,12 +106,16 @@ ProduceEfficiencies::ProduceEfficiencies(fhicl::ParameterSet const & p)
 void ProduceEfficiencies::analyze(art::Event const & e)
 {
 
-  // MC neutrino
+  // MC truth
   art::Handle< std::vector<simb::MCTruth> > mcTruthHandle;
   e.getByLabel("generator", mcTruthHandle);
   if (!mcTruthHandle.isValid()) return;
   std::vector< art::Ptr<simb::MCTruth> > mcTruthVec;
   art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
+  if (mcTruthVec.size() == 0){ 
+    std::cout << " >> No Neutrinos " << std::endl;
+    return;
+  }
 
   // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
@@ -120,12 +129,11 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
   }
 
-  if (mcTruthVec.size() == 0){ 
-    std::cout << " >> No Neutrinos " << std::endl;
-    return;
-  }
+  // get Selected TPCObject from selection handle
+  art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, "UBXSec");
+  art::Ptr<ubana::TPCObject> selectedTpcObject; 
 
-  // MC truth
+  // get objects from handle
   art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   const simb::MCNeutrino& mcNu = mcTruth->GetNeutrino();
   const simb::MCParticle& mcNuP = mcNu.Nu();
@@ -134,31 +142,23 @@ void ProduceEfficiencies::analyze(art::Event const & e)
   double vy = (double)mcNuP.Vy();
   double vz = (double)mcNuP.Vz();
   mcNuCCNC  = mcNu.CCNC();
-  
+
+  // variables for making efficiency plots
   mcNuEnergy = mcNuP.E();
 
-  // get true numu CC interactions in FV
-  if (mcTruth->Origin() != simb::kBeamNeutrino){
+  // ------------------
+  // Truth-based cuts
+  // ------------------
 
-    std::cout << " Not a beam neutrino! " << std::endl; 
-    return;
-
-  }
-
-  if (fiducialVolume.InFV(vx, vy, vz)){
-
-    std::cout << "interaction vertex " << vx << ", " << vy << ", " << vz
-      << "is out of TPC! " << std::endl;
-    return;
-  
-  }
-
+  // is true nu CC?
   if (mcNuCCNC != 0){
-  
+
     std::cout << " >> Event is NC " << std::endl;
     return;
-  
+
   }
+
+  // is true nu muon nu interaction?
   if (mcNuP.PdgCode() != 14){
 
     std::cout << " >> not a nu_mu interaction!" << std::endl;
@@ -166,28 +166,77 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
   }
 
+
+  // is true nu interaction in FV
+  if (!fiducialVolume.InFV(vx, vy, vz)){
+
+    std::cout << "true interaction vertex " << vx << ", " << vy << ", " << vz
+      << "is out of TPC! " << std::endl;
+    return;
+
+  }
+
+  // ---------------------
+  // Reco-level cuts
+  // ---------------------
+  std::cout << selectedTpcObjects.at(0).size() << std::endl;
+  if (selectedTpcObjects.at(0).size() != 0){
+    selectedTpcObject = selectedTpcObjects.at(0).at(0);
+
+    const recob::Vertex& selectedVertex = selectedTpcObject->GetVertex();
+    const ubana::TPCObjectOrigin& selectedOrigin = selectedTpcObject->GetOrigin();
+
+    // get reconstructed vertex position
+    // if true vertex is in the fiducial volume but reconstructed is out, this goes in the denominator
+    double xyz[3] = {0.0,0.0,0.0};
+    selectedVertex.XYZ(xyz);
+    if (fiducialVolume.InFV(xyz[0], xyz[1], xyz[2]) == true){
+
+      std::cout << "Reconstruced object is in TPC" << std::endl;
+      isRecoInTPC = true;
+
+    }
+    else{
+      std::cout << "Reconstructed object is out of TPC!" << std::endl;
+      isRecoInTPC = false;
+    }
+
+
+    // get selected TPCObject  origin
+    if ( selectedOrigin == ubana::kBeamNeutrino){
+
+      std::cout << "Found a beam neutrino! " << std::endl; 
+      isBeamNeutrino = true;
+
+    }
+    else{
+
+      std::cout << "Not a beam neutrino!" << std::endl;
+      isBeamNeutrino = false;
+
+    }
+  }
   // check if selected and fill efficiency histogram
   for (auto const& selectionStatus : (*selectionHandle)){
 
     std::cout << " >> Found a true CC Event " << std::endl;
-    std::cout << " >> Printing daughter particles: " << std::endl; 
-   
+
     int nParticles = mcTruth->NParticles();
     for(int i = 0; i < nParticles; i++){
-      
-        const simb::MCParticle& particle = mcTruth->GetParticle(i);
-        if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
-        
-        if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
 
-          isCC0pi = false;
+      const simb::MCParticle& particle = mcTruth->GetParticle(i);
+      if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
 
-        }
-        else isCC0pi = true;
+      if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
+
+        isCC0pi = false;
+
+      }
+      else isCC0pi = true;
 
     }
 
-    if (selectionStatus.GetSelectionStatus()){
+    if (selectionStatus.GetSelectionStatus() == true && isBeamNeutrino == true && isRecoInTPC == true){
 
       // event passes
       isEventPassed = true;
@@ -205,7 +254,7 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
       mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
       std::cout << " -->>Not Selected." << std::endl;
-     
+
       if (isCC0pi == true)
         mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
 
