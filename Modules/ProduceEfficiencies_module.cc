@@ -34,6 +34,7 @@
 // ROOT Includes
 #include "TTree.h"
 #include "TEfficiency.h"
+#include "TLorentzVector.h"
 
 // UBXSec Includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"
@@ -81,10 +82,21 @@ class ProduceEfficiencies : public art::EDAnalyzer {
     double vx, vy, vz;
 
     double mcNuEnergy;
+    double mcLeptonMom;
+    double mcLeptonTheta;
+    double mcLeptonPhi;
 
     // Efficiency histograms
     TEfficiency* mcNuEnergyEff;
+    TEfficiency* mcLeptonMomEff;
+    TEfficiency* mcLeptonThetaEff;
+    TEfficiency* mcLeptonPhiEff;
+
     TEfficiency* mcNuEnergyCC0PiEff;
+    TEfficiency* mcLeptonMomCC0PiEff;
+    TEfficiency* mcLeptonThetaCC0PiEff;
+    TEfficiency* mcLeptonPhiCC0PiEff;
+
 };
 
 
@@ -137,6 +149,7 @@ void ProduceEfficiencies::analyze(art::Event const & e)
   art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   const simb::MCNeutrino& mcNu = mcTruth->GetNeutrino();
   const simb::MCParticle& mcNuP = mcNu.Nu();
+  const simb::MCParticle& mcLeptonP = mcNu.Lepton();
 
   double vx = (double)mcNuP.Vx();
   double vy = (double)mcNuP.Vy();
@@ -145,6 +158,9 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
   // variables for making efficiency plots
   mcNuEnergy = mcNuP.E();
+  mcLeptonMom = mcLeptonP.P();
+  mcLeptonTheta = std::cos(mcLeptonP.Momentum().Theta());
+  mcLeptonPhi = mcLeptonP.Momentum().Phi();
 
   // ------------------
   // Truth-based cuts
@@ -242,21 +258,34 @@ void ProduceEfficiencies::analyze(art::Event const & e)
       isEventPassed = true;
 
       mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
+      mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
+      mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
+      mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
       std::cout << " -->> Selected." << std::endl;
 
       if (isCC0pi == true)
         mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
-
+      mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+      mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+      mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
     }
     else {
       // event does not pass
       isEventPassed = false;
 
       mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
+      mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
+      mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
+      mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
+
       std::cout << " -->>Not Selected." << std::endl;
 
       if (isCC0pi == true)
         mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
+      mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+      mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+      mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+
 
     }
 
@@ -269,7 +298,13 @@ void ProduceEfficiencies::beginJob()
   // Implementation of optional member function here.
   selectionEfficiency = tfs->make<TTree>("selectionEfficiency", "selectionEfficiency");
   mcNuEnergyEff = tfs->make<TEfficiency>("mcNuEnergyEff", ";E_{#nu}^{true}; #epsilon", 15, 0, 3);
+  mcLeptonMomEff = tfs->make<TEfficiency>("mcLeptonMomEff", ";P_{l}^{true}; #epsilon", 15, 0, 2);
+  mcLeptonThetaEff = tfs->make<TEfficiency>("mcLeptonThetaEff", ";#theta_{l}^{true}, #epsilon;", 10, -1, 1);
+  mcLeptonPhiEff = tfs->make<TEfficiency>("mcLeptonPhiEff", ";#phi_{l}^{true};#epsilon", 15, -3, 3);
   mcNuEnergyCC0PiEff = tfs->make<TEfficiency>("mcNuEnergyCC0PiEff", ";E_{#nu}^{true}; #epsilon", 15, 0, 3);
+  mcLeptonMomCC0PiEff = tfs->make<TEfficiency>("mcLeptonMomCC0PiEff", ";P_{l}^{true}; #epsilon", 15, 0, 2);
+  mcLeptonThetaCC0PiEff = tfs->make<TEfficiency>("mcLeptonThetaCC0PiEff", ";#theta_{l}^{true}, #epsilon;", 10, -1, 1);
+  mcLeptonPhiCC0PiEff = tfs->make<TEfficiency>("mcLeptonPhiCC0PiEff", ";#phi_{l}^{true};#epsilon", 15, -3, 3);
 
 }
 
