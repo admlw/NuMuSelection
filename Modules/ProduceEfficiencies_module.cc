@@ -263,11 +263,12 @@ void ProduceEfficiencies::analyze(art::Event const & e)
       mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
       std::cout << " -->> Selected." << std::endl;
 
-      if (isCC0pi == true)
+      if (isCC0pi == true){
         mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
-      mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
-      mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
-      mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+        mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+        mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+        mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+      }
     }
     else {
       // event does not pass
@@ -280,12 +281,12 @@ void ProduceEfficiencies::analyze(art::Event const & e)
 
       std::cout << " -->>Not Selected." << std::endl;
 
-      if (isCC0pi == true)
+      if (isCC0pi == true){
         mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
-      mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
-      mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
-      mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
-
+        mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+        mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+        mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+      }
 
     }
 
@@ -299,11 +300,11 @@ void ProduceEfficiencies::beginJob()
   selectionEfficiency = tfs->make<TTree>("selectionEfficiency", "selectionEfficiency");
   mcNuEnergyEff = tfs->make<TEfficiency>("mcNuEnergyEff", ";E_{#nu}^{true}; #epsilon", 15, 0, 3);
   mcLeptonMomEff = tfs->make<TEfficiency>("mcLeptonMomEff", ";P_{l}^{true}; #epsilon", 15, 0, 2);
-  mcLeptonThetaEff = tfs->make<TEfficiency>("mcLeptonThetaEff", ";#theta_{l}^{true}, #epsilon;", 10, -1, 1);
-  mcLeptonPhiEff = tfs->make<TEfficiency>("mcLeptonPhiEff", ";#phi_{l}^{true};#epsilon", 15, -3, 3);
+  mcLeptonThetaEff = tfs->make<TEfficiency>("mcLeptonThetaEff", ";#theta_{l}^{true}; #epsilon;", 10, -1, 1);
+  mcLeptonPhiEff = tfs->make<TEfficiency>("mcLeptonPhiEff", ";#phi_{l}^{true}; #epsilon", 15, -3, 3);
   mcNuEnergyCC0PiEff = tfs->make<TEfficiency>("mcNuEnergyCC0PiEff", ";E_{#nu}^{true}; #epsilon", 15, 0, 3);
   mcLeptonMomCC0PiEff = tfs->make<TEfficiency>("mcLeptonMomCC0PiEff", ";P_{l}^{true}; #epsilon", 15, 0, 2);
-  mcLeptonThetaCC0PiEff = tfs->make<TEfficiency>("mcLeptonThetaCC0PiEff", ";#theta_{l}^{true}, #epsilon;", 10, -1, 1);
+  mcLeptonThetaCC0PiEff = tfs->make<TEfficiency>("mcLeptonThetaCC0PiEff", ";#theta_{l}^{true}; #epsilon;", 10, -1, 1);
   mcLeptonPhiCC0PiEff = tfs->make<TEfficiency>("mcLeptonPhiCC0PiEff", ";#phi_{l}^{true};#epsilon", 15, -3, 3);
 
 }
