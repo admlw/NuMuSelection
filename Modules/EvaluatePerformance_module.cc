@@ -77,6 +77,9 @@ class EvaluatePerformance : public art::EDAnalyzer {
     bool isCC0pi = true;
     bool isBeamNeutrino;
     bool isRecoInTPC;
+    bool isCC;
+    bool isMuonNeutrino;
+    bool isInFV;
     int mcNuCCNC;
 
     double vx, vy, vz;
@@ -170,17 +173,19 @@ void EvaluatePerformance::analyze(art::Event const & e)
   if (mcNuCCNC != 0){
 
     std::cout << " >> Event is NC " << std::endl;
-    return;
+    isCC = false;
 
   }
+  else isCC = true;
 
   // is true nu muon nu interaction?
   if (mcNuP.PdgCode() != 14){
 
     std::cout << " >> not a nu_mu interaction!" << std::endl;
-    return;
+    isMuonNeutrino = false;
 
   }
+  else isMuonNeutrino = true;
 
 
   // is true nu interaction in FV
@@ -188,9 +193,10 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
     std::cout << "true interaction vertex " << vx << ", " << vy << ", " << vz
       << "is out of TPC! " << std::endl;
-    return;
+    isInFV = false;
 
   }
+  else isInFV = true;
 
   // ---------------------
   // Reco-level cuts
@@ -235,63 +241,62 @@ void EvaluatePerformance::analyze(art::Event const & e)
   // check if selected and fill efficiency histogram
   for (auto const& selectionStatus : (*selectionHandle)){
 
-    std::cout << " >> Found a true CC Event " << std::endl;
+    if (isCC && isMuonNeutrino && isInFV){
+      std::cout << " >> Found a true CC Event " << std::endl;
 
-    int nParticles = mcTruth->NParticles();
-    for(int i = 0; i < nParticles; i++){
+      int nParticles = mcTruth->NParticles();
+      for(int i = 0; i < nParticles; i++){
 
-      const simb::MCParticle& particle = mcTruth->GetParticle(i);
-      if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
+        const simb::MCParticle& particle = mcTruth->GetParticle(i);
+        if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
 
-      if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
+        if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
 
-        isCC0pi = false;
+          isCC0pi = false;
+
+        }
+        else isCC0pi = true;
 
       }
-      else isCC0pi = true;
 
-    }
+      if (selectionStatus.GetSelectionStatus() == true && isBeamNeutrino == true && isRecoInTPC == true){
 
-    if (selectionStatus.GetSelectionStatus() == true && isBeamNeutrino == true && isRecoInTPC == true){
+        // event passes
+        isEventPassed = true;
 
-      // event passes
-      isEventPassed = true;
+        mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
+        mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
+        mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
+        mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
+        std::cout << " -->> Selected." << std::endl;
 
-      mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
-      mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
-      mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
-      mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
-      std::cout << " -->> Selected." << std::endl;
+        if (isCC0pi == true){
+          mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
+          mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+          mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+          mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+        }
+      }
+      else {
+        // event does not pass
+        isEventPassed = false;
 
-      if (isCC0pi == true){
-        mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
-        mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
-        mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
-        mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+        mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
+        mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
+        mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
+        mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
+
+        std::cout << " -->>Not Selected." << std::endl;
+
+        if (isCC0pi == true){
+          mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
+          mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
+          mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
+          mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+        }
       }
     }
-    else {
-      // event does not pass
-      isEventPassed = false;
-
-      mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
-      mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
-      mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
-      mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
-
-      std::cout << " -->>Not Selected." << std::endl;
-
-      if (isCC0pi == true){
-        mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
-        mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
-        mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
-        mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
-      }
-
-    }
-
   }
-
 }
 
 void EvaluatePerformance::beginJob()
