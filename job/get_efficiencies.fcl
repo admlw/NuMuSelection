@@ -8,7 +8,7 @@ process_name: prodeff
 services:
 {
 
-    TFileService:  {fileName: "selectionEfficiencies.root"}
+    TFileService:  {fileName: "selectionPerformace.root"}
     TimeTracker:   @local::microboone_time_tracker
     MemoryTracker: @local::microboone_memory_tracker
     @table::microboone_simulation_services
@@ -22,7 +22,7 @@ physics:
         numusel:
         {
 
-            module_type:            "ProduceEfficiencies"
+            module_type:            "EvaluatePerformance"
             FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
       
        }
