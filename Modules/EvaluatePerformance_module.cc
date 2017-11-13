@@ -66,6 +66,8 @@ class EvaluatePerformance : public art::EDAnalyzer {
     void beginJob() override;
     void endJob() override;
 
+    bool isCC0PiEvent(art::Ptr<simb::MCTruth> mcTruth);
+
   private:
 
     art::ServiceHandle< geo::Geometry > geo;
@@ -75,17 +77,17 @@ class EvaluatePerformance : public art::EDAnalyzer {
 
     // vars
     bool isEventPassed;
-    bool isCC0pi;
+    bool isCC0Pi;
     bool isBeamNeutrino;
     bool isCosmic;
     bool isMixed;
-    bool isRecoInFV;
     bool isCC;
     bool isMuonNeutrino;
-    bool isMuonAntineutrino;
+    bool isMuonAntiNeutrino;
     bool isElectronNeutrino;
     bool isElectronAntineutrino;
-    bool isInFV;
+    bool isTrueVtxInFV;
+    bool isSignal;
     int mcNuCCNC;
 
     double vx, vy, vz;
@@ -131,7 +133,7 @@ class EvaluatePerformance : public art::EDAnalyzer {
     TH1D* selectedTrackLengthNuE;
     TH1D* selectedTrackLengthAntiNuE;
     TH1D* selectedTrackLengthNC;
-
+    TH1D* selectedTrackLengthOther;
 };
 
 
@@ -197,55 +199,51 @@ void EvaluatePerformance::analyze(art::Event const & e)
   mcLeptonTheta = std::cos(mcLeptonP.Momentum().Theta());
   mcLeptonPhi = mcLeptonP.Momentum().Phi();
 
-  // ------------------
-  // Truth-based cuts
-  // ------------------
+  // -------------------------------------------------------------------------
+  // Truth information
+  // --- "is there a true numu CC interaction in the FV for this event"
+  // -------------------------------------------------------------------------
 
   // is true nu CC?
-  if (mcNuCCNC != 0){
+  if (mcNuCCNC == 0) isCC = true;
+  else isCC = false;
 
-    std::cout << " >> Event is NC " << std::endl;
-    isCC = false;
-
-  }
-  else isCC = true;
+  // is true nu CC0Pi?
+  if (isCC0PiEvent(mcTruth)) isCC0Pi = true;
+  else isCC0Pi = false;
 
   // is true nu muon nu interaction?
-  if (mcNuP.PdgCode() != 14){
+  if (mcNuP.PdgCode() == 14) isMuonNeutrino = true;
+  else isMuonNeutrino = false;
 
-    std::cout << " >> not a nu_mu interaction!" << std::endl;
-    isMuonNeutrino = false;
+  // else check if muon antineutrino...
+  if (mcNuP.PdgCode() == -14) isMuonAntiNeutrino = true;
+  else isMuonAntiNeutrino = false;
 
-  }
-  else isMuonNeutrino = true;
-
-  if (mcNuP.PdgCode() == -14) isMuonAntineutrino = true;
-  else isMuonAntineutrino = false;
-
+  // ... or electron neutrino
   if (mcNuP.PdgCode() == 12) isElectronNeutrino = true;
   else isElectronNeutrino = false;
 
+  // ... or electron antineutrino
   if (mcNuP.PdgCode() == -12) isElectronAntineutrino = true;
   else isElectronAntineutrino = false;
 
   // is true nu interaction in FV
-  if (!fiducialVolume.InFV(vx, vy, vz)){
+  if (fiducialVolume.InFV(vx, vy, vz)) isTrueVtxInFV = true;
+  else isTrueVtxInFV = false;
 
-    std::cout << " >> true interaction vertex " << vx << ", " << vy << ", " << vz
-      << "is out of TPC! " << std::endl;
-    isInFV = false;
+  if (isCC && isMuonNeutrino && isTrueVtxInFV) isSignal = true;
+  else isSignal = false;
 
-  }
-  else isInFV = true;
+  // -------------------------------------------------------------------------
+  // Reconstructed information
+  // --- "did we select an object in this event"
+  // --- "if we did, is it a neutrino interaction"
+  // -------------------------------------------------------------------------
 
-  // ---------------------
-  // Reco-level cuts
-  // ---------------------
-
-  if (selectedTpcObjects.at(0).size() != 0){
+  if (selectedTpcObjects.at(0).size() == 1){
     selectedTpcObject = selectedTpcObjects.at(0).at(0);
 
-    const recob::Vertex& selectedVertex = selectedTpcObject->GetVertex();
     const ubana::TPCObjectOrigin& selectedOrigin = selectedTpcObject->GetOrigin();
     const std::vector<recob::Track>& selectedTracks = selectedTpcObject->GetTracks();
 
@@ -262,122 +260,90 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
     }
 
-    // get reconstructed vertex position
-    // if true vertex is in the fiducial volume but reconstructed is out, this goes in the denominator
-    double xyz[3] = {0.0,0.0,0.0};
-    selectedVertex.XYZ(xyz);
-    if (fiducialVolume.InFV(xyz[0], xyz[1], xyz[2]) == true){
+    // is selected TPC object a true beam neutrino interaction
+    isBeamNeutrino = false;
+    isMixed = false;
+    isCosmic = false;
 
-      std::cout << " >> Reconstruced object is in TPC" << std::endl;
-      isRecoInFV = true;
+    if ( selectedOrigin == ubana::kBeamNeutrino) isBeamNeutrino = true;
 
-    }
-    else{
-      std::cout << " >> Reconstructed object is out of TPC!" << std::endl;
-      isRecoInFV = false;
-    }
+    if (selectedOrigin == ubana::kMixed) isMixed = true;
+
+    if (selectedOrigin == ubana::kCosmicRay) isCosmic = true;
 
 
-    // get selected TPCObject  origin
-    if ( selectedOrigin == ubana::kBeamNeutrino){
-
-      std::cout << " >> Found a beam neutrino! " << std::endl; 
-      isBeamNeutrino = true;
-      isCosmic = false;
-      isMixed = false;
-
-    }
-    else if (selectedOrigin == ubana::kCosmicRay) {
-
-      std::cout << " >> Not a beam neutrino!" << std::endl;
-      isBeamNeutrino = false;
-      isCosmic = true;
-      isMixed = false;
-
-    }
-    else if (selectedOrigin == ubana::kMixed){
-
-      std::cout << " >> Not a beam neutrino!" << std::endl;
-      isBeamNeutrino = false;
-      isCosmic = false;
-      isMixed = true;
-
-    }
-    else isBeamNeutrino = false;
   }
 
   // check if selected and fill efficiency histogram
   for (auto const& selectionStatus : (*selectionHandle)){
 
-    if (isCC && isMuonNeutrino && isInFV){
-      std::cout << " >> Found a true CC Event " << std::endl;
-
-      int nParticles = mcTruth->NParticles();
-      for(int i = 0; i < nParticles; i++){
-
-        const simb::MCParticle& particle = mcTruth->GetParticle(i);
-        if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
-
-        if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
-
-          isCC0pi = false;
-
-        }
-        else isCC0pi = true;
-
-      }
-    }
-
     if (selectionStatus.GetSelectionStatus() == true){
 
-      if (isBeamNeutrino == true && isRecoInFV == true && isCC == true && isMuonNeutrino == true && isInFV == true){
+      std::cout << " -->> Event Selected." << std::endl;
+      if (isBeamNeutrino && isSignal){
         // event passes
 
-        std::cout << " -->> Selected." << std::endl;
+        std::cout << " -->> Event is true numuCC from beam in FV" << std::endl;
+
         isEventPassed = true;
 
+        // efficiency
         mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
         mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
         mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
         mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
-        
+
         // purity
-        
         mcNuEnergyPur->Fill(true, mcNuEnergy);
         mcLeptonMomPur->Fill(true, mcLeptonMom);
         mcLeptonThetaPur->Fill(true, mcLeptonTheta);
         mcLeptonPhiPur->Fill(true, mcLeptonPhi);
 
         selectedTrackLengthTrueCC->Fill(muonCandidateLength);
+        if (isCC0Pi){
 
-        if (isCC0pi == true){
-
+          // efficiency
           mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
           mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
           mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
           mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
-        
+
+          // purity
           mcNuEnergyCC0PiPur->Fill(true, mcNuEnergy);
           mcLeptonMomCC0PiPur->Fill(true, mcLeptonMom);
           mcLeptonThetaCC0PiPur->Fill(true, mcLeptonTheta);
           mcLeptonPhiCC0PiPur->Fill(true, mcLeptonPhi);
 
+          selectedTrackLengthTrueCC0Pi->Fill(muonCandidateLength);
+
         }
+
 
       }
       else{ 
-        std::cout << "selected event is not signal!" << std::endl;
+        std::cout << " -->> Event is not true numuCC from beam in FV" << std::endl;
 
         purityVector.at(0) = isCosmic;
         purityVector.at(1) = isMixed;
-        purityVector.at(2) = !(isInFV && !isRecoInFV);
-        purityVector.at(3) = isMuonAntineutrino;
-        purityVector.at(4) = isElectronNeutrino;
-        purityVector.at(5) = isElectronAntineutrino;
-        purityVector.at(6) = !isCC;
+        purityVector.at(2) = !isTrueVtxInFV;
+        purityVector.at(3) = isMuonNeutrino;
+        purityVector.at(4) = isMuonAntiNeutrino;
+        purityVector.at(5) = isElectronNeutrino;
+        purityVector.at(6) = isElectronAntineutrino;
+        purityVector.at(7) = !isCC;
+
+        std::cout << " -->> FAILURE REASON" << std::endl;
+        std::cout << purityVector.at(0) << " isCosmic" << std::endl;
+        std::cout << purityVector.at(1) << " isMixed" << std::endl;
+        std::cout << purityVector.at(2) << " isTrueVtxOutOfFV" << std::endl;
+        std::cout << purityVector.at(3) << " isMuonNeutrino " << std::endl;
+        std::cout << purityVector.at(4) << " isMuonAntiNeutrino" << std::endl;
+        std::cout << purityVector.at(5) << " isElectronNeutrino" << std::endl;
+        std::cout << purityVector.at(6) << " isElectronAntiNeutrino" << std::endl;
+        std::cout << purityVector.at(7) << " isNC" << std::endl;
 
         // purity 
-        
+
         mcNuEnergyPur->Fill(false, mcNuEnergy);
         mcLeptonMomPur->Fill(false, mcLeptonMom);
         mcLeptonThetaPur->Fill(false, mcLeptonTheta);
@@ -388,19 +354,14 @@ void EvaluatePerformance::analyze(art::Event const & e)
         mcLeptonThetaCC0PiPur->Fill(false, mcLeptonTheta);
         mcLeptonPhiCC0PiPur->Fill(false, mcLeptonPhi);
 
-        for ( size_t i = 0; i < purityVector.size(); i++ ){
-
-          std::cout << " >> " << purityVector.at(i) << std::endl;;
-
-        }
-
-        if (isCosmic){ selectedTrackLengthCosmic->Fill(muonCandidateLength); continue;}
-        if (isMixed){ selectedTrackLengthMixed->Fill(muonCandidateLength); continue;}
-        if (!(isInFV && !isRecoInFV)){ selectedTrackLengthOutOfFV->Fill(muonCandidateLength); continue;}
-        if (isMuonAntineutrino){ selectedTrackLengthAntiNuMu->Fill(muonCandidateLength); continue;}
-        if (isElectronNeutrino){ selectedTrackLengthNuE->Fill(muonCandidateLength); continue;}
-        if (isElectronAntineutrino){ selectedTrackLengthAntiNuE->Fill(muonCandidateLength); continue;}
-        if (isCC){ selectedTrackLengthNC->Fill(muonCandidateLength); continue;}
+        if (isCosmic){ selectedTrackLengthCosmic->Fill(muonCandidateLength); }
+        else if (isMixed){ selectedTrackLengthMixed->Fill(muonCandidateLength); }
+        else if (!isTrueVtxInFV){ selectedTrackLengthOutOfFV->Fill(muonCandidateLength); }
+        else if (!isCC){ selectedTrackLengthNC->Fill(muonCandidateLength); }
+        else if (isMuonAntiNeutrino){ selectedTrackLengthAntiNuMu->Fill(muonCandidateLength); }
+        else if (isElectronNeutrino){ selectedTrackLengthNuE->Fill(muonCandidateLength); }
+        else if (isElectronAntineutrino){ selectedTrackLengthAntiNuE->Fill(muonCandidateLength); }
+        else {selectedTrackLengthOther->Fill(muonCandidateLength);}
 
       }
 
@@ -408,23 +369,31 @@ void EvaluatePerformance::analyze(art::Event const & e)
     else {
 
       // event does not pass
-      isEventPassed = false;
-      if (isBeamNeutrino == true && isRecoInFV == true && isCC == true && isMuonNeutrino == true && isInFV == true){
 
+      std::cout << " -->> Not Selected." << std::endl;
+
+      isEventPassed = false;
+      if (isSignal){
+
+        std::cout << " -->> Event is true numuCC from beam in FV" << std::endl;
         mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
         mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
         mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
         mcLeptonPhiEff->Fill(isEventPassed, mcLeptonPhi);
 
-        std::cout << " -->>Not Selected." << std::endl;
+        if (isCC0Pi){
 
-        if (isCC0pi == true){
           mcNuEnergyCC0PiEff->Fill(isEventPassed, mcNuEnergy);
           mcLeptonMomCC0PiEff->Fill(isEventPassed, mcLeptonMom);
           mcLeptonThetaCC0PiEff->Fill(isEventPassed, mcLeptonTheta);
           mcLeptonPhiCC0PiEff->Fill(isEventPassed, mcLeptonPhi);
+
+
         }
+
       }
+      else std::cout << " -->> Event is not true numuCC from beam in FV" << std::endl;
+
     }
   }
 
@@ -449,7 +418,7 @@ void EvaluatePerformance::beginJob()
   mcLeptonPhiCC0PiEff = tfs->make<TEfficiency>("mcLeptonPhiCC0PiEff", ";#phi_{l}^{true};#epsilon", 15, -3, 3);
 
   // purity
-  
+
   mcNuEnergyPur = tfs->make<TEfficiency>("mcNuEnergyPur", ";E_{#nu}^{true};p", 15, 0, 3);
   mcLeptonMomPur = tfs->make<TEfficiency>("mcLeptonMomPur", ";P_{l}^{true};p", 15, 0, 2);
   mcLeptonThetaPur = tfs->make<TEfficiency>("mcLeptonThetaPur", ";cos(#theta_{l}^{true});p", 10, -1, 1);
@@ -470,6 +439,7 @@ void EvaluatePerformance::beginJob()
   selectedTrackLengthNuE = tfs->make<TH1D>("selectedTrackLengthNuE", ";Candidate muon length; # tracks", 30, 0, 700);
   selectedTrackLengthAntiNuE = tfs->make<TH1D>("selectedTrackLengthAntiNuE", ";Candidate muon length; # tracks", 30, 0, 700);
   selectedTrackLengthNC = tfs->make<TH1D>("selectedTrackLengthNC", ";Candidate muon length; # tracks", 30, 0, 700);
+  selectedTrackLengthOther = tfs->make<TH1D>("selectedTrackLengthOther", ";Candidate muon length; # tracks", 30, 0, 700);
 
 }
 
@@ -477,6 +447,25 @@ void EvaluatePerformance::endJob()
 {
 
 
+}
+
+bool EvaluatePerformance::isCC0PiEvent(art::Ptr<simb::MCTruth> mcTruth) {
+
+  int nParticles = mcTruth->NParticles();
+  for(int i = 0; i < nParticles; i++){
+
+    const simb::MCParticle& particle = mcTruth->GetParticle(i);
+
+    if (particle.Process() != "primary" || particle.StatusCode() != 1) continue;    
+
+    if (std::abs(particle.PdgCode()) == 211 || std::abs(particle.PdgCode()) == 111){
+
+      return false;
+
+    }
+  }
+
+  return true;
 }
 
 DEFINE_ART_MODULE(EvaluatePerformance)
