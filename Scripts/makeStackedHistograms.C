@@ -19,7 +19,7 @@ void printPlotToFile(TFile* inputFile, TString plotName){
   hCC0Pi->SetFillColor(TColor::GetColor( 215, 48, 39 ));
   hCC->SetFillColor(TColor::GetColor(165, 0, 38));
   hAntiNuMu->SetFillColor(TColor::GetColor(0, 104, 55));
-  hNuE->SetFillColor(TColor::GetColor(102, 189, 99));
+  hNuE->SetFillColor(TColor::GetColor(166, 217, 106));//(102, 189, 99));
   hAntiNuE->SetFillColor(TColor::GetColor(166, 217, 106));
   hNC->SetFillColor(TColor::GetColor(113, 1, 98));
   hOOFV->SetFillColor(TColor::GetColor(78, 179, 211));
@@ -86,8 +86,8 @@ void printPlotToFile(TFile* inputFile, TString plotName){
   leg->AddEntry(hCC0Pi, "#nu_{#mu} CC0Pi");
   leg->AddEntry(hCC, "Other #nu_{#mu} CC");
   leg->AddEntry(hAntiNuMu, "#bar{#nu_{#mu}}");
-  leg->AddEntry(hNuE, "#nu_{e}");
-  leg->AddEntry(hAntiNuE, "#bar{#nu_{e}}");
+  leg->AddEntry(hNuE, "#nu_{e}, #bar{#nu_{e}}");
+//  leg->AddEntry(hAntiNuE, "#bar{#nu_{e}}");
   leg->AddEntry(hNC, "NC");
   leg->AddEntry(hOOFV, "OOFV");
   leg->AddEntry(hMixed, "Mixed");

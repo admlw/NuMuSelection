@@ -19,6 +19,8 @@ void printPlotToFile(TFile* inputFile, TString plotName, TString EffOrP){
   TLegend *leg = new TLegend(0.5, 0.15, 0.85, 0.3);
   leg->AddEntry(hCC, "CC");
   leg->AddEntry(hCC0Pi, "CC0Pi");
+  leg->SetLineWidth(0);
+  leg->SetFillStyle(0);
   leg->Draw("same");
 
   c1->SaveAs(plotName+EffOrP+".eps");
