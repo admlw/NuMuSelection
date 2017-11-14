@@ -8,7 +8,7 @@ set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpa
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} -lboost_system ${ROOTLIB} )
 
 art_make( BASENAME_ONLY
-  LIBRARY_NAME     uboonecode_ubooNuMuSelectionn_Algos
+  LIBRARY_NAME     uboonecode_uboone_NuMuSelection_Algos
   LIB_LIBRARIES
   uboonecode_uboone_BasicTool_GeoAlgo
   uboone_UBFlashFinder
