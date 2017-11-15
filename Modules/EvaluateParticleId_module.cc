@@ -22,10 +22,15 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 
 // LArSoft includes
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Hit.h"
+
+// ROOT includes
+#include "TH1.h"
+#include "TH2.h"
 
 // local includes
 #include "uboone/NuMuSelection/Algos/particleIdUtility.h"
@@ -54,9 +59,16 @@ public:
 
 private:
 
-  double averagedQdX;
   pidutil::particleIdUtility pidutils;
 
+  art::ServiceHandle< art::TFileService > tfs;
+
+  // histograms
+  TH1D* hAveragedQdX;
+  TH2D* hAveragedQdXLength;
+  TH2D* hAveragedQdXTheta;
+
+  double averagedQdX;
 };
 
 
@@ -74,12 +86,18 @@ void EvaluateParticleId::analyze(art::Event const & e)
 
   art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, "pandoraNu");
 
+  if (trackHandle.product()->size() != 1) return;
+
   for (auto const& track : (*trackHandle)){
 
     // get associated hits
     std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
     averagedQdX = pidutils.getAveragedQdX(track, hits); 
+    
+    hAveragedQdX->Fill(averagedQdX);
+    hAveragedQdXLength->Fill(averagedQdX, track.Length());
+    hAveragedQdXTheta->Fill(averagedQdX, track.Theta());
 
   }
 
@@ -87,7 +105,11 @@ void EvaluateParticleId::analyze(art::Event const & e)
 
 void EvaluateParticleId::beginJob()
 {
-  // Implementation of optional member function here.
+
+  hAveragedQdX = tfs->make<TH1D>("hAveragedQdX", ";average dQdX;", 100, 0, 2000);
+  hAveragedQdXLength = tfs->make<TH2D>("hAveragedQdXLength"," ;average hit charge (ADC x Ticks); Length (cm)", 100, 0, 2000, 100, 0, 200);
+  hAveragedQdXTheta = tfs->make<TH2D>("hAveragedQdXTheta", ";average hit charge (ADC x Ticks); Theta (degrees)", 100, 0, 2000, 100, 0, 3.15);
+
 }
 
 void EvaluateParticleId::endJob()
