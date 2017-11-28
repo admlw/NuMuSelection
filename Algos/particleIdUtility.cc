@@ -2,24 +2,68 @@
 
 namespace pidutil{
 
-  double particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection){
+  std::pair<double,TH1D*> particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDqdxFromRawD){
+
+    TH1D* h = new TH1D("h", "", 100, 0, 2000);
+    
+    std::pair<double, TH1D*> averagedQdX;
+    averagedQdX.first = -1;
 
     std::pair<int, int> channelPeakTime;
     std::vector< std::pair< int, int > > channelPeakTimeVector;
 
     // get total charge deposited
     double hitCharge = 0.0;
+    double rawIntegral = 0.0;
+    std::vector<double> hitCharges;
     for (size_t i = 0; i < hitCollection.size(); i++){
 
       art::Ptr<recob::Hit> hit = hitCollection.at(i);
 
+      // select out "good" hits on the Y plane
       if (hit->Channel() < 4800 || hit->GoodnessOfFit() > 1.1) continue;
 
       channelPeakTime.first = hit->Channel();
       channelPeakTime.second = hit->PeakTime();
       channelPeakTimeVector.push_back(channelPeakTime);
 
+      // get RawDigitIntegral
+      for (size_t j = 0; j < rawDCollection.size(); j++){
+
+        if ((int)rawDCollection.at(j)->Channel() == (int)channelPeakTime.first){
+
+          // get correction factor
+          std::vector<short> const adcVec = rawDCollection.at(j)->ADCs();
+          double correctionValue = 0;
+          int counter = 0;
+          for ( int k = 0; k < (int)adcVec.size(); k++){
+
+            if ( k < channelPeakTime.second - 30 || k > channelPeakTime.second + 30 ){
+
+            counter++;
+            correctionValue +=adcVec.at(k);
+
+            }
+
+          }
+
+          correctionValue = correctionValue/(double)counter;
+
+          for ( int k = channelPeakTime.second - 30; 
+              k < channelPeakTime.second + 30;
+              k++){
+    
+            rawIntegral += (rawDCollection.at(j)->ADC(k)) - correctionValue;
+
+          }
+        }
+      }
+
+
       hitCharge += hit->Integral();
+      hitCharges.push_back(hit->Integral());
+
+      h->Fill(hit->Integral());
 
     }
 
@@ -33,10 +77,19 @@ namespace pidutil{
     // get full track length
     double trackLength = track.Length() - untrackedLength;
 
-    double averagedQdX = hitCharge/trackLength;
+
+    double averagedQdXmean = hitCharge/trackLength;
+    //double averagedQdXmean = rawIntegral/trackLength;
+
+    std::cout << "raw integral: " << rawIntegral << std::endl;
+    std::cout << "track Length: " << trackLength << std::endl;
+    std::cout << "average raw charge: " << rawIntegral/trackLength << std::endl;
+
+    averagedQdX.first = averagedQdXmean;
+    averagedQdX.second = h;
 
     return averagedQdX;
-
+    
   }
 
   std::vector< std::vector< std::pair<double, double> > > particleIdUtility::getDeadRegions(std::vector< std::pair<int, int> > hitCollection){
@@ -81,7 +134,7 @@ namespace pidutil{
     std::vector< std::pair<double,double> > deadEnd = deadRegions.at(1);
 
     double untrackedLength = 0.0;
-    
+
     // loop over number of dead regions
     for ( size_t i = 0; i < deadStart.size(); i++){
 
@@ -101,7 +154,7 @@ namespace pidutil{
         }
 
         if ( trajPoint.Z() <= deadEnd.at(i).first && deadStartPoint != -1){
-  
+
           deadEndPoint = j;
 
         }
@@ -137,5 +190,4 @@ namespace pidutil{
     return untrackedLength;
 
   }
-
 }

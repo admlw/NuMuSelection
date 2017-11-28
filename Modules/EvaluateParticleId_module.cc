@@ -31,6 +31,7 @@
 // ROOT includes
 #include "TH1.h"
 #include "TH2.h"
+#include "TFile.h"
 
 // local includes
 #include "uboone/NuMuSelection/Algos/particleIdUtility.h"
@@ -68,7 +69,8 @@ private:
   TH2D* hAveragedQdXLength;
   TH2D* hAveragedQdXTheta;
 
-  double averagedQdX;
+  std::pair<double, TH1D*> averagedQdX;
+
 };
 
 
@@ -81,8 +83,18 @@ EvaluateParticleId::EvaluateParticleId(fhicl::ParameterSet const & p)
 void EvaluateParticleId::analyze(art::Event const & e)
 {
 
+  // get event information
+  int fEvent = e.event();
+  int fRun = e.run();
+  int fSubRun = e.subRun();
+
   art::Handle< std::vector< recob::Track > > trackHandle;
   e.getByLabel("pandoraNu", trackHandle);
+
+  art::Handle< std::vector< raw::RawDigit > > rawDHandle;
+  e.getByLabel("wcNoiseFilter", rawDHandle);
+  std::vector< art::Ptr< raw::RawDigit > > rawDVec;
+  art::fill_ptr_vector(rawDVec, rawDHandle);
 
   art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, "pandoraNu");
 
@@ -93,11 +105,23 @@ void EvaluateParticleId::analyze(art::Event const & e)
     // get associated hits
     std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
-    averagedQdX = pidutils.getAveragedQdX(track, hits); 
+    averagedQdX = pidutils.getAveragedQdX(track, hits, rawDVec, false); 
     
-    hAveragedQdX->Fill(averagedQdX);
-    hAveragedQdXLength->Fill(averagedQdX, track.Length());
-    hAveragedQdXTheta->Fill(averagedQdX, track.Theta());
+    double averagedQdXMean = averagedQdX.first;
+    TH1D* averagedQdXhisto = averagedQdX.second;
+
+    if (averagedQdXMean < 500)
+      std::cout << fRun << "." << fSubRun << "." << fEvent << std::endl;
+
+    hAveragedQdX->Fill(averagedQdXMean);
+    hAveragedQdXLength->Fill(averagedQdXMean, track.Length());
+    hAveragedQdXTheta->Fill(averagedQdXMean, track.Theta());
+
+    TFile* chargeDistributions = new TFile("chargeDistros.root", "UPDATE");
+    chargeDistributions->cd();
+    averagedQdXhisto->Write();
+    averagedQdXhisto->Delete();
+    chargeDistributions->Close();
 
   }
 
@@ -107,8 +131,8 @@ void EvaluateParticleId::beginJob()
 {
 
   hAveragedQdX = tfs->make<TH1D>("hAveragedQdX", ";average dQdX;", 100, 0, 2000);
-  hAveragedQdXLength = tfs->make<TH2D>("hAveragedQdXLength"," ;average hit charge (ADC x Ticks); Length (cm)", 100, 0, 2000, 100, 0, 200);
-  hAveragedQdXTheta = tfs->make<TH2D>("hAveragedQdXTheta", ";average hit charge (ADC x Ticks); Theta (degrees)", 100, 0, 2000, 100, 0, 3.15);
+  hAveragedQdXLength = tfs->make<TH2D>("hAveragedQdXLength"," ;average hit charge (ADC x Ticks); Length (cm)", 200, 0, 10000, 100, 0, 200);
+  hAveragedQdXTheta = tfs->make<TH2D>("hAveragedQdXTheta", ";average hit charge (ADC x Ticks); Theta (degrees)", 200, 0, 10000, 100, 0, 3.15);
 
 }
 

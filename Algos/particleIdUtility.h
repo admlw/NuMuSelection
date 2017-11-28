@@ -10,6 +10,7 @@
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/Geometry/GeometryCore.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -17,6 +18,8 @@
 
 // ROOT includes
 #include "TMath.h"
+#include "TFile.h"
+#include "TH1.h"
 
 namespace pidutil{
 
@@ -31,7 +34,7 @@ namespace pidutil{
         return isLarger;
       }
 
-      double getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection);
+      std::pair<double, TH1D*> getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDQdXFromRawD);
 
       std::vector< std::vector< std::pair<double, double> > > getDeadRegions(std::vector< std::pair<int, int> > hitCollection);
 
