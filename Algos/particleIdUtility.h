@@ -20,6 +20,7 @@
 #include "TMath.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TF1.h"
 
 namespace pidutil{
 
@@ -34,11 +35,13 @@ namespace pidutil{
         return isLarger;
       }
 
-      std::pair<double, TH1D*> getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDQdXFromRawD);
+      std::pair<double, double> getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDQdXFromRawD);
 
       std::vector< std::vector< std::pair<double, double> > > getDeadRegions(std::vector< std::pair<int, int> > hitCollection);
 
       double getUntrackedLength(recob::Track const& track, std::vector< std::vector< std::pair<double,double> > > deadRegions);
+
+      bool isMuonLike(double averagedQdX, double len);
 
   };
 

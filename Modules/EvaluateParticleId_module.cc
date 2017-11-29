@@ -69,7 +69,7 @@ private:
   TH2D* hAveragedQdXLength;
   TH2D* hAveragedQdXTheta;
 
-  std::pair<double, TH1D*> averagedQdX;
+  std::pair<double, double> averagedQdX;
 
 };
 
@@ -108,7 +108,7 @@ void EvaluateParticleId::analyze(art::Event const & e)
     averagedQdX = pidutils.getAveragedQdX(track, hits, rawDVec, false); 
     
     double averagedQdXMean = averagedQdX.first;
-    TH1D* averagedQdXhisto = averagedQdX.second;
+    //TH1D* averagedQdXhisto = averagedQdX.second;
 
     if (averagedQdXMean < 500)
       std::cout << fRun << "." << fSubRun << "." << fEvent << std::endl;
@@ -119,8 +119,8 @@ void EvaluateParticleId::analyze(art::Event const & e)
 
     TFile* chargeDistributions = new TFile("chargeDistros.root", "UPDATE");
     chargeDistributions->cd();
-    averagedQdXhisto->Write();
-    averagedQdXhisto->Delete();
+    //averagedQdXhisto->Write();
+    //averagedQdXhisto->Delete();
     chargeDistributions->Close();
 
   }

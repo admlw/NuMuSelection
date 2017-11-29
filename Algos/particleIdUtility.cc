@@ -2,11 +2,9 @@
 
 namespace pidutil{
 
-  std::pair<double,TH1D*> particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDqdxFromRawD){
+  std::pair<double, double> particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDqdxFromRawD){
 
-    TH1D* h = new TH1D("h", "", 100, 0, 2000);
-    
-    std::pair<double, TH1D*> averagedQdX;
+    std::pair<double, double> averagedQdX;
     averagedQdX.first = -1;
 
     std::pair<int, int> channelPeakTime;
@@ -40,8 +38,8 @@ namespace pidutil{
 
             if ( k < channelPeakTime.second - 30 || k > channelPeakTime.second + 30 ){
 
-            counter++;
-            correctionValue +=adcVec.at(k);
+              counter++;
+              correctionValue +=adcVec.at(k);
 
             }
 
@@ -52,7 +50,7 @@ namespace pidutil{
           for ( int k = channelPeakTime.second - 30; 
               k < channelPeakTime.second + 30;
               k++){
-    
+
             rawIntegral += (rawDCollection.at(j)->ADC(k)) - correctionValue;
 
           }
@@ -62,8 +60,6 @@ namespace pidutil{
 
       hitCharge += hit->Integral();
       hitCharges.push_back(hit->Integral());
-
-      h->Fill(hit->Integral());
 
     }
 
@@ -78,18 +74,19 @@ namespace pidutil{
     double trackLength = track.Length() - untrackedLength;
 
 
-    double averagedQdXmean = hitCharge/trackLength;
-    //double averagedQdXmean = rawIntegral/trackLength;
-
-    std::cout << "raw integral: " << rawIntegral << std::endl;
-    std::cout << "track Length: " << trackLength << std::endl;
-    std::cout << "average raw charge: " << rawIntegral/trackLength << std::endl;
+    double averagedQdXmean; 
+    if (isDqdxFromRawD == false){
+      averagedQdXmean = hitCharge/trackLength;
+    }
+    else {
+      averagedQdXmean = rawIntegral/trackLength;
+    }
 
     averagedQdX.first = averagedQdXmean;
-    averagedQdX.second = h;
+    averagedQdX.second = trackLength;
 
     return averagedQdX;
-    
+
   }
 
   std::vector< std::vector< std::pair<double, double> > > particleIdUtility::getDeadRegions(std::vector< std::pair<int, int> > hitCollection){
@@ -189,5 +186,23 @@ namespace pidutil{
 
     return untrackedLength;
 
+  }
+
+  bool particleIdUtility::isMuonLike(double averagedQdX, double len){
+
+    if (averagedQdX > 300){
+      TF1* f1 = new TF1("f1", "500000/(100*(x-300))-10", 300, 2000);
+
+      double evalPoint = f1->Eval(averagedQdX);
+
+      std::cout << "\n average dqdx " << averagedQdX
+        << "\n length " << len 
+        << "\n evalPoint " << evalPoint
+        << "\n " << std::endl;
+
+      if (len > evalPoint) return false;
+      else return true;
+    }
+    else return true;
   }
 }
