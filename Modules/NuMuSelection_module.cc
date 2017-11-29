@@ -70,6 +70,8 @@ class NuMuSelection : public art::EDAnalyzer {
 
     pidutil::particleIdUtility pidutils;
 
+    ubana::SelectionResult selResult;
+
     // fcl pars
     bool isData;
     bool isGetTruthTree;
@@ -162,7 +164,7 @@ void NuMuSelection::analyze(art::Event const & e)
     std::cout << "\n>| Producing Truth Tree" << std::endl;
 
     art::Handle< std::vector<simb::MCTruth> > truthHandle;
-    e.getByLabel(fTruthLabel, truthHandle);
+    e.getByLabel("generator", truthHandle);
 
     for (auto const& truth : *(truthHandle)){
 
@@ -195,22 +197,54 @@ void NuMuSelection::analyze(art::Event const & e)
 
     const std::vector<recob::Track>& selectedTracks = selectedTpcObject->GetTracks();
 
+    int muonLikeCounter = 0;
+
     for (size_t i = 0; i < selectedTracks.size(); i++){
 
       const recob::Track& track = selectedTracks.at(i);
 
       std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
-      std::pair<double, TH1D*> averageDqdx = pidutils.getAveragedQdX(track, hits, rawDVec, true);
+      std::pair<double, double> averageDqdx = pidutils.getAveragedQdX(track, hits, rawDVec, false);
 
-      std::cout << averageDqdx.first << std::endl;
+      bool isMuLike = pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
+
+      if (isMuLike){ 
+        muonLikeCounter++;
+        std::cout << ">>|found a muon candidate!" << std::endl;
+      }
+      else std::cout << ">>| not a muon candidate!" << std::endl;
 
     }
+
+    std::cout << "\n>| Found " << muonLikeCounter << " muon candidates! " << std::endl;
+
+    if (muonLikeCounter == 0){
+     selResult.SetSelectionStatus(false);
+     selResult.SetFailureReason("NoMu");
+    }
+    else if (muonLikeCounter > 1){
+     selResult.SetSelectionStatus(false);
+     selResult.SetFailureReason("PionCandidate");
+    }
+    else if (muonLikeCounter == 1){
+     selResult.SetSelectionStatus(true);
+     selResult.SetFailureReason("");
+    }
+
+    std::cout << "\n>| PRINTING SELECTION INFORMATION" << std::endl;
+    std::cout << ">>| SELECTION RESULT: " << selResult.GetSelectionStatus() << std::endl;
+    std::cout << ">>| REASON: " << selResult.GetFailureReason() << "\n" << std::endl;
+
+  }
+  else if (selectedTpcObjects.at(0).size() == 0){
+
+    std::cout << ">| No TPC object selected, on to the next event!" << std::endl;
 
   }
   else {
 
-    std::cout << ">>| Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
+    std::cout << ">| Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
 
   }
 
