@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 // Class:       NuMuSelection
-// Plugin Type: analyzer (art v2_05_00)
+// Plugin Type: producer (art v2_05_00)
 // File:        NuMuSelection_module.cc
 //
 // Generated at Thu Aug 24 21:55:04 2017 by Adam Lister using cetskelgen
@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 // Base Includes
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -25,10 +25,8 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 
 // LArSoft Includes
-#include "nusimdata/SimulationBase/MCTruth.h"
-#include "nusimdata/SimulationBase/MCNeutrino.h"
-#include "nusimdata/SimulationBase/MCParticle.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RawData/RawDigit.h"
 
@@ -46,7 +44,7 @@
 class NuMuSelection;
 
 
-class NuMuSelection : public art::EDAnalyzer {
+class NuMuSelection : public art::EDProducer {
   public:
     explicit NuMuSelection(fhicl::ParameterSet const & p);
     // The compiler-generated destructor is fine for non-base
@@ -59,7 +57,7 @@ class NuMuSelection : public art::EDAnalyzer {
     NuMuSelection & operator = (NuMuSelection &&) = delete;
 
     // Required functions.
-    void analyze(art::Event const & e) override;
+    void produce(art::Event & e) override;
 
     // Selected optional functions.
     void reconfigure(fhicl::ParameterSet const & p) override;
@@ -74,48 +72,50 @@ class NuMuSelection : public art::EDAnalyzer {
 
     // fcl pars
     bool isData;
-    bool isGetTruthTree;
-    std::string fTruthLabel;
-    std::string fParticleLabel;
-
     bool isMc;
 
     int fRun;
     int fSubRun;
     int fEvent;
 
-    TTree *truthTree;
-
 };
 
 
 NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
-  :
-    EDAnalyzer(p)  // ,
-    // More initializers here.
-{}
+  //:
+  //  EDProducer(p)  // ,
+  // More initializers here.
+{
+
+  produces< std::vector<ubana::SelectionResult> >();
+
+}
 
 void NuMuSelection::reconfigure(fhicl::ParameterSet const & p)
 {
 
   isData = p.get< bool > ("IsData");
-  isGetTruthTree = p.get< bool > ("ProduceTruthTree");
-  fTruthLabel = p.get< std::string > ("TruthLabel");
-  fParticleLabel = p.get< std::string > ("MCParticleLabel");
 
 }
 
 void NuMuSelection::beginJob()
 {
 
-  art::ServiceHandle< art::TFileService > tfs;
-
-  truthTree = tfs->make<TTree>("truthTree", "truthTree");
-
 }
 
-void NuMuSelection::analyze(art::Event const & e)
+void NuMuSelection::produce(art::Event & e)
 {
+
+  fRun = e.run();
+  fSubRun = e.subRun();
+  fEvent = e.event();
+
+  isData = e.isRealData();
+  isMc = !isData;
+
+  selResult.SetSelectionStatus(false);
+  selResult.SetFailureReason("NoUBXSec");
+  std::unique_ptr< std::vector<ubana::SelectionResult> > selectionCollection( new std::vector<ubana::SelectionResult> );
 
   // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
@@ -129,7 +129,7 @@ void NuMuSelection::analyze(art::Event const & e)
 
   }
 
-  // get Selected TPCObject from selection handle
+  // get Selected NuMuCC Inclusive TPCObject from selection handle
   art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, "UBXSec");
   art::Ptr<ubana::TPCObject> selectedTpcObject; 
 
@@ -146,56 +146,19 @@ void NuMuSelection::analyze(art::Event const & e)
   std::vector< art::Ptr< raw::RawDigit > > rawDVec;
   art::fill_ptr_vector(rawDVec, rawDHandle);
 
+  std::cout << "\n>| PRINTING INFORMATION FOR EVENT " << fRun << "." << fSubRun << "." << fEvent << std::endl;
 
-  fRun = e.run();
-  fSubRun = e.subRun();
-  fEvent = e.event();
-
-  isData = e.isRealData();
-  isMc = !isData;
   if (isData)
-    std::cout << ">| Running over PHYSICS DATA" << std::endl;
+    std::cout << ">|>| Running over PHYSICS DATA" << std::endl;
   else
-    std::cout << ">| Running over SIMULATED DATA" << std::endl;
+    std::cout << ">|>| Running over SIMULATED DATA" << std::endl;
 
-  // save truth information to root file. Probably not needed but keeping for now
-  if (isGetTruthTree && isMc){
-
-    std::cout << "\n>| Producing Truth Tree" << std::endl;
-
-    art::Handle< std::vector<simb::MCTruth> > truthHandle;
-    e.getByLabel("generator", truthHandle);
-
-    for (auto const& truth : *(truthHandle)){
-
-      auto const& trueOrigin = truth.Origin(); // simb::kBeamNeutrino or simb::kCosmicRay
-
-      if (trueOrigin == simb::kBeamNeutrino){
-
-        auto const& nu = truth.GetNeutrino();
-        int nuPdg = nu.Nu().PdgCode(); 
-        int nuCcNc = nu.CCNC();
-
-        std::cout << ">>|------------- " << std::endl;
-        std::cout << ">>| Found true neutrino with pdg code " << nuPdg << std::endl;
-        std::cout << ">>| Interaction type? (CC = 0, NC = 1)" << nuCcNc << std::endl;
-
-      }
-
-    }
-
-  }
-  else std::cout << ">>| You can't handle the truth" << std::endl;
-
-  //
-  // selection begins here
-  //
-  
   if (selectedTpcObjects.at(0).size() == 1){ 
 
     selectedTpcObject = selectedTpcObjects.at(0).at(0);
 
     const std::vector<recob::Track>& selectedTracks = selectedTpcObject->GetTracks();
+    const size_t nSelectedShowers = selectedTpcObject->GetNShowers();
 
     int muonLikeCounter = 0;
 
@@ -211,45 +174,53 @@ void NuMuSelection::analyze(art::Event const & e)
 
       if (isMuLike){ 
         muonLikeCounter++;
-        std::cout << ">>|found a muon candidate!" << std::endl;
       }
-      else std::cout << ">>| not a muon candidate!" << std::endl;
 
     }
 
-    std::cout << "\n>| Found " << muonLikeCounter << " muon candidates! " << std::endl;
+    std::cout << "\n>|>| Found " << muonLikeCounter << " muon candidates! " << std::endl;
 
     if (muonLikeCounter == 0){
-     selResult.SetSelectionStatus(false);
-     selResult.SetFailureReason("NoMu");
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("NoMu");
     }
     else if (muonLikeCounter > 1){
-     selResult.SetSelectionStatus(false);
-     selResult.SetFailureReason("PionCandidate");
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("PionCandidate");
     }
     else if (muonLikeCounter == 1){
-     selResult.SetSelectionStatus(true);
-     selResult.SetFailureReason("");
+      selResult.SetSelectionStatus(true);
+      selResult.SetFailureReason("Passed");
     }
 
-    std::cout << "\n>| PRINTING SELECTION INFORMATION" << std::endl;
-    std::cout << ">>| SELECTION RESULT: " << selResult.GetSelectionStatus() << std::endl;
-    std::cout << ">>| REASON: " << selResult.GetFailureReason() << "\n" << std::endl;
+
+    if (nSelectedShowers != 0){
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("RecoShower");
+    }
+
+
 
   }
   else if (selectedTpcObjects.at(0).size() == 0){
 
-    std::cout << ">| No TPC object selected, on to the next event!" << std::endl;
+    std::cout << ">|>| No TPC object selected, on to the next event!" << std::endl;
 
   }
   else {
 
-    std::cout << ">| Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
+    std::cout << ">|>| Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
 
   }
 
+  std::cout << "\n>|>| PRINTING SELECTION INFORMATION" << std::endl;
+  std::cout << ">|>| SELECTION RESULT: " << selResult.GetSelectionStatus() << std::endl;
+  if (selResult.GetSelectionStatus() == 0)
+    std::cout << ">|>| REASON: " << selResult.GetFailureReason() << "\n" << std::endl;
 
-  truthTree->Fill();
+  selectionCollection->push_back(selResult);
+
+  e.put(std::move(selectionCollection));
 }
 
 void NuMuSelection::endJob()
