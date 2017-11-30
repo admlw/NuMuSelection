@@ -60,7 +60,6 @@ class NuMuSelection : public art::EDProducer {
     void produce(art::Event & e) override;
 
     // Selected optional functions.
-    void reconfigure(fhicl::ParameterSet const & p) override;
     void beginJob() override;
     void endJob() override;
 
@@ -87,14 +86,10 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   // More initializers here.
 {
 
-  produces< std::vector<ubana::SelectionResult> >();
-
-}
-
-void NuMuSelection::reconfigure(fhicl::ParameterSet const & p)
-{
-
   isData = p.get< bool > ("IsData");
+
+  produces< std::vector<ubana::SelectionResult> >();
+//  produces< art::Assns<ubana::SelectionResult, ubana::SelectionResult> >();
 
 }
 
