@@ -24,7 +24,8 @@ physics:
 
             module_type:            "EvaluatePerformance"
             FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
-      
+            SelectionLabel: "numusel"
+
        }
     }
 

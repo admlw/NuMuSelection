@@ -14,9 +14,17 @@ services:
 
 } # services
 
+source:
+{
+
+  module_type: RootInput
+  inputCommands:[ "keep *_*_*_*" ]
+
+}
+
 physics:
 {
-    analyzers:
+    producers:
     {
         numusel:
         {
@@ -26,8 +34,20 @@ physics:
        }
     }
 
+    stream1: [ out1 ]
     analysis: [ numusel ]
-    end_paths: [ analysis ]
+    trigger_paths: [ analysis ]
+    end_paths: [ stream1 ]
 } #physics
 
+outputs:
+{
+  out1:
+  {
+
+    module_type: RootOutput
+    fileName: "%ifb_%tc_numuSelection.root"
+#    SelectEvents: [ analysis ]
+  }
+}
 services.DetectorClocksService.InheritClockConfig: false
