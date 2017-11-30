@@ -75,7 +75,15 @@ class EvaluatePerformance : public art::EDAnalyzer {
     TTree* selectionEfficiency;
     ubana::FiducialVolume fiducialVolume;  
 
+    // fcl vars
+    std::string fSelectionLabel;
+
     // vars
+    
+    int run;
+    int subRun;
+    int event;
+
     bool isEventPassed;
     bool isCC0Pi;
     bool isBeamNeutrino;
@@ -150,10 +158,17 @@ EvaluatePerformance::EvaluatePerformance(fhicl::ParameterSet const & p)
 
   fiducialVolume.PrintConfig();
 
+  // get fcl params
+  fSelectionLabel = p.get<std::string> ("SelectionLabel");
 }
 
 void EvaluatePerformance::analyze(art::Event const & e)
 {
+  run = e.run();
+  subRun = e.subRun();
+  event = e.event();
+
+  std::cout << "\n>| PRINTING INFORMATION ABOUT EVENT " << run << "." << subRun << "." << event << std::endl;;
 
   // MC truth
   art::Handle< std::vector<simb::MCTruth> > mcTruthHandle;
@@ -162,16 +177,16 @@ void EvaluatePerformance::analyze(art::Event const & e)
   std::vector< art::Ptr<simb::MCTruth> > mcTruthVec;
   art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
   if (mcTruthVec.size() == 0){ 
-    std::cout << " >> No Neutrinos " << std::endl;
+    std::cout << ">|>| No Neutrinos " << std::endl;
     return;
   }
 
   // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
-  e.getByLabel("UBXSec", selectionHandle);
+  e.getByLabel(fSelectionLabel, selectionHandle);
   if (!selectionHandle.isValid()){
 
-    std::cout << " >> SelectionResult product not found. " << std::endl;
+    std::cout << ">|>| SelectionResult product not found. " << std::endl;
     mf::LogError(__PRETTY_FUNCTION__) << "SelectionResult product not found."
       << std::endl;
     throw std::exception(); 
@@ -265,7 +280,7 @@ void EvaluatePerformance::analyze(art::Event const & e)
     isMixed = false;
     isCosmic = false;
 
-    if ( selectedOrigin == ubana::kBeamNeutrino) isBeamNeutrino = true;
+    if (selectedOrigin == ubana::kBeamNeutrino) isBeamNeutrino = true;
 
     if (selectedOrigin == ubana::kMixed) isMixed = true;
 
@@ -279,11 +294,11 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
     if (selectionStatus.GetSelectionStatus() == true){
 
-      std::cout << " -->> Event Selected." << std::endl;
+      std::cout << ">|>| Event Selected." << std::endl;
       if (isBeamNeutrino && isSignal){
         // event passes
 
-        std::cout << " -->> Event is true numuCC from beam in FV" << std::endl;
+        std::cout << ">|>|>| Event is true numuCC from beam in FV" << std::endl;
 
         isEventPassed = true;
 
@@ -321,7 +336,7 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
       }
       else{ 
-        std::cout << " -->> Event is not true numuCC from beam in FV" << std::endl;
+        std::cout << ">|>|>| Event is not true numuCC from beam in FV" << std::endl;
 
         purityVector.at(0) = isCosmic;
         purityVector.at(1) = isMixed;
@@ -332,15 +347,15 @@ void EvaluatePerformance::analyze(art::Event const & e)
         purityVector.at(6) = isElectronAntineutrino;
         purityVector.at(7) = !isCC;
 
-        std::cout << " -->> FAILURE REASON" << std::endl;
-        std::cout << purityVector.at(0) << " isCosmic" << std::endl;
-        std::cout << purityVector.at(1) << " isMixed" << std::endl;
-        std::cout << purityVector.at(2) << " isTrueVtxOutOfFV" << std::endl;
-        std::cout << purityVector.at(3) << " isMuonNeutrino " << std::endl;
-        std::cout << purityVector.at(4) << " isMuonAntiNeutrino" << std::endl;
-        std::cout << purityVector.at(5) << " isElectronNeutrino" << std::endl;
-        std::cout << purityVector.at(6) << " isElectronAntiNeutrino" << std::endl;
-        std::cout << purityVector.at(7) << " isNC" << std::endl;
+        std::cout << ">|>|>| FAILURE REASON(S)" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(0) << " isCosmic" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(1) << " isMixed" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(2) << " isTrueVtxOutOfFV" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(3) << " isMuonNeutrino " << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(4) << " isMuonAntiNeutrino" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(5) << " isElectronNeutrino" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(6) << " isElectronAntiNeutrino" << std::endl;
+        std::cout << ">|>|>|>| " << purityVector.at(7) << " isNC" << std::endl;
 
         // purity 
 
@@ -370,12 +385,12 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
       // event does not pass
 
-      std::cout << " -->> Not Selected." << std::endl;
+      std::cout << ">|>| Not Selected." << std::endl;
 
       isEventPassed = false;
       if (isSignal){
 
-        std::cout << " -->> Event is true numuCC from beam in FV" << std::endl;
+        std::cout << ">|>|>| Event is true numuCC from beam in FV" << std::endl;
         mcNuEnergyEff->Fill(isEventPassed, mcNuEnergy);
         mcLeptonMomEff->Fill(isEventPassed, mcLeptonMom);
         mcLeptonThetaEff->Fill(isEventPassed, mcLeptonTheta);
@@ -392,7 +407,7 @@ void EvaluatePerformance::analyze(art::Event const & e)
         }
 
       }
-      else std::cout << " -->> Event is not true numuCC from beam in FV" << std::endl;
+      else std::cout << ">|>|>| Event is not true numuCC from beam in FV" << std::endl;
 
     }
   }
