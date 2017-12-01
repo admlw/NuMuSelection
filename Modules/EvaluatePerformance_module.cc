@@ -36,6 +36,7 @@
 #include "TEfficiency.h"
 #include "TLorentzVector.h"
 #include "TH1.h"
+#include "TH2.h"
 
 // UBXSec Includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"
@@ -101,9 +102,16 @@ class EvaluatePerformance : public art::EDAnalyzer {
     double vx, vy, vz;
 
     double mcNuEnergy;
+    double mcNuMom;
+    double mcNuPx, mcNuPy, mcNuPz;
+    double mcLeptonEnergy;
     double mcLeptonMom;
+    double mcLeptonPx, mcLeptonPy, mcLeptonPz;
     double mcLeptonTheta;
     double mcLeptonPhi;
+
+    double momentumTransfer;
+    double energyTransfer;
 
     double muonCandidateLength;
 
@@ -142,6 +150,9 @@ class EvaluatePerformance : public art::EDAnalyzer {
     TH1D* selectedTrackLengthAntiNuE;
     TH1D* selectedTrackLengthNC;
     TH1D* selectedTrackLengthOther;
+
+    // truth histograms
+    TH2D* trueq3q0;
 };
 
 
@@ -194,7 +205,7 @@ void EvaluatePerformance::analyze(art::Event const & e)
   }
 
   // get Selected TPCObject from selection handle
-  art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, "UBXSec");
+  art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, fSelectionLabel);
   art::Ptr<ubana::TPCObject> selectedTpcObject; 
 
   // get objects from handle
@@ -210,7 +221,14 @@ void EvaluatePerformance::analyze(art::Event const & e)
 
   // variables for making efficiency plots
   mcNuEnergy = mcNuP.E();
+  mcNuPx = mcNuP.Px();
+  mcNuPy = mcNuP.Py();
+  mcNuPz = mcNuP.Pz();
+  mcLeptonEnergy = mcLeptonP.E();
   mcLeptonMom = mcLeptonP.P();
+  mcLeptonPx = mcLeptonP.Px();
+  mcLeptonPy = mcLeptonP.Py();
+  mcLeptonPz = mcLeptonP.Pz();
   mcLeptonTheta = std::cos(mcLeptonP.Momentum().Theta());
   mcLeptonPhi = mcLeptonP.Momentum().Phi();
 
@@ -247,14 +265,19 @@ void EvaluatePerformance::analyze(art::Event const & e)
   if (fiducialVolume.InFV(vx, vy, vz)) isTrueVtxInFV = true;
   else isTrueVtxInFV = false;
 
-  if (isCC && isMuonNeutrino && isTrueVtxInFV) isSignal = true;
+  if (isCC && isCC0Pi && isMuonNeutrino && isTrueVtxInFV) isSignal = true;
   else isSignal = false;
+
+  //
+  // Calculate energy and momentum transfer
+  //
 
   // -------------------------------------------------------------------------
   // Reconstructed information
   // --- "did we select an object in this event"
   // --- "if we did, is it a neutrino interaction"
   // -------------------------------------------------------------------------
+
 
   if (selectedTpcObjects.at(0).size() == 1){
     selectedTpcObject = selectedTpcObjects.at(0).at(0);
@@ -332,7 +355,11 @@ void EvaluatePerformance::analyze(art::Event const & e)
           selectedTrackLengthTrueCC0Pi->Fill(muonCandidateLength);
 
         }
+      
+        energyTransfer = mcNuEnergy - mcLeptonEnergy;
+        momentumTransfer = std::sqrt(std::pow(mcNuPx - mcLeptonPx,2) + std::pow(mcNuPy - mcLeptonPy,2) + std::pow(mcNuPz - mcLeptonPz,2));
 
+        trueq3q0->Fill(momentumTransfer, energyTransfer);
 
       }
       else{ 
@@ -369,10 +396,12 @@ void EvaluatePerformance::analyze(art::Event const & e)
         mcLeptonThetaCC0PiPur->Fill(false, mcLeptonTheta);
         mcLeptonPhiCC0PiPur->Fill(false, mcLeptonPhi);
 
+        std::cout << "muonCandLen " << muonCandidateLength << std::endl;
+
         if (isCosmic){ selectedTrackLengthCosmic->Fill(muonCandidateLength); }
         else if (isMixed){ selectedTrackLengthMixed->Fill(muonCandidateLength); }
         else if (!isTrueVtxInFV){ selectedTrackLengthOutOfFV->Fill(muonCandidateLength); }
-        else if (!isCC){ selectedTrackLengthNC->Fill(muonCandidateLength); }
+        else if (isMuonNeutrino){ selectedTrackLengthNC->Fill(muonCandidateLength); }
         else if (isMuonAntiNeutrino){ selectedTrackLengthAntiNuMu->Fill(muonCandidateLength); }
         else if (isElectronNeutrino){ selectedTrackLengthNuE->Fill(muonCandidateLength); }
         else if (isElectronAntineutrino){ selectedTrackLengthAntiNuE->Fill(muonCandidateLength); }
@@ -455,6 +484,9 @@ void EvaluatePerformance::beginJob()
   selectedTrackLengthAntiNuE = tfs->make<TH1D>("selectedTrackLengthAntiNuE", ";Candidate muon length; # tracks", 30, 0, 700);
   selectedTrackLengthNC = tfs->make<TH1D>("selectedTrackLengthNC", ";Candidate muon length; # tracks", 30, 0, 700);
   selectedTrackLengthOther = tfs->make<TH1D>("selectedTrackLengthOther", ";Candidate muon length; # tracks", 30, 0, 700);
+
+  // truth histograms
+  trueq3q0 = tfs->make<TH2D>("trueq3q0", ";True q3 (GeV);True q0 (GeV)", 50, 0, 1.2, 50, 0, 1.2);
 
 }
 

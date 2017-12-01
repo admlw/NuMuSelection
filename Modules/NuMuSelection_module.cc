@@ -29,6 +29,7 @@
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardata/Utilities/AssociationUtil.h"
 
 // ROOT Includes
 #include "TTree.h"
@@ -89,7 +90,8 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   isData = p.get< bool > ("IsData");
 
   produces< std::vector<ubana::SelectionResult> >();
-//  produces< art::Assns<ubana::SelectionResult, ubana::SelectionResult> >();
+  produces< std::vector<ubana::TPCObject> >();
+  produces< art::Assns<ubana::TPCObject, ubana::SelectionResult> >();
 
 }
 
@@ -110,7 +112,10 @@ void NuMuSelection::produce(art::Event & e)
 
   selResult.SetSelectionStatus(false);
   selResult.SetFailureReason("NoUBXSec");
+  
   std::unique_ptr< std::vector<ubana::SelectionResult> > selectionCollection( new std::vector<ubana::SelectionResult> );
+  std::unique_ptr< std::vector<ubana::TPCObject> > tpcObjectCollection( new std::vector<ubana::TPCObject> );
+  std::unique_ptr< art::Assns<ubana::TPCObject, ubana::SelectionResult> > selTpcObjAssn( new art::Assns<ubana::TPCObject, ubana::SelectionResult>);
 
   // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
@@ -195,7 +200,7 @@ void NuMuSelection::produce(art::Event & e)
     }
 
 
-
+    tpcObjectCollection->push_back(*(selectedTpcObject.get()));
   }
   else if (selectedTpcObjects.at(0).size() == 0){
 
@@ -213,9 +218,13 @@ void NuMuSelection::produce(art::Event & e)
   if (selResult.GetSelectionStatus() == 0)
     std::cout << ">|>| REASON: " << selResult.GetFailureReason() << "\n" << std::endl;
 
+
   selectionCollection->push_back(selResult);
+  util::CreateAssn(*this, e, *tpcObjectCollection, *selectionCollection, *selTpcObjAssn, 0, selectionCollection->size());
 
   e.put(std::move(selectionCollection));
+  e.put(std::move(tpcObjectCollection));
+  e.put(std::move(selTpcObjAssn));
 }
 
 void NuMuSelection::endJob()
