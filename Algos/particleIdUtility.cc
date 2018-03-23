@@ -2,7 +2,7 @@
 
 namespace pidutil{
 
-  std::pair<double, double> particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDqdxFromRawD){
+  std::pair<double, double> particleIdUtility::getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection){
 
     std::pair<double, double> averagedQdX;
     averagedQdX.first = -1;
@@ -12,7 +12,6 @@ namespace pidutil{
 
     // get total charge deposited
     double hitCharge = 0.0;
-    double rawIntegral = 0.0;
     std::vector<double> hitCharges;
     for (size_t i = 0; i < hitCollection.size(); i++){
 
@@ -24,39 +23,6 @@ namespace pidutil{
       channelPeakTime.first = hit->Channel();
       channelPeakTime.second = hit->PeakTime();
       channelPeakTimeVector.push_back(channelPeakTime);
-
-      // get RawDigitIntegral
-      for (size_t j = 0; j < rawDCollection.size(); j++){
-
-        if ((int)rawDCollection.at(j)->Channel() == (int)channelPeakTime.first){
-
-          // get correction factor
-          std::vector<short> const adcVec = rawDCollection.at(j)->ADCs();
-          double correctionValue = 0;
-          int counter = 0;
-          for ( int k = 0; k < (int)adcVec.size(); k++){
-
-            if ( k < channelPeakTime.second - 30 || k > channelPeakTime.second + 30 ){
-
-              counter++;
-              correctionValue +=adcVec.at(k);
-
-            }
-
-          }
-
-          correctionValue = correctionValue/(double)counter;
-
-          for ( int k = channelPeakTime.second - 30; 
-              k < channelPeakTime.second + 30;
-              k++){
-
-            rawIntegral += (rawDCollection.at(j)->ADC(k)) - correctionValue;
-
-          }
-        }
-      }
-
 
       hitCharge += hit->Integral();
       hitCharges.push_back(hit->Integral());
@@ -75,12 +41,7 @@ namespace pidutil{
 
 
     double averagedQdXmean; 
-    if (isDqdxFromRawD == false){
-      averagedQdXmean = hitCharge/trackLength;
-    }
-    else {
-      averagedQdXmean = rawIntegral/trackLength;
-    }
+    averagedQdXmean = hitCharge/trackLength;
 
     averagedQdX.first = averagedQdXmean;
     averagedQdX.second = trackLength;

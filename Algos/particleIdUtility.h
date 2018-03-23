@@ -35,7 +35,8 @@ namespace pidutil{
         return isLarger;
       }
 
-      std::pair<double, double> getAveragedQdX(recob::Track const& track, std::vector< art::Ptr< recob::Hit > > hitCollection, std::vector< art::Ptr< raw::RawDigit > > rawDCollection, bool isDQdXFromRawD);
+      std::pair<double, double> getAveragedQdX(recob::Track const& track, 
+          std::vector< art::Ptr< recob::Hit > > hitCollection);
 
       std::vector< std::vector< std::pair<double, double> > > getDeadRegions(std::vector< std::pair<int, int> > hitCollection);
 
