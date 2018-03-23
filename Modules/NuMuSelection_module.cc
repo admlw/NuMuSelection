@@ -67,6 +67,8 @@ class NuMuSelection : public art::EDProducer {
     void beginJob() override;
     void endJob() override;
 
+    void initialiseTree(TTree *t);
+
   private:
 
     art::ServiceHandle< art::TFileService > tfs;
@@ -86,6 +88,23 @@ class NuMuSelection : public art::EDProducer {
     int fSubRun;
     int fEvent;
 
+    // vars
+    double mcNuVx;
+    double mcNuVy;
+    double mcNuVz;
+    int mcNuCCNC;
+    double mcNuEnergy;
+    double mcNuPx;
+    double mcNuPy;
+    double mcNuPz;
+    double mcLeptonEnergy;
+    double mcLeptonMom;
+    double mcLeptonPx;
+    double mcLeptonPy;
+    double mcLeptonPz;
+    double mcLeptonTheta; //<! Theta from lepton initial momentum
+    double mcLeptonCosTheta; //<! Cosine theta from lepton intial momentum
+    double mcLeptonPhi; //<! Phi from lepton initial momentum
 };
 
 
@@ -107,7 +126,7 @@ void NuMuSelection::beginJob()
 {
 
   tree = tfs->make<TTree>("tree", "tree");
-
+  initialiseTree(tree);
 }
 
 void NuMuSelection::produce(art::Event & e)
@@ -197,8 +216,12 @@ void NuMuSelection::produce(art::Event & e)
     << fRun << "." << fSubRun << "." << fEvent << std::endl;
 
   /**
-   * If there is more than one selected object, then 
-   * move to the next event.
+   * Selection 
+   *
+   * Demand:
+   * -- Only one selected TPC object
+   * -- Only one track is considered muon-like
+   * -- No showers reconstructed in the shower object
    */
   if (selectedTpcObjects.at(0).size() == 1){ 
 
@@ -210,13 +233,14 @@ void NuMuSelection::produce(art::Event & e)
     int muonLikeCounter = 0;
 
     /**
-     * Loop tracks and check whether each trak is compatibile with
+     * Loop tracks and check whether each track is compatibile with
      * being a muon. If more than one track is muon-like then 
      * the event does not pass.
      *
      * This is currently a stop-gap fix until working PID can be put
      * here
      */
+    
     for (size_t i = 0; i < selectedTracks.size(); i++){
 
       const recob::Track& track = selectedTracks.at(i);
@@ -249,13 +273,16 @@ void NuMuSelection::produce(art::Event & e)
     else if (muonLikeCounter == 1){
       selResult.SetSelectionStatus(true);
       selResult.SetFailureReason("Passed");
-      ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
-
     }
 
     if (nSelectedShowers != 0){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("RecoShower");
+    }
+
+    if (selectedTracks.size() <= 1){
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("OneRecoTrack");
     }
 
     tpcObjectCollection->push_back(*(selectedTpcObject.get()));
@@ -267,14 +294,6 @@ void NuMuSelection::produce(art::Event & e)
   else {
     std::cout 
       << "[NUMUSEL] Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
-  }
-
-  std::cout << "[NUMUSEL] PRINTING SELECTION INFORMATION" << std::endl;
-  std::cout << "[NUMUSEL] SELECTION RESULT: " 
-    << selResult.GetSelectionStatus() << std::endl;
-  if (selResult.GetSelectionStatus() == 0){
-    std::cout << "[NUMUSEL] REASON: " 
-      << selResult.GetFailureReason() << "\n" << std::endl;
   }
 
   selectionCollection->push_back(selResult);
@@ -289,11 +308,72 @@ void NuMuSelection::produce(art::Event & e)
   e.put(std::move(selectionCollection));
   e.put(std::move(tpcObjectCollection));
   e.put(std::move(selTpcObjAssn));
+
+  std::cout << "[NUMUSEL] PRINTING SELECTION INFORMATION" << std::endl;
+  std::cout << "[NUMUSEL] SELECTION RESULT: " 
+    << selResult.GetSelectionStatus() << std::endl;
+  if (selResult.GetSelectionStatus() == false){
+    std::cout << "[NUMUSEL] REASON: " 
+      << selResult.GetFailureReason() << "\n" << std::endl;
+  }
+
+  /**
+   * Event is selected, put all information of interest in a tree.
+   */
+  if (selResult.GetSelectionStatus() == true){
+
+    if (isMc){
+      ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
+      const simb::MCNeutrino& mcNu = mcTruth->GetNeutrino();
+      const simb::MCParticle& mcNuP = mcNu.Nu();
+      const simb::MCParticle& mcLeptonP = mcNu.Lepton();
+    
+      mcNuVx = (double) mcNuP.Vx();
+      mcNuVy = (double) mcNuP.Vy();
+      mcNuVz = (double) mcNuP.Vz();
+      mcNuPx = mcNuP.Px();
+      mcNuPy = mcNuP.Py();
+      mcNuPz = mcNuP.Pz();
+      mcNuEnergy = mcNuP.E();
+      mcLeptonMom = mcLeptonP.P();
+      mcLeptonPx = mcLeptonP.Px();
+      mcLeptonPy = mcLeptonP.Py();
+      mcLeptonPz = mcLeptonP.Pz();
+      mcLeptonTheta = mcLeptonP.Momentum().Theta();
+      mcLeptonCosTheta = std::cos(mcLeptonP.Momentum().Theta());
+      mcLeptonPhi = mcLeptonP.Momentum().Phi();
+
+    }
+
+  }
+
+  tree->Fill();
+
 }
 
 void NuMuSelection::endJob()
 {
   // Implementation of optional member function here.
+}
+
+void NuMuSelection::initialiseTree(TTree *t)
+{
+  t->SetBranchAddress("mcNuCCNC", &mcNuCCNC);
+  t->SetBranchAddress("mcNuVx", &mcNuVx);
+  t->SetBranchAddress("mcNuVy", &mcNuVy);
+  t->SetBranchAddress("mcNuVz", &mcNuVz);
+  t->SetBranchAddress("mcNuPx", &mcNuPx);
+  t->SetBranchAddress("mcNuPy", &mcNuPy);
+  t->SetBranchAddress("mcNuPz", &mcNuPz);
+  t->SetBranchAddress("mcNuEnergy", &mcNuEnergy);
+  t->SetBranchAddress("mcLeptonMom", &mcLeptonMom);
+  t->SetBranchAddress("mcLeptonPx", &mcLeptonPx);
+  t->SetBranchAddress("mcLeptonPy", &mcLeptonPy);
+  t->SetBranchAddress("mcLeptonPz", &mcLeptonPz);
+  t->SetBranchAddress("mcLeptonEnergy", &mcLeptonEnergy);
+  t->SetBranchAddress("mcLeptonTheta", &mcLeptonTheta);
+  t->SetBranchAddress("mcLeptonCosTheta", &mcLeptonCosTheta);
+  t->SetBranchAddress("mcLeptonPhi", &mcLeptonPhi);
 }
 
 DEFINE_ART_MODULE(NuMuSelection)
