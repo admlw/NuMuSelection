@@ -105,7 +105,7 @@ void EvaluateParticleId::analyze(art::Event const & e)
     // get associated hits
     std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
-    averagedQdX = pidutils.getAveragedQdX(track, hits, rawDVec, false); 
+    averagedQdX = pidutils.getAveragedQdX(track, hits); 
     
     double averagedQdXMean = averagedQdX.first;
     //TH1D* averagedQdXhisto = averagedQdX.second;

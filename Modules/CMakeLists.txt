@@ -16,6 +16,7 @@ art_make(
     uboonecode_uboone_NuMuSelection_Algos
     uboonecode_uboone_UBXSec_Algorithms
     uboonecode_uboone_UBXSec_DataTypes
+    EventWeight
     ${LARRECO_LIB}
     ${LARDATA_LIB}
     ${ART_FRAMEWORK_CORE}
