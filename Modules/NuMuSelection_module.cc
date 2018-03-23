@@ -28,7 +28,6 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RawData/RawDigit.h"
 #include "lardata/Utilities/AssociationUtil.h"
 
 // ROOT Includes
@@ -70,9 +69,14 @@ class NuMuSelection : public art::EDProducer {
 
   private:
 
-    pidutil::particleIdUtility pidutils;
+    art::ServiceHandle< art::TFileService > tfs;
+    TTree * tree;
 
+    // intialise classes
+    pidutil::particleIdUtility pidutils;
     ubana::SelectionResult selResult;
+    ubana::FiducialVolume fiducialVolume;
+    uboone::EWTreeUtil ewutil;
 
     // fcl pars
     bool isData;
@@ -101,6 +105,8 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
 
 void NuMuSelection::beginJob()
 {
+
+  tree = tfs->make<TTree>("tree", "tree");
 
 }
 
@@ -148,11 +154,44 @@ void NuMuSelection::produce(art::Event & e)
   // hit information
   art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, "pandoraNu");
 
-  // get RawDigits to pass to dQdX calculation
-  art::Handle< std::vector< raw::RawDigit > > rawDHandle;
-  e.getByLabel("wcNoiseFilter", rawDHandle);
-  std::vector< art::Ptr< raw::RawDigit > > rawDVec;
-  art::fill_ptr_vector(rawDVec, rawDHandle);
+  /**
+   * Get MCTruth, MCFlux, and GTruth information for reweighting
+   */
+  
+  art::Handle< std::vector< simb::MCTruth > > mcTruthHandle;
+  e.getByLabel("generator", mcTruthHandle);
+  if (!mcTruthHandle.isValid()) return;
+  std::vector< art::Ptr<simb::MCTruth> > mcTruthVec;
+  art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
+  if (mcTruthVec.size() == 0){
+    std::cout << "[NUMUSEL] No MCTruth Information" << std::endl;
+    return;
+  }
+
+  art::Handle< std::vector< simb::GTruth > > gTruthHandle;
+  e.getByLabel("generator", gTruthHandle);
+  if (!gTruthHandle.isValid()) return;
+  std::vector< art::Ptr<simb::GTruth> > gTruthVec;
+  art::fill_ptr_vector(gTruthVec, gTruthHandle);
+  if (gTruthVec.size() == 0){
+    std::cout << "[NUMUSEL] No GTruth Information" << std::endl;
+    return;
+  }
+
+  art::Handle< std::vector< simb::MCFlux > > mcFluxHandle;
+  e.getByLabel("generator", mcFluxHandle);
+  if (!mcFluxHandle.isValid()) return;
+  std::vector< art::Ptr<simb::MCFlux> > mcFluxVec;
+  art::fill_ptr_vector(mcFluxVec, mcFluxHandle);
+  if (mcFluxVec.size() == 0){
+    std::cout << "[NUMUSEL] No MCFlux Information" << std::endl;
+    return;
+  }
+
+  const art::Ptr<simb::MCFlux> mcFlux = mcFluxVec.at(0);
+  const art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
+  const art::Ptr<simb::GTruth> gTruth = gTruthVec.at(0);
+
 
   std::cout << "[NUMUSEL] PRINTING INFORMATION FOR EVENT " 
     << fRun << "." << fSubRun << "." << fEvent << std::endl;
@@ -185,7 +224,7 @@ void NuMuSelection::produce(art::Event & e)
       std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
       std::pair<double, double> averageDqdx = 
-        pidutils.getAveragedQdX(track, hits, rawDVec, false);
+        pidutils.getAveragedQdX(track, hits);
 
       bool isMuLike = 
         pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
@@ -210,6 +249,8 @@ void NuMuSelection::produce(art::Event & e)
     else if (muonLikeCounter == 1){
       selResult.SetSelectionStatus(true);
       selResult.SetFailureReason("Passed");
+      ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
+
     }
 
     if (nSelectedShowers != 0){
