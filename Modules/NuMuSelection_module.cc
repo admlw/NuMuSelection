@@ -83,12 +83,14 @@ class NuMuSelection : public art::EDProducer {
     // fcl pars
     bool isData;
     bool isMc;
+    int maxNShowers;
+    int minNTracks;
 
+    // vars
     int fRun;
     int fSubRun;
     int fEvent;
 
-    // vars
     double mcNuVx;
     double mcNuVy;
     double mcNuVz;
@@ -114,7 +116,9 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   // More initializers here.
 {
 
-  isData = p.get< bool > ("IsData");
+  isData      = p.get< bool > ("IsData");
+  maxNShowers = p.get< int > ("MaximumNShowers", 0);
+  minNTracks  = p.get< int > ("MinimumNTracks", 2);
 
   produces< std::vector<ubana::SelectionResult> >();
   produces< std::vector<ubana::TPCObject> >();
@@ -275,14 +279,17 @@ void NuMuSelection::produce(art::Event & e)
       selResult.SetFailureReason("Passed");
     }
 
-    if (nSelectedShowers != 0){
+    /*
+     * Topology cuts
+     */
+    if ((int)nSelectedShowers > maxNShowers){
       selResult.SetSelectionStatus(false);
-      selResult.SetFailureReason("RecoShower");
+      selResult.SetFailureReason("nShowersGTMaxNShowers");
     }
 
-    if (selectedTracks.size() <= 1){
+    if ((int)selectedTracks.size() < minNTracks){
       selResult.SetSelectionStatus(false);
-      selResult.SetFailureReason("OneRecoTrack");
+      selResult.SetFailureReason("nTracksLTMinNTracks");
     }
 
     tpcObjectCollection->push_back(*(selectedTpcObject.get()));
@@ -358,22 +365,22 @@ void NuMuSelection::endJob()
 
 void NuMuSelection::initialiseTree(TTree *t)
 {
-  t->SetBranchAddress("mcNuCCNC", &mcNuCCNC);
-  t->SetBranchAddress("mcNuVx", &mcNuVx);
-  t->SetBranchAddress("mcNuVy", &mcNuVy);
-  t->SetBranchAddress("mcNuVz", &mcNuVz);
-  t->SetBranchAddress("mcNuPx", &mcNuPx);
-  t->SetBranchAddress("mcNuPy", &mcNuPy);
-  t->SetBranchAddress("mcNuPz", &mcNuPz);
-  t->SetBranchAddress("mcNuEnergy", &mcNuEnergy);
-  t->SetBranchAddress("mcLeptonMom", &mcLeptonMom);
-  t->SetBranchAddress("mcLeptonPx", &mcLeptonPx);
-  t->SetBranchAddress("mcLeptonPy", &mcLeptonPy);
-  t->SetBranchAddress("mcLeptonPz", &mcLeptonPz);
-  t->SetBranchAddress("mcLeptonEnergy", &mcLeptonEnergy);
-  t->SetBranchAddress("mcLeptonTheta", &mcLeptonTheta);
-  t->SetBranchAddress("mcLeptonCosTheta", &mcLeptonCosTheta);
-  t->SetBranchAddress("mcLeptonPhi", &mcLeptonPhi);
+  t->Branch("mcNuCCNC", &mcNuCCNC);
+  t->Branch("mcNuVx", &mcNuVx);
+  t->Branch("mcNuVy", &mcNuVy);
+  t->Branch("mcNuVz", &mcNuVz);
+  t->Branch("mcNuPx", &mcNuPx);
+  t->Branch("mcNuPy", &mcNuPy);
+  t->Branch("mcNuPz", &mcNuPz);
+  t->Branch("mcNuEnergy", &mcNuEnergy);
+  t->Branch("mcLeptonMom", &mcLeptonMom);
+  t->Branch("mcLeptonPx", &mcLeptonPx);
+  t->Branch("mcLeptonPy", &mcLeptonPy);
+  t->Branch("mcLeptonPz", &mcLeptonPz);
+  t->Branch("mcLeptonEnergy", &mcLeptonEnergy);
+  t->Branch("mcLeptonTheta", &mcLeptonTheta);
+  t->Branch("mcLeptonCosTheta", &mcLeptonCosTheta);
+  t->Branch("mcLeptonPhi", &mcLeptonPhi);
 }
 
 DEFINE_ART_MODULE(NuMuSelection)
