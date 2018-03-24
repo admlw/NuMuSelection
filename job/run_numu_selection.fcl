@@ -1,6 +1,7 @@
 #include "services_microboone.fcl"
 #include "messageservice.fcl"
 #include "time_memory_tracker_microboone.fcl"
+#include "fiducial_volume_settings.fcl"
 
 process_name: numuselection
 
@@ -30,6 +31,7 @@ physics:
     {
 
        module_type:     "NuMuSelection"
+       FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
        IsData:          false       
        MaximumNShowers: 0
        MinimumNTracks:  2

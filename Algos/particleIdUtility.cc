@@ -119,11 +119,11 @@ namespace pidutil{
 
       }
 
-      std::cout << "Found dead region between trajectory points " 
-        << deadStartPoint << " and " << deadEndPoint 
-        << " which corresponds to z positions " << deadStart.at(i).first 
-        << " and " << deadEnd.at(i).first << std::endl;
-
+     /* std::cout << "Found dead region between trajectory points " 
+      *  << deadStartPoint << " and " << deadEndPoint 
+      *  << " which corresponds to z positions " << deadStart.at(i).first 
+      *  << " and " << deadEnd.at(i).first << std::endl;
+      */
       // calculate length from trajectory in dead region
       if (deadStartPoint >= deadEndPoint) return 0;
 
@@ -143,7 +143,7 @@ namespace pidutil{
 
     }
 
-    std::cout << "Returning untracked Length " << untrackedLength << std::endl;
+    //std::cout << "Returning untracked Length " << untrackedLength << std::endl;
 
     return untrackedLength;
 
@@ -156,10 +156,10 @@ namespace pidutil{
 
       double evalPoint = f1->Eval(averagedQdX);
 
-      std::cout << "\n average dqdx " << averagedQdX
-        << "\n length " << len 
-        << "\n evalPoint " << evalPoint
-        << "\n " << std::endl;
+      std::cout << "[PIDUTIL] Average dqdx " << averagedQdX
+        << "\n[PIDUTIL] length " << len 
+        << "\n[PIDUTIL] evalPoint " << evalPoint
+        << "\n[PIDUTIL] " << std::endl;
 
       if (len > evalPoint) return false;
       else return true;
