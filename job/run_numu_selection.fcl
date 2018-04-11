@@ -19,7 +19,7 @@ source:
 {
 
   module_type: RootInput
-  inputCommands:[ "keep *_*_*_*" ]
+  inputCommands:[ "keep *_*_*_*", "drop sumdata::RunData_*_*_*" ]
 
 }
 
@@ -33,9 +33,15 @@ physics:
        module_type:     "NuMuSelection"
        FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
        IsData:          false       
+       # reconstructed information
        MaximumNShowers: 0
        MinimumNTracks:  2
-     }
+       # true information
+       # for signal definition
+       MinimumNProtons: 1
+       protonEThreshold: 0.04
+       electronEThreshold: 0.02
+      }
   }
 
   stream1: [ out1 ]
@@ -51,7 +57,8 @@ outputs:
 
     module_type: RootOutput
     fileName: "%ifb_%tc_numuSelection.root"
-#    SelectEvents: [ analysis ]
+    dataTier: "numu-selected"
+    compressionLevel: 1
   }
 }
 

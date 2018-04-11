@@ -76,6 +76,16 @@ class NuMuSelection : public art::EDProducer {
     void initialiseTree(TTree *t);
 
     /**
+     * clear vectors
+     */
+    void clearVectors();
+
+    /**
+     * resize vectors
+     */
+    void resizeVectors();
+
+    /**
      * check whether event is truly CC0Pi
      */
     bool is0PiEvent(art::Ptr<simb::MCTruth> mcTruth);
@@ -124,7 +134,6 @@ class NuMuSelection : public art::EDProducer {
     // signal bools
     bool isSelected;
     bool isCC;
-    bool is0Pi;
     bool isNuMu;
     bool isNuMuBar;
     bool isNuE;
@@ -150,8 +159,8 @@ class NuMuSelection : public art::EDProducer {
     bool isZeroShowerTruth;
 
     /** does the selected TPC object have any pions? */
-    bool isPionRejectionSelected;
-    bool PionRejectionTruth;
+    bool is0PiSelected;
+    bool is0PiTruth;
 
     // vars
     int run;
@@ -185,7 +194,6 @@ class NuMuSelection : public art::EDProducer {
     /**
      * MCParticle information of MCP which is matched to muon candidate
      */
-    static const int kMaxParticles = 50;
     int mcpMuonCandTrackId;
     int mcpMuonCandStatusCode;
     int mcpMuonCandPdgCode;
@@ -193,11 +201,14 @@ class NuMuSelection : public art::EDProducer {
     std::string mcpMuonCandProcess;
     std::string mcpMuonCandEndProcess;
     int mcpMuonCandNDaughters;
-    int mcpMuonCandDaughter[kMaxParticles];
+    std::vector<int> mcpMuonCandDaughter;
     unsigned int mcpMuonCandNumTrajPoint;
     double mcpMuonCandVx;
     double mcpMuonCandVy;
     double mcpMuonCandVz;
+    double mcpMuonCandEndX;
+    double mcpMuonCandEndY;
+    double mcpMuonCandEndZ;
     double mcpMuonCandT;
     double mcpMuonCandPx;
     double mcpMuonCandPy;
@@ -214,35 +225,37 @@ class NuMuSelection : public art::EDProducer {
     double mcpMuonCandCosTheta; //<! Cosine theta from lepton intial momentum
     double mcpMuonCandPhi; //<! Phi from lepton initial momentum
 
-
     /**
      * Save all MCParticle information for all neutrino induced particle
      */
-    /*    std::vector<int> mcpTrackIds;
-          std::vector<int> mcpStatusCodes;
-          std::vector<int> mcpPdgCodes;
-          std::vector<int> mcpMothers;
-          std::vector<std::string> mcpProcesses;
-          std::vector<std::string> mcpEndProcesses;
-          std::vector<int> mcpNDaughters;
-          std::vector<int> mcpDaughters;
-          std::vector<unsigned int> mcpNumTrajPoints;
-          std::vector<double> mcpVxs;
-          std::vector<double> mcpVys;
-          std::vector<double> mcpVzs;
-          std::vector<double> mcpTs;
-          std::vector<double> mcpPxs;
-          std::vector<double> mcpPys;
-          std::vector<double> mcpPzs;
-          std::vector<double> mcpEs;
-          std::vector<double> mcpPs;
-          std::vector<double> mcpPTs;
-          std::vector<double> mcpMasses;
-          std::vector<double> mcpEndPxs;
-          std::vector<double> mcpEndPys;
-          std::vector<double> mcpEndPzs;
-          std::vector<double> mcpEndEs;
-          */
+    std::vector<int> mcpTrackIds;
+    std::vector<int> mcpStatusCodes;
+    std::vector<int> mcpPdgCodes;
+    std::vector<int> mcpMothers;
+    std::vector<std::string> mcpProcesses;
+    std::vector<std::string> mcpEndProcesses;
+    std::vector<int> mcpNDaughters;
+    //std::vector<int> mcpDaughters;
+    std::vector<unsigned int> mcpNumTrajPoints;
+    std::vector<double> mcpVxs;
+    std::vector<double> mcpVys;
+    std::vector<double> mcpVzs;
+    std::vector<double> mcpEndXs;
+    std::vector<double> mcpEndYs;
+    std::vector<double> mcpEndZs;
+    std::vector<double> mcpTs;
+    std::vector<double> mcpPxs;
+    std::vector<double> mcpPys;
+    std::vector<double> mcpPzs;
+    std::vector<double> mcpEs;
+    std::vector<double> mcpPs;
+    std::vector<double> mcpPTs;
+    std::vector<double> mcpMasses;
+    std::vector<double> mcpEndPxs;
+    std::vector<double> mcpEndPys;
+    std::vector<double> mcpEndPzs;
+    std::vector<double> mcpEndEs;
+
     // reco
     double nTracks;
     double muonCandLength;
@@ -258,6 +271,29 @@ class NuMuSelection : public art::EDProducer {
     double vertexX;
     double vertexY;
     double vertexZ;
+    std::vector<double> tmptrackLength;
+    std::vector<double> tmptrackTheta;
+    std::vector<double> tmptrackCosTheta;
+    std::vector<double> tmptrackPhi;
+    std::vector<double> tmptrackEndX;
+    std::vector<double> tmptrackEndY;
+    std::vector<double> tmptrackEndZ;
+    std::vector<double> tmptrackStartX;
+    std::vector<double> tmptrackStartY;
+    std::vector<double> tmptrackStartZ;
+    std::vector<int> tmptrackMatchedMcpID;
+    std::vector<double> trackLength;
+    std::vector<double> trackTheta;
+    std::vector<double> trackCosTheta;
+    std::vector<double> trackPhi;
+    std::vector<double> trackEndX;
+    std::vector<double> trackEndY;
+    std::vector<double> trackEndZ;
+    std::vector<double> trackStartX;
+    std::vector<double> trackStartY;
+    std::vector<double> trackStartZ;
+    std::vector<int>    trackMatchedMcpID;
+
 };
 
 
@@ -293,6 +329,7 @@ void NuMuSelection::beginJob()
 
   tree = tfs->make<TTree>("tree", "tree");
   initialiseTree(tree);
+
 }
 
 void NuMuSelection::produce(art::Event & e)
@@ -308,8 +345,10 @@ void NuMuSelection::produce(art::Event & e)
   selResult.SetSelectionStatus(false);
   selResult.SetFailureReason("NoUBXSec");
 
+  clearVectors();
+
   /**
-   * Module produces a new ubana::SelectionResult, a new ubana::TPCObkect
+   * Module produces a new ubana::SelectionResult, a new ubana::TPCObject
    * and an association between the two
    */
   std::unique_ptr< std::vector<ubana::SelectionResult> > selectionCollection( new std::vector<ubana::SelectionResult> );
@@ -381,10 +420,10 @@ void NuMuSelection::produce(art::Event & e)
   }
 
   const art::Ptr<simb::MCFlux> mcFlux = mcFluxVec.at(0);
-  const art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   const art::Ptr<simb::GTruth> gTruth = gTruthVec.at(0);
 
 
+  const art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   std::cout << "\n[NUMUSEL] PRINTING INFORMATION FOR EVENT " 
     << run << "." << subrun << "." << event << std::endl;
 
@@ -405,6 +444,8 @@ void NuMuSelection::produce(art::Event & e)
 
   if (selectedTpcObjects.at(0).size() == 1){ 
 
+    isUBXSecSelected = true;
+
     selectedTpcObject = selectedTpcObjects.at(0).at(0);
 
     const std::vector<recob::Track>& selectedTracks = selectedTpcObject->GetTracks();
@@ -415,6 +456,11 @@ void NuMuSelection::produce(art::Event & e)
 
     if (isMc){
       // Check origin of TPC object
+
+      isBeamNeutrino = false;
+      isMixed = false;
+      isCosmic = false;
+
       if (selectedOrigin == ubana::kBeamNeutrino) isBeamNeutrino = true;
       else isBeamNeutrino = false;
 
@@ -434,12 +480,16 @@ void NuMuSelection::produce(art::Event & e)
     if ((int)selectedTracks.size() < minNTracks){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("nTracksLTMinNTracks");
+      isTwoTrackSelected = false;
     }
+    else isTwoTrackSelected = true;
 
     if ((int)nSelectedShowers > maxNShowers){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("nShowersGTMaxNShowers");
+      isZeroShowerTruth = false;
     }
+    else isZeroShowerTruth = true;
 
     /**
      * Loop tracks and check whether each track is compatibile with
@@ -460,6 +510,21 @@ void NuMuSelection::produce(art::Event & e)
 
         std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
 
+        // get associated MCParticle
+        simb::MCParticle const* mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
+
+        tmptrackLength.push_back(track.Length());
+        tmptrackTheta.push_back(track.Theta());
+        tmptrackCosTheta.push_back(std::cos(track.Theta()));
+        tmptrackPhi.push_back(track.Phi());
+        tmptrackEndX.push_back(track.End().X());
+        tmptrackEndY.push_back(track.End().Y());
+        tmptrackEndZ.push_back(track.End().Z());
+        tmptrackStartX.push_back(track.Start().X());
+        tmptrackStartY.push_back(track.Start().Y());
+        tmptrackStartZ.push_back(track.Start().Z());
+        tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
+
         std::pair<double, double> averageDqdx = 
           pidutils.getAveragedQdX(track, hits);
 
@@ -469,36 +534,48 @@ void NuMuSelection::produce(art::Event & e)
         if (isMuLike){ 
           muonLikeCounter++;
           muonCandidate = track;
-          mcpMuonCandidate = GetAssociatedMCParticle(hits, particlesPerHit);
+          mcpMuonCandidate = mcpMatchedParticle;
         }
 
       }
 
-      std::cout << "[NUMUSEL] Found " 
+      std::cout << "[NUMUSEL] >> Found " 
         << muonLikeCounter << " muon candidates! " << std::endl;
 
       if (muonLikeCounter == 0){
         selResult.SetSelectionStatus(false);
         selResult.SetFailureReason("NoMu");
+        is0PiSelected = false;
       }
       else if (muonLikeCounter > 1){
         selResult.SetSelectionStatus(false);
         selResult.SetFailureReason("PionCandidate");
+        is0PiSelected = false;
       }
       else if (muonLikeCounter == 1){
         selResult.SetSelectionStatus(true);
         selResult.SetFailureReason("Passed");
+        is0PiSelected = true;
       }
     }
     tpcObjectCollection->push_back(*(selectedTpcObject.get()));
 
+
   }
   else if (selectedTpcObjects.at(0).size() == 0){
+    isUBXSecSelected = false;
     isSelected = false;
+    isTwoTrackSelected = false;
+    isZeroShowerSelected = false;
+    if (isMc){
+      isBeamNeutrino = false;
+      isMixed = false;
+      isCosmic = false;
+    }
   }
   else {
     std::cout 
-      << "[NUMUSEL] Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
+      << "[NUMUSEL] >> Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
   }
 
   selectionCollection->push_back(selResult);
@@ -510,10 +587,14 @@ void NuMuSelection::produce(art::Event & e)
       0, 
       selectionCollection->size());
 
-  std::cout << "[NUMUSEL] SELECTION RESULT: " 
+  e.put(std::move(selectionCollection));
+  e.put(std::move(tpcObjectCollection));
+  e.put(std::move(selTpcObjAssn));
+
+  std::cout << "[NUMUSEL] >> SELECTION RESULT: " 
     << selResult.GetSelectionStatus() << std::endl;
   if (selResult.GetSelectionStatus() == false){
-    std::cout << "[NUMUSEL] REASON: " 
+    std::cout << "[NUMUSEL] >> REASON: " 
       << selResult.GetFailureReason() << "\n" << std::endl;
   }
 
@@ -526,18 +607,28 @@ void NuMuSelection::produce(art::Event & e)
    * Set variables to write to tree
    */
   if (isSelected){
-
-    muonCandLength           = muonCandidate.Length();
-    muonCandTheta            = muonCandidate.Theta();
-    muonCandCosTheta         = std::cos(muonCandidate.Theta());
-    muonCandPhi              = muonCandidate.Phi();
-    muonCandStartX           = muonCandidate.Vertex().X();
-    muonCandStartY           = muonCandidate.Vertex().Y();
-    muonCandStartZ           = muonCandidate.Vertex().Z();
-    muonCandEndX             = muonCandidate.End().X();
-    muonCandEndY             = muonCandidate.End().Y();
-    muonCandEndZ             = muonCandidate.End().Z();
-    nTracks                  = (int)nSelectedTracks;
+    trackLength       = tmptrackLength;
+    trackTheta        = tmptrackTheta;
+    trackCosTheta     = tmptrackCosTheta;
+    trackPhi          = tmptrackPhi;
+    trackEndX         = tmptrackEndX;
+    trackEndY         = tmptrackEndY;
+    trackEndZ         = tmptrackEndZ;
+    trackStartX       = tmptrackStartX;
+    trackStartY       = tmptrackStartY;
+    trackStartZ       = tmptrackStartZ;
+    trackMatchedMcpID = tmptrackMatchedMcpID;
+    muonCandLength    = muonCandidate.Length();
+    muonCandTheta     = muonCandidate.Theta();
+    muonCandCosTheta  = std::cos(muonCandidate.Theta());
+    muonCandPhi       = muonCandidate.Phi();
+    muonCandStartX    = muonCandidate.Vertex().X();
+    muonCandStartY    = muonCandidate.Vertex().Y();
+    muonCandStartZ    = muonCandidate.Vertex().Z();
+    muonCandEndX      = muonCandidate.End().X();
+    muonCandEndY      = muonCandidate.End().Y();
+    muonCandEndZ      = muonCandidate.End().Z();
+    nTracks           = (int)nSelectedTracks;
     double xyz[3];
     selectedVertex.XYZ(xyz);
     vertexX                  = xyz[0];
@@ -545,6 +636,17 @@ void NuMuSelection::produce(art::Event & e)
     vertexZ                  = xyz[2];
   }
   else {
+    trackLength.push_back(-999); 
+    trackTheta.push_back(-999);
+    trackCosTheta.push_back(-999);
+    trackPhi.push_back(-999);
+    trackEndX.push_back(-999);         
+    trackEndY.push_back(-999);         
+    trackEndZ.push_back(-999);         
+    trackStartX.push_back(-999);       
+    trackStartY.push_back(-999);       
+    trackStartZ.push_back(-999);       
+    trackMatchedMcpID.push_back(-999);
     muonCandLength           = -999;
     muonCandTheta            = -999;
     muonCandCosTheta         = -999;
@@ -561,10 +663,6 @@ void NuMuSelection::produce(art::Event & e)
     vertexZ                  = -999;
   }
 
-  e.put(std::move(selectionCollection));
-  e.put(std::move(tpcObjectCollection));
-  e.put(std::move(selTpcObjAssn));
-
   /**
    * If simulated data, then get true neutrino interaction information
    * for efficiency calculations
@@ -573,6 +671,7 @@ void NuMuSelection::produce(art::Event & e)
     const simb::MCNeutrino& mcNu      = mcTruth->GetNeutrino();
     const simb::MCParticle& mcNuP     = mcNu.Nu();
     const simb::MCParticle& mcLeptonP = mcNu.Lepton();
+
 
     mcNuVx           = (double) mcNuP.Vx();
     mcNuVy           = (double) mcNuP.Vy();
@@ -591,35 +690,104 @@ void NuMuSelection::produce(art::Event & e)
     mcLeptonCosTheta = std::cos(mcLeptonP.Momentum().Theta());
     mcLeptonPhi      = mcLeptonP.Momentum().Phi();
 
-    mcpMuonCandTrackId      = mcpMuonCandidate->TrackId();
-    mcpMuonCandStatusCode   = mcpMuonCandidate->StatusCode();
-    mcpMuonCandPdgCode      = mcpMuonCandidate->PdgCode();
-    mcpMuonCandMother       = mcpMuonCandidate->Mother();
-    mcpMuonCandProcess      = mcpMuonCandidate->Process();
-    mcpMuonCandEndProcess   = mcpMuonCandidate->EndProcess();
-    mcpMuonCandNDaughters   = mcpMuonCandidate->NumberDaughters();
-    for (int i = 0; i < mcpMuonCandNDaughters; i++){
-      mcpMuonCandDaughter[i] = mcpMuonCandidate->Daughter(i);
+    for (int i = 0; i < mcTruth->NParticles(); i++){
+
+      const simb::MCParticle& mcParticle = mcTruth->GetParticle(i);
+
+      mcpTrackIds.push_back(mcParticle.TrackId());
+      mcpStatusCodes.push_back(mcParticle.StatusCode());
+      mcpPdgCodes.push_back(mcParticle.PdgCode());
+      mcpMothers.push_back(mcParticle.Mother());
+      mcpProcesses.push_back(mcParticle.Process());
+      mcpEndProcesses.push_back(mcParticle.EndProcess());
+      mcpNDaughters.push_back(mcParticle.NumberDaughters());
+      //mcpDaughters.push_back();
+      mcpNumTrajPoints.push_back(mcParticle.NumberTrajectoryPoints());
+      mcpVxs.push_back(mcParticle.Vx());
+      mcpVys.push_back(mcParticle.Vy());
+      mcpVzs.push_back(mcParticle.Vz());
+      mcpEndXs.push_back(mcParticle.EndX());
+      mcpEndYs.push_back(mcParticle.EndY());
+      mcpEndZs.push_back(mcParticle.EndZ());
+      mcpTs.push_back(mcParticle.T());
+      mcpPxs.push_back(mcParticle.Px());
+      mcpPys.push_back(mcParticle.Py());
+      mcpPzs.push_back(mcParticle.Pz());
+      mcpEs.push_back(mcParticle.E());
+      mcpPs.push_back(mcParticle.P());
+      mcpPTs.push_back(mcParticle.Pt());
+      mcpMasses.push_back(mcParticle.Mass());
+      mcpEndPxs.push_back(mcParticle.EndPx());
+      mcpEndPys.push_back(mcParticle.EndPy());
+      mcpEndPzs.push_back(mcParticle.EndPz());
+      mcpEndEs.push_back(mcParticle.EndE());
+
     }
-    mcpMuonCandNumTrajPoint = mcpMuonCandidate->NumberTrajectoryPoints();
-    mcpMuonCandVx           = mcpMuonCandidate->Vx();
-    mcpMuonCandVy           = mcpMuonCandidate->Vy();
-    mcpMuonCandVz           = mcpMuonCandidate->Vz();
-    mcpMuonCandT            = mcpMuonCandidate->T();
-    mcpMuonCandPx           = mcpMuonCandidate->Px();
-    mcpMuonCandPy           = mcpMuonCandidate->Py();
-    mcpMuonCandPz           = mcpMuonCandidate->Pz();
-    mcpMuonCandE            = mcpMuonCandidate->E();
-    mcpMuonCandP            = mcpMuonCandidate->P();
-    mcpMuonCandPT           = mcpMuonCandidate->Pt();
-    mcpMuonCandMass         = mcpMuonCandidate->Mass();
-    mcpMuonCandEndPx        = mcpMuonCandidate->EndPx();
-    mcpMuonCandEndPy        = mcpMuonCandidate->EndPy();
-    mcpMuonCandEndPz        = mcpMuonCandidate->EndPz();
-    mcpMuonCandEndE         = mcpMuonCandidate->EndE();
-    mcpMuonCandTheta        = mcpMuonCandidate->Momentum().Theta();
-    mcpMuonCandCosTheta     = std::cos(mcpMuonCandidate->Momentum().Theta());
-    mcpMuonCandPhi          = mcpMuonCandidate->Momentum().Phi();
+
+    if (isSelected){
+      mcpMuonCandTrackId      = mcpMuonCandidate->TrackId();
+      mcpMuonCandStatusCode   = mcpMuonCandidate->StatusCode();
+      mcpMuonCandPdgCode      = mcpMuonCandidate->PdgCode();
+      mcpMuonCandMother       = mcpMuonCandidate->Mother();
+      mcpMuonCandProcess      = mcpMuonCandidate->Process();
+      mcpMuonCandEndProcess   = mcpMuonCandidate->EndProcess();
+      mcpMuonCandNDaughters   = mcpMuonCandidate->NumberDaughters();
+      for (int i = 0; i < mcpMuonCandNDaughters; i++){
+        mcpMuonCandDaughter.push_back(mcpMuonCandidate->Daughter(i));
+      }
+      mcpMuonCandNumTrajPoint = mcpMuonCandidate->NumberTrajectoryPoints();
+      mcpMuonCandVx           = mcpMuonCandidate->Vx();
+      mcpMuonCandVy           = mcpMuonCandidate->Vy();
+      mcpMuonCandVz           = mcpMuonCandidate->Vz();
+      mcpMuonCandEndX         = mcpMuonCandidate->EndX();
+      mcpMuonCandEndY         = mcpMuonCandidate->EndY();
+      mcpMuonCandEndZ         = mcpMuonCandidate->EndZ();
+      mcpMuonCandT            = mcpMuonCandidate->T();
+      mcpMuonCandPx           = mcpMuonCandidate->Px();
+      mcpMuonCandPy           = mcpMuonCandidate->Py();
+      mcpMuonCandPz           = mcpMuonCandidate->Pz();
+      mcpMuonCandE            = mcpMuonCandidate->E();
+      mcpMuonCandP            = mcpMuonCandidate->P();
+      mcpMuonCandPT           = mcpMuonCandidate->Pt();
+      mcpMuonCandMass         = mcpMuonCandidate->Mass();
+      mcpMuonCandEndPx        = mcpMuonCandidate->EndPx();
+      mcpMuonCandEndPy        = mcpMuonCandidate->EndPy();
+      mcpMuonCandEndPz        = mcpMuonCandidate->EndPz();
+      mcpMuonCandEndE         = mcpMuonCandidate->EndE();
+      mcpMuonCandTheta        = mcpMuonCandidate->Momentum().Theta();
+      mcpMuonCandCosTheta     = std::cos(mcpMuonCandidate->Momentum().Theta());
+      mcpMuonCandPhi          = mcpMuonCandidate->Momentum().Phi();
+    }
+    else{
+      mcpMuonCandTrackId      = -999;
+      mcpMuonCandStatusCode   = -999;
+      mcpMuonCandPdgCode      = -999;
+      mcpMuonCandMother       = -999;
+      mcpMuonCandProcess      = "NotSelected";
+      mcpMuonCandEndProcess   = "NotSelected";
+      mcpMuonCandNDaughters   = -999;
+      mcpMuonCandDaughter.push_back(-999);
+      mcpMuonCandNumTrajPoint = -999;
+      mcpMuonCandVx           = -999;
+      mcpMuonCandVy           = -999;
+      mcpMuonCandVz           = -999;
+      mcpMuonCandT            = -999;
+      mcpMuonCandPx           = -999;
+      mcpMuonCandPy           = -999;
+      mcpMuonCandPz           = -999;
+      mcpMuonCandE            = -999;
+      mcpMuonCandP            = -999;
+      mcpMuonCandPT           = -999;
+      mcpMuonCandMass         = -999;
+      mcpMuonCandEndPx        = -999;
+      mcpMuonCandEndPy        = -999;
+      mcpMuonCandEndPz        = -999;
+      mcpMuonCandEndE         = -999;
+      mcpMuonCandTheta        = -999;
+      mcpMuonCandCosTheta     = -999;
+      mcpMuonCandPhi          = -999;
+
+    }
 
     mcq0Transfer = mcNuEnergy - mcLeptonEnergy;
     mcq3Transfer = 
@@ -627,6 +795,7 @@ void NuMuSelection::produce(art::Event & e)
           std::sqrt(std::pow(mcNuPy - mcLeptonPy, 2)) +
           std::sqrt(std::pow(mcNuPz - mcLeptonPz, 2)));
 
+    mcNuCCNC = mcTruth->GetNeutrino().CCNC();
     mcNuMode            = mcNu.Mode();
     mcNuInteractionType = mcNu.InteractionType();
 
@@ -636,10 +805,6 @@ void NuMuSelection::produce(art::Event & e)
     // is true nu CC?
     if (mcNuCCNC == 0) isCC = true;
     else isCC = false;
-
-    // is true nu 0Pi?
-    if (is0PiEvent(mcTruth)) is0Pi = true;
-    else is0Pi = false;
 
     // is true nu_mu?
     if (mcNuP.PdgCode() == 14) isNuMu = true;
@@ -665,6 +830,10 @@ void NuMuSelection::produce(art::Event & e)
     if (isZeroShowerEvent(mcTruth, electronEThreshold) == 1) isZeroShowerTruth = true;
     else isZeroShowerTruth = false;
 
+    // is true nu 0Pi?
+    if (is0PiEvent(mcTruth)) is0PiTruth = true;
+    else is0PiTruth = false;
+
     // is N protons above threshold greater than demand?
     if (isNPEvent(mcTruth, protonEThreshold, minNProtons) == 1) isGTNProtonsAboveThreshold = true;
     else isGTNProtonsAboveThreshold = false;
@@ -673,7 +842,10 @@ void NuMuSelection::produce(art::Event & e)
     if (fiducialVolume.InFV(mcNuVx, mcNuVy, mcNuVz)) isTrueVtxInFV = true;
     else isTrueVtxInFV = false;
 
-    if (isCC && is0Pi && isNuMu && isTrueVtxInFV && isGTNProtonsAboveThreshold) isSignal = true;
+    if (isCC && isNuMu && isTrueVtxInFV) isUBXSecSignal = true;
+    else isUBXSecSignal = false;
+
+    if (isCC && is0PiTruth && isNuMu && isTrueVtxInFV && isGTNProtonsAboveThreshold) isSignal = true;
     else isSignal = false;
 
     if (isSignal && isBeamNeutrino && isSelected) isSelectedSignal = true;
@@ -683,25 +855,29 @@ void NuMuSelection::produce(art::Event & e)
      * Event is selected, put all information of interest in a tree.
      */
     if (isSelectedSignal){
-      std::cout << "[NUMUSEL] Found and selected signal event!" << std::endl;
       ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
     }
-    else if (isSelected){
 
-      std::cout << "[NUMUSEL] Selected background event: " << std::endl;
-      std::cout << "isCosmic: " << isCosmic << std::endl;
-      std::cout << "isMixed:  " << isMixed << std::endl;
-      std::cout << "isOOFV:   " << !isTrueVtxInFV << std::endl;
-      std::cout << "isNC:     " << !isCC << std::endl;
-      std::cout << "isNuMuBar:" << isNuMuBar << std::endl;
-      std::cout << "isNuE:    " << isNuE << std::endl;
-      std::cout << "isNuEBar: " << isNuEBar << std::endl;
-      std::cout << "is0Pi:    " << !is0Pi << std::endl;
-    }
+    std::cout << "[NUMUSEL] >> isSelected                  " << isSelected << std::endl;
+    std::cout << "[NUMUSEL] >> isSignal:                   " << isSignal << std::endl;
+    std::cout << "[NUMUSEL] >> isTwoTrackTruth:            " << isTwoTrackTruth << std::endl;
+    std::cout << "[NUMUSEL] >> isZeroShowerTruth:          " << isZeroShowerTruth << std::endl;
+    std::cout << "[NUMUSEL] >> isGTNProtonsAboveThreshold: " << isGTNProtonsAboveThreshold << std::endl;
+    std::cout << "[NUMUSEL] >> isBeamNeutrino:             " << isBeamNeutrino << std::endl;
+    std::cout << "[NUMUSEL] >> isCosmic:                   " << isCosmic << std::endl;
+    std::cout << "[NUMUSEL] >> isMixed:                    " << isMixed << std::endl;
+    std::cout << "[NUMUSEL] >> isOOFV:                     " << !isTrueVtxInFV << std::endl;
+    std::cout << "[NUMUSEL] >> isNC:                       " << !isCC << std::endl;
+    std::cout << "[NUMUSEL] >> isNuMuBar:                  " << isNuMuBar << std::endl;
+    std::cout << "[NUMUSEL] >> isNuE:                      " << isNuE << std::endl;
+    std::cout << "[NUMUSEL] >> isNuEBar:                   " << isNuEBar << std::endl;
+    std::cout << "[NUMUSEL] >> is0PiTruth:                      " << !is0PiTruth << std::endl;
 
   }
 
   tree->Fill();
+
+
 }
 
 void NuMuSelection::endJob()
@@ -720,13 +896,21 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("event"                      , &event                      );
   t->Branch("isSelected"                 , &isSelected                 );
   t->Branch("isCC"                       , &isCC                       );
-  t->Branch("is0Pi"                      , &is0Pi                      );
   t->Branch("isNuMu"                     , &isNuMu                     );
   t->Branch("isNuMuBar"                  , &isNuMuBar                  );
   t->Branch("isNuE"                      , &isNuE                      );
   t->Branch("isNuEBar"                   , &isNuEBar                   );
   t->Branch("isTrueVtxInFV"              , &isTrueVtxInFV              );
+  t->Branch("is0PiTruth"                 , &is0PiTruth                 );
   t->Branch("isGTNProtonsAboveThreshold" , &isGTNProtonsAboveThreshold );
+  t->Branch("isUBXSecSelected"           , &isUBXSecSelected           );
+  t->Branch("isUBXSecSignal"             , &isUBXSecSignal             );
+  t->Branch("isTwoTrackSelected"         , &isTwoTrackSelected         );
+  t->Branch("isTwoTrackTruth"            , &isTwoTrackTruth            );
+  t->Branch("isZeroShowerSelected"       , &isZeroShowerSelected       );
+  t->Branch("isZeroShowerTruth"          , &isZeroShowerTruth          );
+  t->Branch("is0PiSelected"              , &is0PiSelected              );
+  t->Branch("is0PiTruth"                 , &is0PiTruth                 );
   t->Branch("isSignal"                   , &isSignal                   );
   t->Branch("isBeamNeutrino"             , &isBeamNeutrino             );
   t->Branch("isMixed"                    , &isMixed                    );
@@ -760,11 +944,16 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("mcpMuonCandProcess"         , &mcpMuonCandProcess         );
   t->Branch("mcpMuonCandEndProcess"      , &mcpMuonCandEndProcess      );
   t->Branch("mcpMuonCandNDaughters"      , &mcpMuonCandNDaughters      );
-  t->Branch("mcpMuonCandDaughter"        , mcpMuonCandDaughter         , "mcpMuonCandDaughter/I");
+  
+  t->Branch("mcpMuonCandDaughter"        , "std::vector<int>"             , &mcpMuonCandDaughter);
+  
   t->Branch("mcpMuonCandNumTrajPoint"    , &mcpMuonCandNumTrajPoint    );
   t->Branch("mcpMuonCandVx"              , &mcpMuonCandVx              );
   t->Branch("mcpMuonCandVy"              , &mcpMuonCandVy              );
   t->Branch("mcpMuonCandVz"              , &mcpMuonCandVz              );
+  t->Branch("mcpMuonCandEndX"            , &mcpMuonCandEndX            );
+  t->Branch("mcpMuonCandEndY"            , &mcpMuonCandEndY            );
+  t->Branch("mcpMuonCandEndZ"            , &mcpMuonCandEndZ            );
   t->Branch("mcpMuonCandT"               , &mcpMuonCandT               );
   t->Branch("mcpMuonCandPx"              , &mcpMuonCandPx              );
   t->Branch("mcpMuonCandPy"              , &mcpMuonCandPy              );
@@ -780,7 +969,48 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("mcpMuonCandTheta"           , &mcpMuonCandTheta           );
   t->Branch("mcpMuonCandCosTheta"        , &mcpMuonCandCosTheta        );
   t->Branch("mcpMuonCandPhi"             , &mcpMuonCandPhi             );
+
+  t->Branch("mcpTrackIds"                , "std::vector<int>"             , &mcpTrackIds      );
+  t->Branch("mcpStatusCodes"             , "std::vector<int>"             , &mcpStatusCodes   );
+  t->Branch("mcpPdgCodes"                , "std::vector<int>"             , &mcpPdgCodes      );
+  t->Branch("mcpMothers"                 , "std::vector<int>"             , &mcpMothers       );
+  t->Branch("mcpProcesses"               , "std::vector<std::string>"     , &mcpProcesses     );
+  t->Branch("mcpEndProcesses"            , "std::vector<std::string>"     , &mcpEndProcesses  );
+  t->Branch("mcpNDaughters"              , "std::vector<int>"             , &mcpNDaughters    );
+  //t->Branch("mcpDaughters"               , "std::vector<int>"             , &mcpDaughters     );
+  t->Branch("mcpNumTrajPoints"           , "std::vector<unsigned int>"    , &mcpNumTrajPoints );
+  t->Branch("mcpVxs"                     , "std::vector<double>"          , &mcpVxs           );
+  t->Branch("mcpVys"                     , "std::vector<double>"          , &mcpVys           );
+  t->Branch("mcpVzs"                     , "std::vector<double>"          , &mcpVzs           );
+  t->Branch("mcpEndXs"                   , "std::vector<double>"          , &mcpEndXs         );
+  t->Branch("mcpEndYs"                   , "std::vector<double>"          , &mcpEndYs         );
+  t->Branch("mcpEndZs"                   , "std::vector<double>"          , &mcpEndZs         );
+  t->Branch("mcpTs"                      , "std::vector<double>"          , &mcpTs            );
+  t->Branch("mcpPxs"                     , "std::vector<double>"          , &mcpPxs           );
+  t->Branch("mcpPys"                     , "std::vector<double>"          , &mcpPys           );
+  t->Branch("mcpPzs"                     , "std::vector<double>"          , &mcpPzs           );
+  t->Branch("mcpEs"                      , "std::vector<double>"          , &mcpEs            );
+  t->Branch("mcpPs"                      , "std::vector<double>"          , &mcpPs            );
+  t->Branch("mcpPTs"                     , "std::vector<double>"          , &mcpPTs           );
+  t->Branch("mcpMasses"                  , "std::vector<double>"          , &mcpMasses        );
+  t->Branch("mcpEndPxs"                  , "std::vector<double>"          , &mcpEndPxs        );
+  t->Branch("mcpEndPys"                  , "std::vector<double>"          , &mcpEndPys        );
+  t->Branch("mcpEndPzs"                  , "std::vector<double>"          , &mcpEndPzs        );
+  t->Branch("mcpEndEs"                   , "std::vector<double>"          , &mcpEndEs         );
+  
   t->Branch("nTracks"                    , &nTracks                    );
+  
+  t->Branch("trackLength"                , "std::vector<double>"          , &trackLength       );
+  t->Branch("trackTheta"                 , "std::vector<double>"          , &trackTheta        );
+  t->Branch("trackCosTheta"              , "std::vector<double>"          , &trackCosTheta     );
+  t->Branch("trackPhi"                   , "std::vector<double>"          , &trackPhi          );
+  t->Branch("trackEndX"                  , "std::vector<double>"          , &trackEndX         );
+  t->Branch("trackEndY"                  , "std::vector<double>"          , &trackEndY         );
+  t->Branch("trackEndZ"                  , "std::vector<double>"          , &trackEndZ         );
+  t->Branch("trackStartX"                , "std::vector<double>"          , &trackStartX       );
+  t->Branch("trackStartY"                , "std::vector<double>"          , &trackStartY       );
+  t->Branch("trackStartZ"                , "std::vector<double>"          , &trackStartZ       );
+  t->Branch("trackMatchedMcpID"          , "std::vector<int>"             , &trackMatchedMcpID );
   t->Branch("muonCandLength"             , &muonCandLength             );
   t->Branch("muonCandTheta"              , &muonCandTheta              );
   t->Branch("muonCandCosTheta"           , &muonCandCosTheta           );
@@ -794,8 +1024,61 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("vertexX"                    , &vertexX                    );
   t->Branch("vertexY"                    , &vertexY                    );
   t->Branch("vertexZ"                    , &vertexZ                    );
-
 }
+
+void NuMuSelection::clearVectors()
+{
+  tmptrackLength.clear(); 
+  tmptrackTheta.clear();
+  tmptrackCosTheta.clear();
+  tmptrackPhi.clear();
+  tmptrackEndX.clear();         
+  tmptrackEndY.clear();         
+  tmptrackEndZ.clear();         
+  tmptrackStartX.clear();
+  tmptrackStartY.clear();       
+  tmptrackStartZ.clear();       
+  tmptrackMatchedMcpID.clear();
+  trackLength.clear(); 
+  trackTheta.clear();
+  trackCosTheta.clear();
+  trackPhi.clear();
+  trackEndX.clear();         
+  trackEndY.clear();         
+  trackEndZ.clear();         
+  trackStartX.clear();
+  trackStartY.clear();       
+  trackStartZ.clear();       
+  trackMatchedMcpID.clear();
+  mcpTrackIds.clear();
+  mcpStatusCodes.clear();
+  mcpPdgCodes.clear();
+  mcpMothers.clear();
+  mcpProcesses.clear();
+  mcpEndProcesses.clear();
+  mcpNDaughters.clear();
+  //mcpDaughters.clear();
+  mcpNumTrajPoints.clear();
+  mcpVxs.clear();
+  mcpVys.clear();
+  mcpVzs.clear();
+  mcpEndXs.clear();
+  mcpEndYs.clear();
+  mcpEndZs.clear();
+  mcpTs.clear();
+  mcpPxs.clear();
+  mcpPys.clear();
+  mcpPzs.clear();
+  mcpEs.clear();
+  mcpPs.clear();
+  mcpPTs.clear();
+  mcpMasses.clear();
+  mcpEndPxs.clear();
+  mcpEndPys.clear();
+  mcpEndPzs.clear();
+  mcpEndEs.clear();
+}
+
 
 bool NuMuSelection::is0PiEvent(art::Ptr<simb::MCTruth> mcTruth)
 {
