@@ -39,9 +39,19 @@ physics:
        # true information
        # for signal definition
        MinimumNProtons: 1
-       protonEThreshold: 0.04
-       electronEThreshold: 0.02
-      }
+       ProtonEThreshold: 0.04
+       ElectronEThreshold: 0.02
+
+       SelectionLabel: UBXSec
+       ParticleIdLabel: particleid
+       TrackLabel: pandoraNu::UBXSec
+       HitLabel: pandoraCosmicHitRemoval::UBXSec
+
+       SelectionTPCObjAssn: UBXSec
+       HitTrackAssn: pandoraNu::UBXSec
+       HitTruthAssns: pandoraCosmicHitRemoval::UBXSec
+
+    }
   }
 
   stream1: [ out1 ]

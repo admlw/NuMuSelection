@@ -93,17 +93,17 @@ class NuMuSelection : public art::EDProducer {
     /**
      * is the event truly have 2 tracks above threshold
      */
-    bool isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double protonEThreshold);
+    bool isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold);
 
     /**
      * is the event truly a 0-shower event
      */
-    bool isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double electronEThreshold);
+    bool isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double fElectronEThreshold);
 
     /**
      * check whether event has N protons above threshold
      */
-    bool isNPEvent(art::Ptr<simb::MCTruth> mcTruth, double protonEThreshold, int minNProtons);
+    bool isNPEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold, int fMinNProtons);
 
     /**
      * find mcp mached to a given track
@@ -123,13 +123,20 @@ class NuMuSelection : public art::EDProducer {
     art::ServiceHandle< geo::Geometry > geo;
 
     // fcl pars
-    bool isData;
+    bool fIsData;
     bool isMc;
-    int maxNShowers;
-    int minNTracks;
-    int minNProtons;
-    double protonEThreshold;
-    double electronEThreshold;
+    int fMaxNShowers;
+    int fMinNTracks;
+    int fMinNProtons;
+    double fProtonEThreshold;
+    double fElectronEThreshold;
+    std::string fSelectionLabel;
+    std::string fPIDLabel;
+    std::string fTrackLabel;
+    std::string fHitLabel;
+    std::string fSelectionTPCObjAssn;
+    std::string fHitTrackAssn;
+    std::string fHitTruthAssns;
 
     // signal bools
     bool isSelected;
@@ -303,19 +310,30 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   // More initializers here.
 {
 
-  isData      = p.get< bool > ("IsData");
-  maxNShowers = p.get< int > ("MaximumNShowers", 0);
-  minNTracks  = p.get< int > ("MinimumNTracks", 2);
-  minNProtons = p.get< int > ("MinimumNProtons", 1);
-  protonEThreshold   = p.get< double > ("ProtonEThreshold", 0.04);
-  electronEThreshold = p.get< double > ("electronEThreshold", 0.02);
+  fhicl::ParameterSet const p_fv = p.get<fhicl::ParameterSet>("FiducialVolumeSettings");
+
+  fIsData      = p.get<bool> ("IsData");
+  fMaxNShowers = p.get<int>("MaximumNShowers", 0);
+  fMinNTracks  = p.get<int>("MinimumNTracks", 2);
+  fMinNProtons = p.get<int>("MinimumNProtons", 1);
+  fProtonEThreshold   = p.get<double>("ProtonEThreshold", 0.04);
+  fElectronEThreshold = p.get<double>("ElectronEThreshold", 0.02);
+  
+  fSelectionLabel = p.get<std::string>("SelectionLabel", "UBXSec");
+  fPIDLabel   = p.get<std::string>("ParticleIdLabel", "particleid");
+  fTrackLabel = p.get<std::string>("TrackLabel", "pandoraNu::UBXSec");
+  fHitLabel   = p.get<std::string>("HitLabel", "pandoraCosmicHitRemoval::UBXSec");
+
+  fSelectionTPCObjAssn = p.get<std::string>("SelectionTPCObjAssn", "UBXSec");
+  fHitTrackAssn = p.get<std::string>("HitTrackAssn", "pandoraNu::UBXSec");
+  fHitTruthAssns = p.get<std::string>("HitTruthAssn", "pandoraCosmicHitRemoval::UBXSec");
 
   produces< std::vector<ubana::SelectionResult> >();
   produces< std::vector<ubana::TPCObject> >();
   produces< art::Assns<ubana::TPCObject, ubana::SelectionResult> >();
 
   // configure
-  fiducialVolume.Configure(p.get<fhicl::ParameterSet>("FiducialVolumeSettings"),
+  fiducialVolume.Configure(p_fv,
       geo->DetHalfHeight(),
       2.*geo->DetHalfWidth(),
       geo->DetLength());
@@ -339,8 +357,8 @@ void NuMuSelection::produce(art::Event & e)
   subrun = e.subRun();
   event = e.event();
 
-  isData = e.isRealData();
-  isMc = !isData;
+  fIsData = e.isRealData();
+  isMc = !fIsData;
 
   selResult.SetSelectionStatus(false);
   selResult.SetFailureReason("NoUBXSec");
@@ -357,7 +375,7 @@ void NuMuSelection::produce(art::Event & e)
 
   // selection info
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
-  e.getByLabel("UBXSec", selectionHandle);
+  e.getByLabel(fSelectionLabel, selectionHandle);
   if (!selectionHandle.isValid()){
 
     std::cout << "\n[NUMUSEL] SelectionResult product not found. " << std::endl;
@@ -368,22 +386,24 @@ void NuMuSelection::produce(art::Event & e)
   }
 
   // get Selected NuMuCC Inclusive TPCObject from selection handle
-  art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, "UBXSec");
+  art::FindManyP<ubana::TPCObject> selectedTpcObjects(selectionHandle, e, fSelectionTPCObjAssn);
   art::Ptr<ubana::TPCObject> selectedTpcObject; 
 
   // track handle
   art::Handle< std::vector< recob::Track > > trackHandle;
-  e.getByLabel("pandoraNu", trackHandle);
+  e.getByLabel(fTrackLabel, trackHandle);
 
   // hit handle
   art::Handle< std::vector< recob::Hit > > hitHandle;
-  e.getByLabel("pandoraCosmicHitRemoval::McRecoStage2", hitHandle);
+  e.getByLabel(fHitLabel, hitHandle);
 
   // hit information
-  art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, "pandoraNu");
+  art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, fHitTrackAssn);
 
   // hit<->mcParticle associations
-  art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, "crHitRemovalTruthMatch::McRecoStage2");
+  art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssns);
+
+//  art::FindManyP<anab::ParticleID> pidFromTrack(trackHandle, e, fPIDLabel);
 
   /**
    * Get MCTruth, MCFlux, and GTruth information for reweighting
@@ -421,7 +441,6 @@ void NuMuSelection::produce(art::Event & e)
 
   const art::Ptr<simb::MCFlux> mcFlux = mcFluxVec.at(0);
   const art::Ptr<simb::GTruth> gTruth = gTruthVec.at(0);
-
 
   const art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
   std::cout << "\n[NUMUSEL] PRINTING INFORMATION FOR EVENT " 
@@ -477,14 +496,14 @@ void NuMuSelection::produce(art::Event & e)
     /*
      * Topology cuts
      */
-    if ((int)selectedTracks.size() < minNTracks){
+    if ((int)selectedTracks.size() < fMinNTracks){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("nTracksLTMinNTracks");
       isTwoTrackSelected = false;
     }
     else isTwoTrackSelected = true;
 
-    if ((int)nSelectedShowers > maxNShowers){
+    if ((int)nSelectedShowers > fMaxNShowers){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("nShowersGTMaxNShowers");
       isZeroShowerTruth = false;
@@ -823,11 +842,11 @@ void NuMuSelection::produce(art::Event & e)
     else isNuEBar = false;
 
     // is >2 track event?
-    if (isGT2TrackAboveThresholdEvent(mcTruth, protonEThreshold) == 1) isTwoTrackTruth = true;
+    if (isGT2TrackAboveThresholdEvent(mcTruth, fProtonEThreshold) == 1) isTwoTrackTruth = true;
     else isTwoTrackTruth = false;
 
     // is 0 shower event?
-    if (isZeroShowerEvent(mcTruth, electronEThreshold) == 1) isZeroShowerTruth = true;
+    if (isZeroShowerEvent(mcTruth, fElectronEThreshold) == 1) isZeroShowerTruth = true;
     else isZeroShowerTruth = false;
 
     // is true nu 0Pi?
@@ -835,7 +854,7 @@ void NuMuSelection::produce(art::Event & e)
     else is0PiTruth = false;
 
     // is N protons above threshold greater than demand?
-    if (isNPEvent(mcTruth, protonEThreshold, minNProtons) == 1) isGTNProtonsAboveThreshold = true;
+    if (isNPEvent(mcTruth, fProtonEThreshold, fMinNProtons) == 1) isGTNProtonsAboveThreshold = true;
     else isGTNProtonsAboveThreshold = false;
 
     // is true nu vertex in FV
@@ -887,10 +906,11 @@ void NuMuSelection::endJob()
 
 void NuMuSelection::initialiseTree(TTree *t)
 {
-  t->Branch("fhicl_maxNShowers"          , &maxNShowers                );
-  t->Branch("fhicl_minNTracks"           , &minNTracks                 );
-  t->Branch("fhicl_minNProtons"          , &minNProtons                );
-  t->Branch("fhicl_protonEThreshold"     , &protonEThreshold           );
+  t->Branch("fhicl_MaxNShowers"          , &fMaxNShowers               );
+  t->Branch("fhicl_MinNTracks"           , &fMinNTracks                );
+  t->Branch("fhicl_MinNProtons"          , &fMinNProtons               );
+  t->Branch("fhicl_ProtonEThreshold"     , &fProtonEThreshold          );
+  t->Branch("fhicl_ElectronEThreshold"   , &fElectronEThreshold        );
   t->Branch("run"                        , &run                        );
   t->Branch("subrun"                     , &subrun                     );
   t->Branch("event"                      , &event                      );
@@ -1097,7 +1117,7 @@ bool NuMuSelection::is0PiEvent(art::Ptr<simb::MCTruth> mcTruth)
   return true;
 }
 
-bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double protonEThreshold){
+bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold){
 
   int nParticles = mcTruth->NParticles();
   int particleCounter = 0;
@@ -1109,7 +1129,7 @@ bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTrut
 
     if (std::abs(particle.PdgCode()) == 13  || 
         std::abs(particle.PdgCode()) == 211 ||
-        (std::abs(particle.PdgCode()) == 2212 && particle.E() > protonEThreshold))
+        (std::abs(particle.PdgCode()) == 2212 && particle.E() > fProtonEThreshold))
       particleCounter++;
 
   }
@@ -1119,7 +1139,7 @@ bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTrut
 
 }
 
-bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double electronEThreshold){
+bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double fElectronEThreshold){
 
   int nParticles = mcTruth->NParticles();
   int particleCounter = 0;
@@ -1130,7 +1150,7 @@ bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double el
     if (particle.Process() != "primary" || particle.StatusCode() !=1) continue;
 
     if (std::abs(particle.PdgCode()) == 22  || 
-        (std::abs(particle.PdgCode()) == 11 && particle.E() > electronEThreshold))
+        (std::abs(particle.PdgCode()) == 11 && particle.E() > fElectronEThreshold))
       particleCounter++;
 
   }
@@ -1140,7 +1160,7 @@ bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double el
 
 }
 
-bool NuMuSelection::isNPEvent(art::Ptr<simb::MCTruth> mcTruth, double protonEThreshold, int minNProtons)
+bool NuMuSelection::isNPEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold, int fMinNProtons)
 {
 
   int nParticles = mcTruth->NParticles();
@@ -1150,12 +1170,12 @@ bool NuMuSelection::isNPEvent(art::Ptr<simb::MCTruth> mcTruth, double protonEThr
     const simb::MCParticle& particle = mcTruth->GetParticle(i);
     if (particle.Process() != "primary" || particle.StatusCode() !=1) continue;
 
-    if (std::abs(particle.PdgCode()) == 2212 && particle.E() > protonEThreshold){
+    if (std::abs(particle.PdgCode()) == 2212 && particle.E() > fProtonEThreshold){
       nProtonsAboveThreshold++; 
     }
   }
 
-  if (nProtonsAboveThreshold >= minNProtons)
+  if (nProtonsAboveThreshold >= fMinNProtons)
     return true;
   else return false;
 }
