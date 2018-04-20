@@ -1,0 +1,21 @@
+#
+# configuration fcl file for NuMuSelection fcl parameters
+#
+
+BEGIN_PROLOG
+
+numuselectionproducerlabels:
+{
+  
+  SelectionLabel: "UBXSec::UBXSec"
+  ParticleIdLabel: "pid::particleid"
+  TrackLabel: "pandoraNu::UBXSec"
+  HitLabel: "pandoraCosmicHitRemoval::UBXSec"
+  
+  SelectionTPCObjAssn: "UBXSec::UBXSec"
+  HitTrackAssn: "pandoraNu::UBXSec"
+  HitTruthAssns: "pandoraCosmicHitRemoval::UBXSec"
+
+}
+
+END_PROLOG
