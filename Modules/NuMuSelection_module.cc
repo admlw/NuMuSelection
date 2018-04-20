@@ -131,6 +131,7 @@ class NuMuSelection : public art::EDProducer {
     int fMinNProtons;
     double fProtonEThreshold;
     double fElectronEThreshold;
+    double fBraggPMuonCut;
     std::string fSelectionLabel;
     std::string fPIDLabel;
     std::string fTrackLabel;
@@ -289,7 +290,12 @@ class NuMuSelection : public art::EDProducer {
     std::vector<double> tmptrackStartX;
     std::vector<double> tmptrackStartY;
     std::vector<double> tmptrackStartZ;
-    std::vector<int> tmptrackMatchedMcpID;
+    std::vector<int>    tmptrackMatchedMcpID;
+    std::vector<double> tmptrackBraggMu;
+    std::vector<double> tmptrackBraggP;
+    std::vector<double> tmptrackBraggPi;
+    std::vector<double> tmptrackBraggK;
+
     std::vector<double> trackLength;
     std::vector<double> trackTheta;
     std::vector<double> trackCosTheta;
@@ -301,28 +307,30 @@ class NuMuSelection : public art::EDProducer {
     std::vector<double> trackStartY;
     std::vector<double> trackStartZ;
     std::vector<int>    trackMatchedMcpID;
+    std::vector<double> trackBraggMu;
+    std::vector<double> trackBraggP;
+    std::vector<double> trackBraggPi;
+    std::vector<double> trackBraggK;
 
 };
 
 
 NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
-  //:
-  //  EDProducer(p)  // ,
-  // More initializers here.
 {
 
   fhicl::ParameterSet const p_fv     = p.get<fhicl::ParameterSet>("FiducialVolumeSettings");
   fhicl::ParameterSet const p_labels = p.get<fhicl::ParameterSet>("ProducerLabels");
   fhicl::ParameterSet const p_cuts   = p.get<fhicl::ParameterSet>("CutValues");
 
-  fIsData             = p.get<bool> ("IsData");
-  
-  fMaxNShowers        = p_cuts.get<int>("MaximumNShowers", 0);
-  fMinNTracks         = p_cuts.get<int>("MinimumNTracks", 2);
-  fMinNProtons        = p_cuts.get<int>("MinimumNProtons", 1);
-  fProtonEThreshold   = p_cuts.get<double>("ProtonEThreshold", 0.04);
-  fElectronEThreshold = p_cuts.get<double>("ElectronEThreshold", 0.02);
-  
+  fIsData              = p.get<bool> ("IsData");
+
+  fMaxNShowers         = p_cuts.get<int>("MaximumNShowers", 0);
+  fMinNTracks          = p_cuts.get<int>("MinimumNTracks", 2);
+  fMinNProtons         = p_cuts.get<int>("MinimumNProtons", 1);
+  fProtonEThreshold    = p_cuts.get<double>("ProtonEThreshold", 0.04);
+  fElectronEThreshold  = p_cuts.get<double>("ElectronEThreshold", 0.02);
+  fBraggPMuonCut       = p_cuts.get<double>("BraggPMuonCut");
+
   fSelectionLabel      = p_labels.get<std::string>("SelectionLabel", "UBXSec");
   fPIDLabel            = p_labels.get<std::string>("ParticleIdLabel", "particleid");
   fTrackLabel          = p_labels.get<std::string>("TrackLabel", "pandoraNu::UBXSec");
@@ -406,6 +414,7 @@ void NuMuSelection::produce(art::Event & e)
   // hit<->mcParticle associations
   art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssns);
 
+  // track<-> PID associations
   art::FindManyP<anab::ParticleID> pidFromTrack(trackHandle, e, fPIDLabel);
 
   /**
@@ -531,6 +540,57 @@ void NuMuSelection::produce(art::Event & e)
         const recob::Track& track = selectedTracks.at(i);
 
         std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
+        std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track.ID());
+
+        if (pids.size() == 0){
+          std::cout << "[NuMuSelection] No track<->PID association found for trackID " << track.ID() << ". Skipping track." << std::endl;
+        }
+
+        /**
+         * Perform PID check using anab::ParticleID objects.
+         */
+        std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
+
+        double bragg_fwd_mu = -999;
+        double bragg_fwd_p  = -999;
+        double bragg_fwd_pi = -999;
+        double bragg_fwd_k  = -999;
+        double bragg_bwd_mu = -999;
+        double bragg_bwd_p  = -999;
+        double bragg_bwd_pi = -999;
+        double bragg_bwd_k  = -999;
+
+        for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
+
+          anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
+
+          if(algScore.fAlgName == "BraggPeakLLH"){
+
+            if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_fwd){
+
+              if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu = algScore.fValue;
+              if (algScore.fAssumedPdg == 2212) bragg_fwd_p  = algScore.fValue;
+              if (algScore.fAssumedPdg == 211 ) bragg_fwd_pi = algScore.fValue;
+              if (algScore.fAssumedPdg == 321 ) bragg_fwd_k  = algScore.fValue;
+
+            }
+            else if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_bwd){
+
+              if (algScore.fAssumedPdg == 13  ) bragg_bwd_mu = algScore.fValue;
+              if (algScore.fAssumedPdg == 2212) bragg_bwd_p  = algScore.fValue;
+              if (algScore.fAssumedPdg == 211 ) bragg_bwd_pi = algScore.fValue;
+              if (algScore.fAssumedPdg == 321 ) bragg_bwd_k  = algScore.fValue;
+
+            }
+
+          }
+
+        }
+
+        double bragg_mu = std::min(bragg_fwd_mu, bragg_bwd_mu);
+        double bragg_p  = std::min(bragg_fwd_p , bragg_bwd_p );
+        double bragg_pi = std::min(bragg_fwd_pi, bragg_bwd_pi);
+        double bragg_k  = std::min(bragg_fwd_k , bragg_bwd_k );
 
         // get associated MCParticle
         simb::MCParticle const* mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
@@ -546,42 +606,49 @@ void NuMuSelection::produce(art::Event & e)
         tmptrackStartY.push_back(track.Start().Y());
         tmptrackStartZ.push_back(track.Start().Z());
         tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
+        tmptrackBraggMu.push_back(bragg_mu);
+        tmptrackBraggP.push_back(bragg_p);
+        tmptrackBraggPi.push_back(bragg_pi);
+        tmptrackBraggK.push_back(bragg_k);
 
-        std::pair<double, double> averageDqdx = 
-          pidutils.getAveragedQdX(track, hits);
-
-        bool isMuLike = 
-          pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
-
-        if (isMuLike){ 
+        if (bragg_p > fBraggPMuonCut)
           muonLikeCounter++;
-          muonCandidate = track;
-          mcpMuonCandidate = mcpMatchedParticle;
-        }
+        /*
+           std::pair<double, double> averageDqdx = 
+           pidutils.getAveragedQdX(track, hits);
 
+           bool isMuLike = 
+           pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
+
+           if (isMuLike){ 
+           muonLikeCounter++;
+           muonCandidate = track;
+           mcpMuonCandidate = mcpMatchedParticle;
+           }
+           */
       }
 
-      std::cout << "[NUMUSEL] >> Found " 
-        << muonLikeCounter << " muon candidates! " << std::endl;
+    std::cout << "[NUMUSEL] >> Found " 
+      << muonLikeCounter << " muon candidates! " << std::endl;
 
-      if (muonLikeCounter == 0){
-        selResult.SetSelectionStatus(false);
-        selResult.SetFailureReason("NoMu");
-        is0PiSelected = false;
-      }
-      else if (muonLikeCounter > 1){
-        selResult.SetSelectionStatus(false);
-        selResult.SetFailureReason("PionCandidate");
-        is0PiSelected = false;
-      }
-      else if (muonLikeCounter == 1){
-        selResult.SetSelectionStatus(true);
-        selResult.SetFailureReason("Passed");
-        is0PiSelected = true;
-      }
+    if (muonLikeCounter == 0){
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("NoMu");
+      is0PiSelected = false;
+    }
+    else if (muonLikeCounter > 1){
+      selResult.SetSelectionStatus(false);
+      selResult.SetFailureReason("PionCandidate");
+      is0PiSelected = false;
+    }
+    else if (muonLikeCounter == 1){
+      selResult.SetSelectionStatus(true);
+      selResult.SetFailureReason("Passed");
+      is0PiSelected = true;
+    }
+
     }
     tpcObjectCollection->push_back(*(selectedTpcObject.get()));
-
 
   }
   else if (selectedTpcObjects.at(0).size() == 0){
@@ -639,6 +706,10 @@ void NuMuSelection::produce(art::Event & e)
     trackStartX       = tmptrackStartX;
     trackStartY       = tmptrackStartY;
     trackStartZ       = tmptrackStartZ;
+    trackBraggMu      = tmptrackBraggMu;
+    trackBraggP       = tmptrackBraggP;
+    trackBraggPi      = tmptrackBraggPi;
+    trackBraggK       = tmptrackBraggK;
     trackMatchedMcpID = tmptrackMatchedMcpID;
     muonCandLength    = muonCandidate.Length();
     muonCandTheta     = muonCandidate.Theta();
@@ -667,7 +738,11 @@ void NuMuSelection::produce(art::Event & e)
     trackEndZ.push_back(-999);         
     trackStartX.push_back(-999);       
     trackStartY.push_back(-999);       
-    trackStartZ.push_back(-999);       
+    trackStartZ.push_back(-999); 
+    trackBraggMu.push_back(-999);
+    trackBraggP.push_back(-999);
+    trackBraggPi.push_back(-999);
+    trackBraggK.push_back(-999);
     trackMatchedMcpID.push_back(-999);
     muonCandLength           = -999;
     muonCandTheta            = -999;
@@ -893,14 +968,14 @@ void NuMuSelection::produce(art::Event & e)
     std::cout << "[NUMUSEL] >> isNuMuBar:                  " << isNuMuBar << std::endl;
     std::cout << "[NUMUSEL] >> isNuE:                      " << isNuE << std::endl;
     std::cout << "[NUMUSEL] >> isNuEBar:                   " << isNuEBar << std::endl;
-    std::cout << "[NUMUSEL] >> is0PiTruth:                      " << !is0PiTruth << std::endl;
+    std::cout << "[NUMUSEL] >> is0PiTruth:                 " << !is0PiTruth << std::endl;
 
   }
 
   tree->Fill();
 
-
 }
+
 
 void NuMuSelection::endJob()
 {
@@ -967,9 +1042,9 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("mcpMuonCandProcess"         , &mcpMuonCandProcess         );
   t->Branch("mcpMuonCandEndProcess"      , &mcpMuonCandEndProcess      );
   t->Branch("mcpMuonCandNDaughters"      , &mcpMuonCandNDaughters      );
-  
+
   t->Branch("mcpMuonCandDaughter"        , "std::vector<int>"             , &mcpMuonCandDaughter);
-  
+
   t->Branch("mcpMuonCandNumTrajPoint"    , &mcpMuonCandNumTrajPoint    );
   t->Branch("mcpMuonCandVx"              , &mcpMuonCandVx              );
   t->Branch("mcpMuonCandVy"              , &mcpMuonCandVy              );
@@ -1020,9 +1095,9 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("mcpEndPys"                  , "std::vector<double>"          , &mcpEndPys        );
   t->Branch("mcpEndPzs"                  , "std::vector<double>"          , &mcpEndPzs        );
   t->Branch("mcpEndEs"                   , "std::vector<double>"          , &mcpEndEs         );
-  
+
   t->Branch("nTracks"                    , &nTracks                    );
-  
+
   t->Branch("trackLength"                , "std::vector<double>"          , &trackLength       );
   t->Branch("trackTheta"                 , "std::vector<double>"          , &trackTheta        );
   t->Branch("trackCosTheta"              , "std::vector<double>"          , &trackCosTheta     );
@@ -1034,6 +1109,10 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("trackStartY"                , "std::vector<double>"          , &trackStartY       );
   t->Branch("trackStartZ"                , "std::vector<double>"          , &trackStartZ       );
   t->Branch("trackMatchedMcpID"          , "std::vector<int>"             , &trackMatchedMcpID );
+  t->Branch("trackBraggMu"               , "std::vector<double>"          , &trackBraggMu      );
+  t->Branch("trackBraggP"                , "std::vector<double>"          , &trackBraggP       );
+  t->Branch("trackBraggPi"               , "std::vector<double>"          , &trackBraggPi      );
+  t->Branch("trackBraggK"                , "std::vector<double>"          , &trackBraggK       );
   t->Branch("muonCandLength"             , &muonCandLength             );
   t->Branch("muonCandTheta"              , &muonCandTheta              );
   t->Branch("muonCandCosTheta"           , &muonCandCosTheta           );
@@ -1102,7 +1181,6 @@ void NuMuSelection::clearVectors()
   mcpEndEs.clear();
 }
 
-
 bool NuMuSelection::is0PiEvent(art::Ptr<simb::MCTruth> mcTruth)
 {
   int nParticles = mcTruth->NParticles();
@@ -1120,7 +1198,8 @@ bool NuMuSelection::is0PiEvent(art::Ptr<simb::MCTruth> mcTruth)
   return true;
 }
 
-bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold){
+bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTruth, double fProtonEThreshold)
+{
 
   int nParticles = mcTruth->NParticles();
   int particleCounter = 0;
@@ -1142,7 +1221,8 @@ bool NuMuSelection::isGT2TrackAboveThresholdEvent(art::Ptr<simb::MCTruth> mcTrut
 
 }
 
-bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double fElectronEThreshold){
+bool NuMuSelection::isZeroShowerEvent(art::Ptr<simb::MCTruth> mcTruth, double fElectronEThreshold)
+{
 
   int nParticles = mcTruth->NParticles();
   int particleCounter = 0;
