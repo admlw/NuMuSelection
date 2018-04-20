@@ -31,6 +31,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 
 // ROOT Includes
@@ -310,23 +311,25 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   // More initializers here.
 {
 
-  fhicl::ParameterSet const p_fv = p.get<fhicl::ParameterSet>("FiducialVolumeSettings");
+  fhicl::ParameterSet const p_fv     = p.get<fhicl::ParameterSet>("FiducialVolumeSettings");
+  fhicl::ParameterSet const p_labels = p.get<fhicl::ParameterSet>("ProducerLabels");
+  fhicl::ParameterSet const p_cuts   = p.get<fhicl::ParameterSet>("CutValues");
 
-  fIsData      = p.get<bool> ("IsData");
-  fMaxNShowers = p.get<int>("MaximumNShowers", 0);
-  fMinNTracks  = p.get<int>("MinimumNTracks", 2);
-  fMinNProtons = p.get<int>("MinimumNProtons", 1);
-  fProtonEThreshold   = p.get<double>("ProtonEThreshold", 0.04);
-  fElectronEThreshold = p.get<double>("ElectronEThreshold", 0.02);
+  fIsData             = p.get<bool> ("IsData");
   
-  fSelectionLabel = p.get<std::string>("SelectionLabel", "UBXSec");
-  fPIDLabel   = p.get<std::string>("ParticleIdLabel", "particleid");
-  fTrackLabel = p.get<std::string>("TrackLabel", "pandoraNu::UBXSec");
-  fHitLabel   = p.get<std::string>("HitLabel", "pandoraCosmicHitRemoval::UBXSec");
-
-  fSelectionTPCObjAssn = p.get<std::string>("SelectionTPCObjAssn", "UBXSec");
-  fHitTrackAssn = p.get<std::string>("HitTrackAssn", "pandoraNu::UBXSec");
-  fHitTruthAssns = p.get<std::string>("HitTruthAssn", "pandoraCosmicHitRemoval::UBXSec");
+  fMaxNShowers        = p_cuts.get<int>("MaximumNShowers", 0);
+  fMinNTracks         = p_cuts.get<int>("MinimumNTracks", 2);
+  fMinNProtons        = p_cuts.get<int>("MinimumNProtons", 1);
+  fProtonEThreshold   = p_cuts.get<double>("ProtonEThreshold", 0.04);
+  fElectronEThreshold = p_cuts.get<double>("ElectronEThreshold", 0.02);
+  
+  fSelectionLabel      = p_labels.get<std::string>("SelectionLabel", "UBXSec");
+  fPIDLabel            = p_labels.get<std::string>("ParticleIdLabel", "particleid");
+  fTrackLabel          = p_labels.get<std::string>("TrackLabel", "pandoraNu::UBXSec");
+  fHitLabel            = p_labels.get<std::string>("HitLabel", "pandoraCosmicHitRemoval::UBXSec");
+  fSelectionTPCObjAssn = p_labels.get<std::string>("SelectionTPCObjAssn", "UBXSec");
+  fHitTrackAssn        = p_labels.get<std::string>("HitTrackAssn", "pandoraNu::UBXSec");
+  fHitTruthAssns       = p_labels.get<std::string>("HitTruthAssn", "pandoraCosmicHitRemoval::UBXSec");
 
   produces< std::vector<ubana::SelectionResult> >();
   produces< std::vector<ubana::TPCObject> >();
@@ -403,7 +406,7 @@ void NuMuSelection::produce(art::Event & e)
   // hit<->mcParticle associations
   art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssns);
 
-//  art::FindManyP<anab::ParticleID> pidFromTrack(trackHandle, e, fPIDLabel);
+  art::FindManyP<anab::ParticleID> pidFromTrack(trackHandle, e, fPIDLabel);
 
   /**
    * Get MCTruth, MCFlux, and GTruth information for reweighting
