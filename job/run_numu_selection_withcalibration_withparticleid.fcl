@@ -66,4 +66,5 @@ services.DetectorClocksService.InheritClockConfig: false
 physics.producers.pidcalibration.TrackModuleLabel: "pandoraNu::UBXSec"
 physics.producers.pidcalibration.CalorimetryModuleLabel: "pandoraNucalo::UBXSec"
 physics.producers.pid.ProducerLabels: @local::producerlabels_mcc8_UBXSec
-physics.producers.numusel.ProducerLabels.particleIdLabel: "pid::particleid"
+physics.producers.pid.ProducerLabels.CalorimetryLabel: "pidcalibration::numuselection"
+physics.producers.numusel.ProducerLabels.particleIdLabel: "pid::numuselection"

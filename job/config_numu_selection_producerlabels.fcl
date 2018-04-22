@@ -8,7 +8,7 @@ numuselectionproducerlabels:
 {
   
   SelectionLabel: "UBXSec::UBXSec"
-  ParticleIdLabel: "pid::particleid"
+  ParticleIdLabel: "pid::numuselection"
   TrackLabel: "pandoraNu::UBXSec"
   HitLabel: "pandoraCosmicHitRemoval::UBXSec"
   

@@ -74,7 +74,7 @@ class NuMuSelection : public art::EDProducer {
     /**
      * initialises branches in output tree
      */
-    void initialiseTree(TTree *t);
+    void initialiseTree(TTree *t, bool fIsData);
 
     /**
      * clear vectors
@@ -357,7 +357,7 @@ void NuMuSelection::beginJob()
 {
 
   tree = tfs->make<TTree>("tree", "tree");
-  initialiseTree(tree);
+  initialiseTree(tree, fIsData);
 
 }
 
@@ -368,7 +368,6 @@ void NuMuSelection::produce(art::Event & e)
   subrun = e.subRun();
   event = e.event();
 
-  fIsData = e.isRealData();
   isMc = !fIsData;
 
   selResult.SetSelectionStatus(false);
@@ -531,102 +530,105 @@ void NuMuSelection::produce(art::Event & e)
      * here
      */
 
-    if (selResult.GetSelectionStatus() == true){
+    int muonLikeCounter = 0;
 
-      int muonLikeCounter = 0;
+    for (size_t i = 0; i < selectedTracks.size(); i++){
 
-      for (size_t i = 0; i < selectedTracks.size(); i++){
+      const recob::Track& track = selectedTracks.at(i);
 
-        const recob::Track& track = selectedTracks.at(i);
+      std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
+      std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track.ID());
 
-        std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
-        std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track.ID());
+      if (pids.size() == 0){
+        std::cout << "[NuMuSelection] No track<->PID association found for trackID " << track.ID() << ". Skipping track." << std::endl;
+      }
 
-        if (pids.size() == 0){
-          std::cout << "[NuMuSelection] No track<->PID association found for trackID " << track.ID() << ". Skipping track." << std::endl;
-        }
+      /**
+       * Perform PID check using anab::ParticleID objects.
+       */
+      std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
 
-        /**
-         * Perform PID check using anab::ParticleID objects.
-         */
-        std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
+      double bragg_fwd_mu = -999;
+      double bragg_fwd_p  = -999;
+      double bragg_fwd_pi = -999;
+      double bragg_fwd_k  = -999;
+      double bragg_bwd_mu = -999;
+      double bragg_bwd_p  = -999;
+      double bragg_bwd_pi = -999;
+      double bragg_bwd_k  = -999;
 
-        double bragg_fwd_mu = -999;
-        double bragg_fwd_p  = -999;
-        double bragg_fwd_pi = -999;
-        double bragg_fwd_k  = -999;
-        double bragg_bwd_mu = -999;
-        double bragg_bwd_p  = -999;
-        double bragg_bwd_pi = -999;
-        double bragg_bwd_k  = -999;
+      for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
 
-        for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
+        anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
 
-          anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
+        if(algScore.fAlgName == "BraggPeakLLH"){
 
-          if(algScore.fAlgName == "BraggPeakLLH"){
+          if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_fwd){
 
-            if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_fwd){
+            if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu = algScore.fValue;
+            if (algScore.fAssumedPdg == 2212) bragg_fwd_p  = algScore.fValue;
+            if (algScore.fAssumedPdg == 211 ) bragg_fwd_pi = algScore.fValue;
+            if (algScore.fAssumedPdg == 321 ) bragg_fwd_k  = algScore.fValue;
 
-              if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu = algScore.fValue;
-              if (algScore.fAssumedPdg == 2212) bragg_fwd_p  = algScore.fValue;
-              if (algScore.fAssumedPdg == 211 ) bragg_fwd_pi = algScore.fValue;
-              if (algScore.fAssumedPdg == 321 ) bragg_fwd_k  = algScore.fValue;
+          }
+          else if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_bwd){
 
-            }
-            else if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_bwd){
-
-              if (algScore.fAssumedPdg == 13  ) bragg_bwd_mu = algScore.fValue;
-              if (algScore.fAssumedPdg == 2212) bragg_bwd_p  = algScore.fValue;
-              if (algScore.fAssumedPdg == 211 ) bragg_bwd_pi = algScore.fValue;
-              if (algScore.fAssumedPdg == 321 ) bragg_bwd_k  = algScore.fValue;
-
-            }
+            if (algScore.fAssumedPdg == 13  ) bragg_bwd_mu = algScore.fValue;
+            if (algScore.fAssumedPdg == 2212) bragg_bwd_p  = algScore.fValue;
+            if (algScore.fAssumedPdg == 211 ) bragg_bwd_pi = algScore.fValue;
+            if (algScore.fAssumedPdg == 321 ) bragg_bwd_k  = algScore.fValue;
 
           }
 
         }
 
-        double bragg_mu = std::min(bragg_fwd_mu, bragg_bwd_mu);
-        double bragg_p  = std::min(bragg_fwd_p , bragg_bwd_p );
-        double bragg_pi = std::min(bragg_fwd_pi, bragg_bwd_pi);
-        double bragg_k  = std::min(bragg_fwd_k , bragg_bwd_k );
-
-        // get associated MCParticle
-        simb::MCParticle const* mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
-
-        tmptrackLength.push_back(track.Length());
-        tmptrackTheta.push_back(track.Theta());
-        tmptrackCosTheta.push_back(std::cos(track.Theta()));
-        tmptrackPhi.push_back(track.Phi());
-        tmptrackEndX.push_back(track.End().X());
-        tmptrackEndY.push_back(track.End().Y());
-        tmptrackEndZ.push_back(track.End().Z());
-        tmptrackStartX.push_back(track.Start().X());
-        tmptrackStartY.push_back(track.Start().Y());
-        tmptrackStartZ.push_back(track.Start().Z());
-        tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
-        tmptrackBraggMu.push_back(bragg_mu);
-        tmptrackBraggP.push_back(bragg_p);
-        tmptrackBraggPi.push_back(bragg_pi);
-        tmptrackBraggK.push_back(bragg_k);
-
-        if (bragg_p > fBraggPMuonCut)
-          muonLikeCounter++;
-        /*
-           std::pair<double, double> averageDqdx = 
-           pidutils.getAveragedQdX(track, hits);
-
-           bool isMuLike = 
-           pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
-
-           if (isMuLike){ 
-           muonLikeCounter++;
-           muonCandidate = track;
-           mcpMuonCandidate = mcpMatchedParticle;
-           }
-           */
       }
+
+      double bragg_mu = std::min(bragg_fwd_mu, bragg_bwd_mu);
+      double bragg_p  = std::min(bragg_fwd_p , bragg_bwd_p );
+      double bragg_pi = std::min(bragg_fwd_pi, bragg_bwd_pi);
+      double bragg_k  = std::min(bragg_fwd_k , bragg_bwd_k );
+
+      // get associated MCParticle
+      simb::MCParticle const* mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
+
+      tmptrackLength.push_back(track.Length());
+      tmptrackTheta.push_back(track.Theta());
+      tmptrackCosTheta.push_back(std::cos(track.Theta()));
+      tmptrackPhi.push_back(track.Phi());
+      tmptrackEndX.push_back(track.End().X());
+      tmptrackEndY.push_back(track.End().Y());
+      tmptrackEndZ.push_back(track.End().Z());
+      tmptrackStartX.push_back(track.Start().X());
+      tmptrackStartY.push_back(track.Start().Y());
+      tmptrackStartZ.push_back(track.Start().Z());
+      tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
+      tmptrackBraggMu.push_back(bragg_mu);
+      tmptrackBraggP.push_back(bragg_p);
+      tmptrackBraggPi.push_back(bragg_pi);
+      tmptrackBraggK.push_back(bragg_k);
+
+      if (bragg_p > fBraggPMuonCut){
+        muonLikeCounter++;
+        muonCandidate = track;
+        mcpMuonCandidate = mcpMatchedParticle;   
+      }
+      
+      
+      /*
+         std::pair<double, double> averageDqdx = 
+         pidutils.getAveragedQdX(track, hits);
+
+         bool isMuLike = 
+         pidutils.isMuonLike(averageDqdx.first, averageDqdx.second);
+
+         if (isMuLike){ 
+         muonLikeCounter++;
+         muonCandidate = track;
+         mcpMuonCandidate = mcpMatchedParticle;
+         }
+         */
+    }
 
     std::cout << "[NUMUSEL] >> Found " 
       << muonLikeCounter << " muon candidates! " << std::endl;
@@ -647,11 +649,11 @@ void NuMuSelection::produce(art::Event & e)
       is0PiSelected = true;
     }
 
-    }
     tpcObjectCollection->push_back(*(selectedTpcObject.get()));
 
   }
   else if (selectedTpcObjects.at(0).size() == 0){
+    std::cout << "[NUMUSEL] No TPC Objects found. Setting default values in tree." << std::endl;
     isUBXSecSelected = false;
     isSelected = false;
     isTwoTrackSelected = false;
@@ -661,6 +663,37 @@ void NuMuSelection::produce(art::Event & e)
       isMixed = false;
       isCosmic = false;
     }
+
+    nTracks = -999;            
+    trackLength.push_back(-999.);
+    trackTheta.push_back(-999.);
+    trackCosTheta.push_back(-999.);
+    trackPhi.push_back(-999.);
+    trackEndX.push_back(-999.);
+    trackEndY.push_back(-999.);
+    trackEndZ.push_back(-999.);
+    trackStartX.push_back(-999.);
+    trackStartY.push_back(-999.);
+    trackStartZ.push_back(-999.);
+    trackMatchedMcpID.push_back(-999.);
+    trackBraggMu.push_back(-999.);
+    trackBraggP.push_back(-999.);
+    trackBraggPi.push_back(-999.);
+    trackBraggK.push_back(-999.);
+    muonCandLength = -999;
+    muonCandTheta = -999;       
+    muonCandCosTheta = -999;    
+    muonCandPhi = -999;         
+    muonCandStartX = -999;      
+    muonCandStartY = -999;      
+    muonCandStartZ = -999;      
+    muonCandEndX = -999;        
+    muonCandEndY = -999;        
+    muonCandEndZ = -999;        
+    vertexX = -999;             
+    vertexY = -999;             
+    vertexZ = -999;             
+
   }
   else {
     std::cout 
@@ -695,7 +728,9 @@ void NuMuSelection::produce(art::Event & e)
   /**
    * Set variables to write to tree
    */
-  if (isSelected){
+
+  if (isUBXSecSelected){
+    std::cout << "[NUMUSEL] Setting variables to write to tree." << std::endl;
     trackLength       = tmptrackLength;
     trackTheta        = tmptrackTheta;
     trackCosTheta     = tmptrackCosTheta;
@@ -711,54 +746,53 @@ void NuMuSelection::produce(art::Event & e)
     trackBraggPi      = tmptrackBraggPi;
     trackBraggK       = tmptrackBraggK;
     trackMatchedMcpID = tmptrackMatchedMcpID;
-    muonCandLength    = muonCandidate.Length();
-    muonCandTheta     = muonCandidate.Theta();
-    muonCandCosTheta  = std::cos(muonCandidate.Theta());
-    muonCandPhi       = muonCandidate.Phi();
-    muonCandStartX    = muonCandidate.Vertex().X();
-    muonCandStartY    = muonCandidate.Vertex().Y();
-    muonCandStartZ    = muonCandidate.Vertex().Z();
-    muonCandEndX      = muonCandidate.End().X();
-    muonCandEndY      = muonCandidate.End().Y();
-    muonCandEndZ      = muonCandidate.End().Z();
+
+    std::cout << "1" << std::endl;
+    if (isSelected){
+      muonCandLength    = muonCandidate.Length();
+      muonCandTheta     = muonCandidate.Theta();
+      muonCandCosTheta  = std::cos(muonCandidate.Theta());
+      muonCandPhi       = muonCandidate.Phi();
+      muonCandStartX    = muonCandidate.Vertex().X();
+      muonCandStartY    = muonCandidate.Vertex().Y();
+      muonCandStartZ    = muonCandidate.Vertex().Z();
+      muonCandEndX      = muonCandidate.End().X();
+      muonCandEndY      = muonCandidate.End().Y();
+      muonCandEndZ      = muonCandidate.End().Z();
+    }
+    std::cout << "2" << std::endl;
     nTracks           = (int)nSelectedTracks;
     double xyz[3];
     selectedVertex.XYZ(xyz);
     vertexX                  = xyz[0];
     vertexY                  = xyz[1];
     vertexZ                  = xyz[2];
+    std::cout << "3" << std::endl;
+
   }
-  else {
-    trackLength.push_back(-999); 
+  if (!isUBXSecSelected){
+    trackLength.push_back(-999);
     trackTheta.push_back(-999);
     trackCosTheta.push_back(-999);
     trackPhi.push_back(-999);
-    trackEndX.push_back(-999);         
-    trackEndY.push_back(-999);         
-    trackEndZ.push_back(-999);         
-    trackStartX.push_back(-999);       
-    trackStartY.push_back(-999);       
-    trackStartZ.push_back(-999); 
+    trackEndX.push_back(-999);
+    trackEndY.push_back(-999);
+    trackEndZ.push_back(-999);
+    trackStartX.push_back(-999);
+    trackStartY.push_back(-999);
+    trackStartZ.push_back(-999);
     trackBraggMu.push_back(-999);
     trackBraggP.push_back(-999);
     trackBraggPi.push_back(-999);
     trackBraggK.push_back(-999);
     trackMatchedMcpID.push_back(-999);
-    muonCandLength           = -999;
-    muonCandTheta            = -999;
-    muonCandCosTheta         = -999;
-    muonCandPhi              = -999;
-    muonCandStartX           = -999;
-    muonCandStartY           = -999;
-    muonCandStartZ           = -999;
-    muonCandEndX             = -999;
-    muonCandEndY             = -999;
-    muonCandEndZ             = -999;
-    nTracks                  = -999;
-    vertexX                  = -999; 
-    vertexY                  = -999;
-    vertexZ                  = -999;
+    nTracks = -999;
+    vertexX = -999;
+    vertexY = -999;
+    vertexZ = -999;
   }
+
+  std::cout << "[NUMUSEL] Done." << std::endl;
 
   /**
    * If simulated data, then get true neutrino interaction information
@@ -972,6 +1006,7 @@ void NuMuSelection::produce(art::Event & e)
 
   }
 
+  std::cout << "[NUMUSEL] Filling Tree... " << std::endl;
   tree->Fill();
 
 }
@@ -982,8 +1017,11 @@ void NuMuSelection::endJob()
   // Implementation of optional member function here.
 }
 
-void NuMuSelection::initialiseTree(TTree *t)
+void NuMuSelection::initialiseTree(TTree *t, bool fIsData)
 {
+  /**
+   * fhicl parameters saved
+   */
   t->Branch("fhicl_MaxNShowers"          , &fMaxNShowers               );
   t->Branch("fhicl_MinNTracks"           , &fMinNTracks                );
   t->Branch("fhicl_MinNProtons"          , &fMinNProtons               );
@@ -992,112 +1030,20 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("run"                        , &run                        );
   t->Branch("subrun"                     , &subrun                     );
   t->Branch("event"                      , &event                      );
+
+  /**
+   * bools for each selection stage
+   */
   t->Branch("isSelected"                 , &isSelected                 );
-  t->Branch("isCC"                       , &isCC                       );
-  t->Branch("isNuMu"                     , &isNuMu                     );
-  t->Branch("isNuMuBar"                  , &isNuMuBar                  );
-  t->Branch("isNuE"                      , &isNuE                      );
-  t->Branch("isNuEBar"                   , &isNuEBar                   );
-  t->Branch("isTrueVtxInFV"              , &isTrueVtxInFV              );
-  t->Branch("is0PiTruth"                 , &is0PiTruth                 );
-  t->Branch("isGTNProtonsAboveThreshold" , &isGTNProtonsAboveThreshold );
   t->Branch("isUBXSecSelected"           , &isUBXSecSelected           );
-  t->Branch("isUBXSecSignal"             , &isUBXSecSignal             );
   t->Branch("isTwoTrackSelected"         , &isTwoTrackSelected         );
-  t->Branch("isTwoTrackTruth"            , &isTwoTrackTruth            );
   t->Branch("isZeroShowerSelected"       , &isZeroShowerSelected       );
-  t->Branch("isZeroShowerTruth"          , &isZeroShowerTruth          );
   t->Branch("is0PiSelected"              , &is0PiSelected              );
-  t->Branch("is0PiTruth"                 , &is0PiTruth                 );
-  t->Branch("isSignal"                   , &isSignal                   );
-  t->Branch("isBeamNeutrino"             , &isBeamNeutrino             );
-  t->Branch("isMixed"                    , &isMixed                    );
-  t->Branch("isCosmic"                   , &isCosmic                   );
-  t->Branch("isSelectedSignal"           , &isSelectedSignal           );
-  t->Branch("mcNuCCNC"                   , &mcNuCCNC                   );
-  t->Branch("mcNuMode"                   , &mcNuMode                   );
-  t->Branch("mcNuInteractionType"        , &mcNuInteractionType        );
-  t->Branch("mcq0Transfer"               , &mcq0Transfer               );
-  t->Branch("mcq3Transfer"               , &mcq3Transfer               );
-  t->Branch("mcNuVx"                     , &mcNuVx                     );
-  t->Branch("mcNuVy"                     , &mcNuVy                     );
-  t->Branch("mcNuVz"                     , &mcNuVz                     );
-  t->Branch("mcNuPx"                     , &mcNuPx                     );
-  t->Branch("mcNuPy"                     , &mcNuPy                     );
-  t->Branch("mcNuPz"                     , &mcNuPz                     );
-  t->Branch("mcNuEnergy"                 , &mcNuEnergy                 );
-  t->Branch("mcNuTheta"                  , &mcNuTheta                  );
-  t->Branch("mcLeptonMom"                , &mcLeptonMom                );
-  t->Branch("mcLeptonPx"                 , &mcLeptonPx                 );
-  t->Branch("mcLeptonPy"                 , &mcLeptonPy                 );
-  t->Branch("mcLeptonPz"                 , &mcLeptonPz                 );
-  t->Branch("mcLeptonEnergy"             , &mcLeptonEnergy             );
-  t->Branch("mcLeptonTheta"              , &mcLeptonTheta              );
-  t->Branch("mcLeptonCosTheta"           , &mcLeptonCosTheta           );
-  t->Branch("mcLeptonPhi"                , &mcLeptonPhi                );
-  t->Branch("mcpMuonCandTrackId"         , &mcpMuonCandTrackId         );
-  t->Branch("mcpMuonCandStatusCode"      , &mcpMuonCandStatusCode      );
-  t->Branch("mcpMuonCandPdgCode"         , &mcpMuonCandPdgCode         );
-  t->Branch("mcpMuonCandMother"          , &mcpMuonCandMother          );
-  t->Branch("mcpMuonCandProcess"         , &mcpMuonCandProcess         );
-  t->Branch("mcpMuonCandEndProcess"      , &mcpMuonCandEndProcess      );
-  t->Branch("mcpMuonCandNDaughters"      , &mcpMuonCandNDaughters      );
 
-  t->Branch("mcpMuonCandDaughter"        , "std::vector<int>"             , &mcpMuonCandDaughter);
-
-  t->Branch("mcpMuonCandNumTrajPoint"    , &mcpMuonCandNumTrajPoint    );
-  t->Branch("mcpMuonCandVx"              , &mcpMuonCandVx              );
-  t->Branch("mcpMuonCandVy"              , &mcpMuonCandVy              );
-  t->Branch("mcpMuonCandVz"              , &mcpMuonCandVz              );
-  t->Branch("mcpMuonCandEndX"            , &mcpMuonCandEndX            );
-  t->Branch("mcpMuonCandEndY"            , &mcpMuonCandEndY            );
-  t->Branch("mcpMuonCandEndZ"            , &mcpMuonCandEndZ            );
-  t->Branch("mcpMuonCandT"               , &mcpMuonCandT               );
-  t->Branch("mcpMuonCandPx"              , &mcpMuonCandPx              );
-  t->Branch("mcpMuonCandPy"              , &mcpMuonCandPy              );
-  t->Branch("mcpMuonCandPz"              , &mcpMuonCandPz              );
-  t->Branch("mcpMuonCandE"               , &mcpMuonCandE               );
-  t->Branch("mcpMuonCandP"               , &mcpMuonCandP               );
-  t->Branch("mcpMuonCandPT"              , &mcpMuonCandPT              );
-  t->Branch("mcpMuonCandMass"            , &mcpMuonCandMass            );
-  t->Branch("mcpMuonCandEndPx"           , &mcpMuonCandEndPx           );
-  t->Branch("mcpMuonCandEndPy"           , &mcpMuonCandEndPy           );
-  t->Branch("mcpMuonCandEndPz"           , &mcpMuonCandEndPz           );
-  t->Branch("mcpMuonCandEndE"            , &mcpMuonCandEndE            );
-  t->Branch("mcpMuonCandTheta"           , &mcpMuonCandTheta           );
-  t->Branch("mcpMuonCandCosTheta"        , &mcpMuonCandCosTheta        );
-  t->Branch("mcpMuonCandPhi"             , &mcpMuonCandPhi             );
-
-  t->Branch("mcpTrackIds"                , "std::vector<int>"             , &mcpTrackIds      );
-  t->Branch("mcpStatusCodes"             , "std::vector<int>"             , &mcpStatusCodes   );
-  t->Branch("mcpPdgCodes"                , "std::vector<int>"             , &mcpPdgCodes      );
-  t->Branch("mcpMothers"                 , "std::vector<int>"             , &mcpMothers       );
-  t->Branch("mcpProcesses"               , "std::vector<std::string>"     , &mcpProcesses     );
-  t->Branch("mcpEndProcesses"            , "std::vector<std::string>"     , &mcpEndProcesses  );
-  t->Branch("mcpNDaughters"              , "std::vector<int>"             , &mcpNDaughters    );
-  //t->Branch("mcpDaughters"               , "std::vector<int>"             , &mcpDaughters     );
-  t->Branch("mcpNumTrajPoints"           , "std::vector<unsigned int>"    , &mcpNumTrajPoints );
-  t->Branch("mcpVxs"                     , "std::vector<double>"          , &mcpVxs           );
-  t->Branch("mcpVys"                     , "std::vector<double>"          , &mcpVys           );
-  t->Branch("mcpVzs"                     , "std::vector<double>"          , &mcpVzs           );
-  t->Branch("mcpEndXs"                   , "std::vector<double>"          , &mcpEndXs         );
-  t->Branch("mcpEndYs"                   , "std::vector<double>"          , &mcpEndYs         );
-  t->Branch("mcpEndZs"                   , "std::vector<double>"          , &mcpEndZs         );
-  t->Branch("mcpTs"                      , "std::vector<double>"          , &mcpTs            );
-  t->Branch("mcpPxs"                     , "std::vector<double>"          , &mcpPxs           );
-  t->Branch("mcpPys"                     , "std::vector<double>"          , &mcpPys           );
-  t->Branch("mcpPzs"                     , "std::vector<double>"          , &mcpPzs           );
-  t->Branch("mcpEs"                      , "std::vector<double>"          , &mcpEs            );
-  t->Branch("mcpPs"                      , "std::vector<double>"          , &mcpPs            );
-  t->Branch("mcpPTs"                     , "std::vector<double>"          , &mcpPTs           );
-  t->Branch("mcpMasses"                  , "std::vector<double>"          , &mcpMasses        );
-  t->Branch("mcpEndPxs"                  , "std::vector<double>"          , &mcpEndPxs        );
-  t->Branch("mcpEndPys"                  , "std::vector<double>"          , &mcpEndPys        );
-  t->Branch("mcpEndPzs"                  , "std::vector<double>"          , &mcpEndPzs        );
-  t->Branch("mcpEndEs"                   , "std::vector<double>"          , &mcpEndEs         );
-
+  /**
+   * reconstructed variables
+   */
   t->Branch("nTracks"                    , &nTracks                    );
-
   t->Branch("trackLength"                , "std::vector<double>"          , &trackLength       );
   t->Branch("trackTheta"                 , "std::vector<double>"          , &trackTheta        );
   t->Branch("trackCosTheta"              , "std::vector<double>"          , &trackCosTheta     );
@@ -1126,6 +1072,124 @@ void NuMuSelection::initialiseTree(TTree *t)
   t->Branch("vertexX"                    , &vertexX                    );
   t->Branch("vertexY"                    , &vertexY                    );
   t->Branch("vertexZ"                    , &vertexZ                    );
+
+  if (!fIsData){
+    /**
+     * bools for truth information
+     */
+    t->Branch("isCC"                       , &isCC                       );
+    t->Branch("isNuMu"                     , &isNuMu                     );
+    t->Branch("isNuMuBar"                  , &isNuMuBar                  );
+    t->Branch("isNuE"                      , &isNuE                      );
+    t->Branch("isNuEBar"                   , &isNuEBar                   );
+    t->Branch("isTrueVtxInFV"              , &isTrueVtxInFV              );
+    t->Branch("is0PiTruth"                 , &is0PiTruth                 );
+    t->Branch("isGTNProtonsAboveThreshold" , &isGTNProtonsAboveThreshold );
+    t->Branch("isUBXSecSignal"             , &isUBXSecSignal             );
+    t->Branch("isTwoTrackTruth"            , &isTwoTrackTruth            );
+    t->Branch("isZeroShowerTruth"          , &isZeroShowerTruth          );
+    t->Branch("is0PiTruth"                 , &is0PiTruth                 );
+    t->Branch("isSignal"                   , &isSignal                   );
+    t->Branch("isBeamNeutrino"             , &isBeamNeutrino             );
+    t->Branch("isMixed"                    , &isMixed                    );
+    t->Branch("isCosmic"                   , &isCosmic                   );
+    t->Branch("isSelectedSignal"           , &isSelectedSignal           );
+
+    /**
+     * MCParticle information -- neutrino
+     */
+    t->Branch("mcNuCCNC"                   , &mcNuCCNC                   );
+    t->Branch("mcNuMode"                   , &mcNuMode                   );
+    t->Branch("mcNuInteractionType"        , &mcNuInteractionType        );
+    t->Branch("mcq0Transfer"               , &mcq0Transfer               );
+    t->Branch("mcq3Transfer"               , &mcq3Transfer               );
+    t->Branch("mcNuVx"                     , &mcNuVx                     );
+    t->Branch("mcNuVy"                     , &mcNuVy                     );
+    t->Branch("mcNuVz"                     , &mcNuVz                     );
+    t->Branch("mcNuPx"                     , &mcNuPx                     );
+    t->Branch("mcNuPy"                     , &mcNuPy                     );
+    t->Branch("mcNuPz"                     , &mcNuPz                     );
+    t->Branch("mcNuEnergy"                 , &mcNuEnergy                 );
+    t->Branch("mcNuTheta"                  , &mcNuTheta                  );
+
+    /**
+     * MCParticle information -- Lepton
+     */
+    t->Branch("mcLeptonMom"                , &mcLeptonMom                );
+    t->Branch("mcLeptonPx"                 , &mcLeptonPx                 );
+    t->Branch("mcLeptonPy"                 , &mcLeptonPy                 );
+    t->Branch("mcLeptonPz"                 , &mcLeptonPz                 );
+    t->Branch("mcLeptonEnergy"             , &mcLeptonEnergy             );
+    t->Branch("mcLeptonTheta"              , &mcLeptonTheta              );
+    t->Branch("mcLeptonCosTheta"           , &mcLeptonCosTheta           );
+    t->Branch("mcLeptonPhi"                , &mcLeptonPhi                );
+
+    /**
+     * MCParticle information -- muon candidate
+     */
+    t->Branch("mcpMuonCandTrackId"         , &mcpMuonCandTrackId         );
+    t->Branch("mcpMuonCandStatusCode"      , &mcpMuonCandStatusCode      );
+    t->Branch("mcpMuonCandPdgCode"         , &mcpMuonCandPdgCode         );
+    t->Branch("mcpMuonCandMother"          , &mcpMuonCandMother          );
+    t->Branch("mcpMuonCandProcess"         , &mcpMuonCandProcess         );
+    t->Branch("mcpMuonCandEndProcess"      , &mcpMuonCandEndProcess      );
+    t->Branch("mcpMuonCandNDaughters"      , &mcpMuonCandNDaughters      );
+    t->Branch("mcpMuonCandDaughter"        , "std::vector<int>"             , &mcpMuonCandDaughter);
+    t->Branch("mcpMuonCandNumTrajPoint"    , &mcpMuonCandNumTrajPoint    );
+    t->Branch("mcpMuonCandVx"              , &mcpMuonCandVx              );
+    t->Branch("mcpMuonCandVy"              , &mcpMuonCandVy              );
+    t->Branch("mcpMuonCandVz"              , &mcpMuonCandVz              );
+    t->Branch("mcpMuonCandEndX"            , &mcpMuonCandEndX            );
+    t->Branch("mcpMuonCandEndY"            , &mcpMuonCandEndY            );
+    t->Branch("mcpMuonCandEndZ"            , &mcpMuonCandEndZ            );
+    t->Branch("mcpMuonCandT"               , &mcpMuonCandT               );
+    t->Branch("mcpMuonCandPx"              , &mcpMuonCandPx              );
+    t->Branch("mcpMuonCandPy"              , &mcpMuonCandPy              );
+    t->Branch("mcpMuonCandPz"              , &mcpMuonCandPz              );
+    t->Branch("mcpMuonCandE"               , &mcpMuonCandE               );
+    t->Branch("mcpMuonCandP"               , &mcpMuonCandP               );
+    t->Branch("mcpMuonCandPT"              , &mcpMuonCandPT              );
+    t->Branch("mcpMuonCandMass"            , &mcpMuonCandMass            );
+    t->Branch("mcpMuonCandEndPx"           , &mcpMuonCandEndPx           );
+    t->Branch("mcpMuonCandEndPy"           , &mcpMuonCandEndPy           );
+    t->Branch("mcpMuonCandEndPz"           , &mcpMuonCandEndPz           );
+    t->Branch("mcpMuonCandEndE"            , &mcpMuonCandEndE            );
+    t->Branch("mcpMuonCandTheta"           , &mcpMuonCandTheta           );
+    t->Branch("mcpMuonCandCosTheta"        , &mcpMuonCandCosTheta        );
+    t->Branch("mcpMuonCandPhi"             , &mcpMuonCandPhi             );
+
+    /**
+     * MCParticle information -- all tracks
+     */
+    t->Branch("mcpTrackIds"                , "std::vector<int>"             , &mcpTrackIds      );
+    t->Branch("mcpStatusCodes"             , "std::vector<int>"             , &mcpStatusCodes   );
+    t->Branch("mcpPdgCodes"                , "std::vector<int>"             , &mcpPdgCodes      );
+    t->Branch("mcpMothers"                 , "std::vector<int>"             , &mcpMothers       );
+    t->Branch("mcpProcesses"               , "std::vector<std::string>"     , &mcpProcesses     );
+    t->Branch("mcpEndProcesses"            , "std::vector<std::string>"     , &mcpEndProcesses  );
+    t->Branch("mcpNDaughters"              , "std::vector<int>"             , &mcpNDaughters    );
+    //t->Branch("mcpDaughters"               , "std::vector<int>"             , &mcpDaughters     );
+    t->Branch("mcpNumTrajPoints"           , "std::vector<unsigned int>"    , &mcpNumTrajPoints );
+    t->Branch("mcpVxs"                     , "std::vector<double>"          , &mcpVxs           );
+    t->Branch("mcpVys"                     , "std::vector<double>"          , &mcpVys           );
+    t->Branch("mcpVzs"                     , "std::vector<double>"          , &mcpVzs           );
+    t->Branch("mcpEndXs"                   , "std::vector<double>"          , &mcpEndXs         );
+    t->Branch("mcpEndYs"                   , "std::vector<double>"          , &mcpEndYs         );
+    t->Branch("mcpEndZs"                   , "std::vector<double>"          , &mcpEndZs         );
+    t->Branch("mcpTs"                      , "std::vector<double>"          , &mcpTs            );
+    t->Branch("mcpPxs"                     , "std::vector<double>"          , &mcpPxs           );
+    t->Branch("mcpPys"                     , "std::vector<double>"          , &mcpPys           );
+    t->Branch("mcpPzs"                     , "std::vector<double>"          , &mcpPzs           );
+    t->Branch("mcpEs"                      , "std::vector<double>"          , &mcpEs            );
+    t->Branch("mcpPs"                      , "std::vector<double>"          , &mcpPs            );
+    t->Branch("mcpPTs"                     , "std::vector<double>"          , &mcpPTs           );
+    t->Branch("mcpMasses"                  , "std::vector<double>"          , &mcpMasses        );
+    t->Branch("mcpEndPxs"                  , "std::vector<double>"          , &mcpEndPxs        );
+    t->Branch("mcpEndPys"                  , "std::vector<double>"          , &mcpEndPys        );
+    t->Branch("mcpEndPzs"                  , "std::vector<double>"          , &mcpEndPzs        );
+    t->Branch("mcpEndEs"                   , "std::vector<double>"          , &mcpEndEs         );
+  }
+
 }
 
 void NuMuSelection::clearVectors()
