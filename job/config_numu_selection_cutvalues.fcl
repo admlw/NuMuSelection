@@ -14,8 +14,10 @@ numuselectionconfig:
   MinimumNProtons: 1
   ProtonEThreshold: 0.04
   ElectronEThreshold: 0.02
+  ProtonScaleFactor: 1.563
+  MuonScaleFactor: 1.563
 
-  BraggPMuonCut: 40
+  BraggPMuonCut: -40
 }
 
 END_PROLOG

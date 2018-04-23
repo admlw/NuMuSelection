@@ -132,6 +132,8 @@ class NuMuSelection : public art::EDProducer {
     double fProtonEThreshold;
     double fElectronEThreshold;
     double fBraggPMuonCut;
+    double fMuonScaleFactor;
+    double fProtonScaleFactor;
     std::string fSelectionLabel;
     std::string fPIDLabel;
     std::string fTrackLabel;
@@ -330,6 +332,8 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
   fProtonEThreshold    = p_cuts.get<double>("ProtonEThreshold", 0.04);
   fElectronEThreshold  = p_cuts.get<double>("ElectronEThreshold", 0.02);
   fBraggPMuonCut       = p_cuts.get<double>("BraggPMuonCut");
+  fMuonScaleFactor     = p_cuts.get<double>("MuonScaleFactor");
+  fProtonScaleFactor   = p_cuts.get<double>("ProtonScaleFactor");
 
   fSelectionLabel      = p_labels.get<std::string>("SelectionLabel", "UBXSec");
   fPIDLabel            = p_labels.get<std::string>("ParticleIdLabel", "particleid");
@@ -608,7 +612,7 @@ void NuMuSelection::produce(art::Event & e)
       tmptrackBraggPi.push_back(bragg_pi);
       tmptrackBraggK.push_back(bragg_k);
 
-      if (bragg_p > fBraggPMuonCut){
+      if (std::min(bragg_mu, bragg_mip)*1./fMuonScaleFactor - bragg_p*1./fProtonScaleFactor < fBraggPMuonCut){
         muonLikeCounter++;
         muonCandidate = track;
         mcpMuonCandidate = mcpMatchedParticle;   
