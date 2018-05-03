@@ -33,7 +33,8 @@
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardataobj/AnalysisBase/ParticleID.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-
+#include "larcoreobj/SummaryData/POTSummary.h"
+  
 // ROOT Includes
 #include "TTree.h"
 
@@ -70,6 +71,7 @@ class NuMuSelection : public art::EDProducer {
     // Selected optional functions.
     void beginJob() override;
     void endJob() override;
+    void endSubRun(art::SubRun& sr) override;
 
     /**
      * initialises branches in output tree
@@ -115,6 +117,7 @@ class NuMuSelection : public art::EDProducer {
 
     art::ServiceHandle< art::TFileService > tfs;
     TTree * tree;
+    TTree * sr_tree;
 
     // intialise classes
     pidutil::particleIdUtility pidutils;
@@ -141,6 +144,13 @@ class NuMuSelection : public art::EDProducer {
     std::string fSelectionTPCObjAssn;
     std::string fHitTrackAssn;
     std::string fHitTruthAssns;
+
+    // runsubrun info
+    int sr_run;
+    int sr_subrun;
+    double sr_begintime;
+    double sr_endtime;
+    double sr_pot;
 
     // signal bools
     bool isSelected;
@@ -360,8 +370,15 @@ NuMuSelection::NuMuSelection(fhicl::ParameterSet const & p)
 void NuMuSelection::beginJob()
 {
 
-  tree = tfs->make<TTree>("tree", "tree");
+  tree = tfs->make<TTree>("analysis_tree", "analysis tree");
   initialiseTree(tree, fIsData);
+
+  sr_tree = tfs->make<TTree>("rsr_tree", "run-subrun tree");
+  sr_tree->Branch("sr_run", &sr_run);
+  sr_tree->Branch("sr_subrun", &sr_subrun);
+  sr_tree->Branch("sr_begintime", &sr_begintime);
+  sr_tree->Branch("sr_endtime", &sr_endtime);
+  sr_tree->Branch("sr_pot", &sr_pot);
 
 }
 
@@ -374,6 +391,7 @@ void NuMuSelection::produce(art::Event & e)
 
   isMc = !fIsData;
 
+  isUBXSecSelected = false;
   selResult.SetSelectionStatus(false);
   selResult.SetFailureReason("NoUBXSec");
 
@@ -414,9 +432,6 @@ void NuMuSelection::produce(art::Event & e)
   // hit information
   art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, fHitTrackAssn);
 
-  // hit<->mcParticle associations
-  art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssns);
-
   // track<-> PID associations
   art::FindManyP<anab::ParticleID> pidFromTrack(trackHandle, e, fPIDLabel);
 
@@ -425,39 +440,50 @@ void NuMuSelection::produce(art::Event & e)
    */
 
   art::Handle< std::vector< simb::MCTruth > > mcTruthHandle;
-  e.getByLabel("generator", mcTruthHandle);
-  if (!mcTruthHandle.isValid()) return;
   std::vector< art::Ptr<simb::MCTruth> > mcTruthVec;
-  art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
-  if (mcTruthVec.size() == 0){
-    std::cout << "\n[NUMUSEL] No MCTruth Information" << std::endl;
-    return;
+  if (isMc == 1){
+    e.getByLabel("generator", mcTruthHandle);
+    if (!mcTruthHandle.isValid()) return;
+    art::fill_ptr_vector(mcTruthVec, mcTruthHandle);
+    if (mcTruthVec.size() == 0){
+      std::cout << "\n[NUMUSEL] No MCTruth Information" << std::endl;
+      return;
+    }
   }
 
   art::Handle< std::vector< simb::GTruth > > gTruthHandle;
-  e.getByLabel("generator", gTruthHandle);
-  if (!gTruthHandle.isValid()) return;
   std::vector< art::Ptr<simb::GTruth> > gTruthVec;
-  art::fill_ptr_vector(gTruthVec, gTruthHandle);
-  if (gTruthVec.size() == 0){
-    std::cout << "\n[NUMUSEL] No GTruth Information" << std::endl;
-    return;
+  if (isMc == 1){
+    e.getByLabel("generator", gTruthHandle);
+    if (!gTruthHandle.isValid()) return;
+    art::fill_ptr_vector(gTruthVec, gTruthHandle);
+    if (gTruthVec.size() == 0){
+      std::cout << "\n[NUMUSEL] No GTruth Information" << std::endl;
+      return;
+    }
   }
 
   art::Handle< std::vector< simb::MCFlux > > mcFluxHandle;
-  e.getByLabel("generator", mcFluxHandle);
-  if (!mcFluxHandle.isValid()) return;
   std::vector< art::Ptr<simb::MCFlux> > mcFluxVec;
-  art::fill_ptr_vector(mcFluxVec, mcFluxHandle);
-  if (mcFluxVec.size() == 0){
-    std::cout << "\n[NUMUSEL] No MCFlux Information" << std::endl;
-    return;
+  if (isMc == 1){
+    e.getByLabel("generator", mcFluxHandle);
+    if (!mcFluxHandle.isValid()) return;
+    art::fill_ptr_vector(mcFluxVec, mcFluxHandle);
+    if (mcFluxVec.size() == 0){
+      std::cout << "\n[NUMUSEL] No MCFlux Information" << std::endl;
+      return;
+    }
   }
 
-  const art::Ptr<simb::MCFlux> mcFlux = mcFluxVec.at(0);
-  const art::Ptr<simb::GTruth> gTruth = gTruthVec.at(0);
+  art::Ptr<simb::MCFlux> mcFlux;
+  art::Ptr<simb::GTruth> gTruth;
+  art::Ptr<simb::MCTruth> mcTruth;
 
-  const art::Ptr<simb::MCTruth> mcTruth = mcTruthVec.at(0);
+  if (isMc == 1){
+    mcFlux = mcFluxVec.at(0);
+    gTruth = gTruthVec.at(0);
+    mcTruth = mcTruthVec.at(0);
+  }
   std::cout << "\n[NUMUSEL] PRINTING INFORMATION FOR EVENT " 
     << run << "." << subrun << "." << event << std::endl;
 
@@ -521,9 +547,9 @@ void NuMuSelection::produce(art::Event & e)
     if ((int)nSelectedShowers > fMaxNShowers){
       selResult.SetSelectionStatus(false);
       selResult.SetFailureReason("nShowersGTMaxNShowers");
-      isZeroShowerTruth = false;
+      isZeroShowerSelected = false;
     }
-    else isZeroShowerTruth = true;
+    else isZeroShowerSelected = true;
 
     /**
      * Loop tracks and check whether each track is compatibile with
@@ -545,6 +571,7 @@ void NuMuSelection::produce(art::Event & e)
 
       if (pids.size() == 0){
         std::cout << "[NuMuSelection] No track<->PID association found for trackID " << track.ID() << ". Skipping track." << std::endl;
+        continue;
       }
 
       /**
@@ -552,6 +579,7 @@ void NuMuSelection::produce(art::Event & e)
        */
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
 
+      double noBragg_fwd_mip = -999;
       double bragg_fwd_mu = -999;
       double bragg_fwd_p  = -999;
       double bragg_fwd_pi = -999;
@@ -569,10 +597,11 @@ void NuMuSelection::produce(art::Event & e)
 
           if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_fwd){
 
-            if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu = algScore.fValue;
-            if (algScore.fAssumedPdg == 2212) bragg_fwd_p  = algScore.fValue;
-            if (algScore.fAssumedPdg == 211 ) bragg_fwd_pi = algScore.fValue;
-            if (algScore.fAssumedPdg == 321 ) bragg_fwd_k  = algScore.fValue;
+            if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu    = algScore.fValue;
+            if (algScore.fAssumedPdg == 2212) bragg_fwd_p     = algScore.fValue;
+            if (algScore.fAssumedPdg == 211 ) bragg_fwd_pi    = algScore.fValue;
+            if (algScore.fAssumedPdg == 321 ) bragg_fwd_k     = algScore.fValue;
+            if (algScore.fAssumedPdg == 0   ) noBragg_fwd_mip = algScore.fValue;
 
           }
           else if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_bwd){
@@ -588,13 +617,21 @@ void NuMuSelection::produce(art::Event & e)
 
       }
 
-      double bragg_mu = std::min(bragg_fwd_mu, bragg_bwd_mu);
-      double bragg_p  = std::min(bragg_fwd_p , bragg_bwd_p );
-      double bragg_pi = std::min(bragg_fwd_pi, bragg_bwd_pi);
-      double bragg_k  = std::min(bragg_fwd_k , bragg_bwd_k );
+      double bragg_mu  = std::min(bragg_fwd_mu, bragg_bwd_mu);
+      double bragg_p   = std::min(bragg_fwd_p , bragg_bwd_p );
+      double bragg_pi  = std::min(bragg_fwd_pi, bragg_bwd_pi);
+      double bragg_k   = std::min(bragg_fwd_k , bragg_bwd_k );
+      double bragg_mip = noBragg_fwd_mip;
 
       // get associated MCParticle
-      simb::MCParticle const* mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
+      simb::MCParticle const* mcpMatchedParticle = 0;
+
+      if (isMc){
+        // hit<->mcParticle associations
+        art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssns);
+
+        mcpMatchedParticle = GetAssociatedMCParticle(hits, particlesPerHit);
+      }
 
       tmptrackLength.push_back(track.Length());
       tmptrackTheta.push_back(track.Theta());
@@ -606,19 +643,21 @@ void NuMuSelection::produce(art::Event & e)
       tmptrackStartX.push_back(track.Start().X());
       tmptrackStartY.push_back(track.Start().Y());
       tmptrackStartZ.push_back(track.Start().Z());
-      tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
+      if (isMc)
+        tmptrackMatchedMcpID.push_back(mcpMatchedParticle->TrackId());
       tmptrackBraggMu.push_back(bragg_mu);
       tmptrackBraggP.push_back(bragg_p);
       tmptrackBraggPi.push_back(bragg_pi);
       tmptrackBraggK.push_back(bragg_k);
 
-      if (std::min(bragg_mu, bragg_mip)*1./fMuonScaleFactor - bragg_p*1./fProtonScaleFactor < fBraggPMuonCut){
+      if (std::min(bragg_mu, bragg_mip) - bragg_p < fBraggPMuonCut){
         muonLikeCounter++;
         muonCandidate = track;
-        mcpMuonCandidate = mcpMatchedParticle;   
+        if (isMc)
+          mcpMuonCandidate = mcpMatchedParticle;   
       }
-      
-      
+
+
       /*
          std::pair<double, double> averageDqdx = 
          pidutils.getAveragedQdX(track, hits);
@@ -648,8 +687,6 @@ void NuMuSelection::produce(art::Event & e)
       is0PiSelected = false;
     }
     else if (muonLikeCounter == 1){
-      selResult.SetSelectionStatus(true);
-      selResult.SetFailureReason("Passed");
       is0PiSelected = true;
     }
 
@@ -702,6 +739,48 @@ void NuMuSelection::produce(art::Event & e)
   else {
     std::cout 
       << "[NUMUSEL] >> Uh-oh, there's more than one selected TPC object, that shouldn't be right..." << std::endl;
+
+    isUBXSecSelected = false;
+    isSelected = false;
+    isTwoTrackSelected = false;
+    isZeroShowerSelected = false;
+    if (isMc){
+      isBeamNeutrino = false;
+      isMixed = false;
+      isCosmic = false;
+    }
+
+    nTracks = -999;            
+    trackLength.push_back(-999.);
+    trackTheta.push_back(-999.);
+    trackCosTheta.push_back(-999.);
+    trackPhi.push_back(-999.);
+    trackEndX.push_back(-999.);
+    trackEndY.push_back(-999.);
+    trackEndZ.push_back(-999.);
+    trackStartX.push_back(-999.);
+    trackStartY.push_back(-999.);
+    trackStartZ.push_back(-999.);
+    trackMatchedMcpID.push_back(-999.);
+    trackBraggMu.push_back(-999.);
+    trackBraggP.push_back(-999.);
+    trackBraggPi.push_back(-999.);
+    trackBraggK.push_back(-999.);
+    muonCandLength = -999;
+    muonCandTheta = -999;       
+    muonCandCosTheta = -999;    
+    muonCandPhi = -999;         
+    muonCandStartX = -999;      
+    muonCandStartY = -999;      
+    muonCandStartZ = -999;      
+    muonCandEndX = -999;        
+    muonCandEndY = -999;        
+    muonCandEndZ = -999;        
+    vertexX = -999;             
+    vertexY = -999;             
+    vertexZ = -999;             
+
+
   }
 
   selectionCollection->push_back(selResult);
@@ -751,7 +830,6 @@ void NuMuSelection::produce(art::Event & e)
     trackBraggK       = tmptrackBraggK;
     trackMatchedMcpID = tmptrackMatchedMcpID;
 
-    std::cout << "1" << std::endl;
     if (isSelected){
       muonCandLength    = muonCandidate.Length();
       muonCandTheta     = muonCandidate.Theta();
@@ -764,14 +842,12 @@ void NuMuSelection::produce(art::Event & e)
       muonCandEndY      = muonCandidate.End().Y();
       muonCandEndZ      = muonCandidate.End().Z();
     }
-    std::cout << "2" << std::endl;
     nTracks           = (int)nSelectedTracks;
     double xyz[3];
     selectedVertex.XYZ(xyz);
     vertexX                  = xyz[0];
     vertexY                  = xyz[1];
     vertexZ                  = xyz[2];
-    std::cout << "3" << std::endl;
 
   }
   if (!isUBXSecSelected){
@@ -993,7 +1069,36 @@ void NuMuSelection::produce(art::Event & e)
       ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
     }
 
-    std::cout << "[NUMUSEL] >> isSelected                  " << isSelected << std::endl;
+    if (isSelected == 1 && (isTwoTrackSelected != 1 || isZeroShowerSelected != 1 || is0PiSelected != 1)){
+      std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" << std::endl;
+
+      std::cout << "[NUMUSEL] >> isSelected:                 " << isSelected << std::endl;
+      std::cout << "[NUMUSEL] >> isTwoTrackSelected:         " << isTwoTrackSelected << std::endl;
+      std::cout << "[NUMUSEL] >> isZeroShowerSelected:       " << isZeroShowerSelected << std::endl;
+      std::cout << "[NUMUSEL] >> is0PiSelected               " << is0PiSelected << std::endl;
+      std::cout << "[NUMUSEL] >> isSignal:                   " << isSignal << std::endl;
+      std::cout << "[NUMUSEL] >> isTwoTrackTruth:            " << isTwoTrackTruth << std::endl;
+      std::cout << "[NUMUSEL] >> isZeroShowerTruth:          " << isZeroShowerTruth << std::endl;
+      std::cout << "[NUMUSEL] >> isGTNProtonsAboveThreshold: " << isGTNProtonsAboveThreshold << std::endl;
+      std::cout << "[NUMUSEL] >> isBeamNeutrino:             " << isBeamNeutrino << std::endl;
+      std::cout << "[NUMUSEL] >> isCosmic:                   " << isCosmic << std::endl;
+      std::cout << "[NUMUSEL] >> isMixed:                    " << isMixed << std::endl;
+      std::cout << "[NUMUSEL] >> isOOFV:                     " << !isTrueVtxInFV << std::endl;
+      std::cout << "[NUMUSEL] >> isNC:                       " << !isCC << std::endl;
+      std::cout << "[NUMUSEL] >> isNuMuBar:                  " << isNuMuBar << std::endl;
+      std::cout << "[NUMUSEL] >> isNuE:                      " << isNuE << std::endl;
+      std::cout << "[NUMUSEL] >> isNuEBar:                   " << isNuEBar << std::endl;
+      std::cout << "[NUMUSEL] >> is0PiTruth:                 " << is0PiTruth << std::endl;
+
+
+
+      throw;
+    }
+
+    std::cout << "[NUMUSEL] >> isSelected:                 " << isSelected << std::endl;
+    std::cout << "[NUMUSEL] >> isTwoTrackSelected:         " << isTwoTrackSelected << std::endl;
+    std::cout << "[NUMUSEL] >> isZeroShowerSelected:       " << isZeroShowerSelected << std::endl;
+    std::cout << "[NUMUSEL] >> is0PiSelected               " << is0PiSelected << std::endl;
     std::cout << "[NUMUSEL] >> isSignal:                   " << isSignal << std::endl;
     std::cout << "[NUMUSEL] >> isTwoTrackTruth:            " << isTwoTrackTruth << std::endl;
     std::cout << "[NUMUSEL] >> isZeroShowerTruth:          " << isZeroShowerTruth << std::endl;
@@ -1006,7 +1111,7 @@ void NuMuSelection::produce(art::Event & e)
     std::cout << "[NUMUSEL] >> isNuMuBar:                  " << isNuMuBar << std::endl;
     std::cout << "[NUMUSEL] >> isNuE:                      " << isNuE << std::endl;
     std::cout << "[NUMUSEL] >> isNuEBar:                   " << isNuEBar << std::endl;
-    std::cout << "[NUMUSEL] >> is0PiTruth:                 " << !is0PiTruth << std::endl;
+    std::cout << "[NUMUSEL] >> is0PiTruth:                 " << is0PiTruth << std::endl;
 
   }
 
@@ -1015,6 +1120,33 @@ void NuMuSelection::produce(art::Event & e)
 
 }
 
+void NuMuSelection::endSubRun(art::SubRun& sr){
+
+  sr_run = sr.run();
+  sr_subrun = sr.subRun();
+  sr_begintime = sr.beginTime().value();
+  sr_endtime = sr.endTime().value();
+
+  art::Handle<sumdata::POTSummary> potsum_h;
+  if (isMc == true){
+    if (sr.getByLabel("generator", potsum_h)){
+      sr_pot = potsum_h->totpot;
+    }
+    else
+      sr_pot = 0;
+  }
+
+  if (!isMc == false){
+    if (sr.getByLabel("beamdata", potsum_h)){
+        sr_pot = potsum_h->totpot;
+    }
+    else
+      sr_pot = 0;
+  }
+
+  sr_tree->Fill();
+
+}
 
 void NuMuSelection::endJob()
 {
