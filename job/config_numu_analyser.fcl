@@ -1,0 +1,26 @@
+#include "fiducial_volume_settings.fcl"
+#include "config_numu_analyser_producerlabels.fcl"
+
+#
+# configuration fcl file for NuMuSelection fcl parameters
+#
+
+BEGIN_PROLOG
+
+numuanalyserconfig:
+{
+
+  module_type:     "NuMuSelection1muNpAnalyzer"
+  
+  # fiducial volume settings from UBXSec  
+  FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
+  
+  # this should be removed at some point so that the code checks whether 
+  # isData internally
+  IsData:          false       
+
+  ProducerLabels: @local::numuproducerlabels
+
+}
+
+END_PROLOG
