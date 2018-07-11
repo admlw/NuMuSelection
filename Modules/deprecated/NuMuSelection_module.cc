@@ -289,9 +289,9 @@ class NuMuSelection : public art::EDProducer {
     double muonCandStartX;
     double muonCandStartY;
     double muonCandStartZ;
-    double vertexX;
-    double vertexY;
-    double vertexZ;
+    double vertex_x;
+    double vertex_y;
+    double vertex_z;
     std::vector<double> tmptrackLength;
     std::vector<double> tmptrackTheta;
     std::vector<double> tmptrackCosTheta;

@@ -10,7 +10,7 @@ BEGIN_PROLOG
 numuanalyserconfig:
 {
 
-  module_type:     "NuMuSelection1muNpAnalyzer"
+  module_type:     "NuMuSelection1muNpAnalyser"
   
   # fiducial volume settings from UBXSec  
   FiducialVolumeSettings: @local::UBXSecFiducialVolumeSettings
