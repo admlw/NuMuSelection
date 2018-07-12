@@ -88,7 +88,7 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     /**
      * Resizes vectors to size 0 at the start of an event
      */
-    void resizeVectors();
+    void resizeVectors(bool isData);
 
     /**
      * puts dummy variables in variables for writing to tree
@@ -142,11 +142,11 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     bool isUBXSecSelected;
 
     // -- ubxsec
-    bool isBeamNeutrino;
-    bool isMixed;
-    bool isCosmic;
-    int nSelectedTracks;
-    int nSelectedShowers;
+    bool isBeamNeutrino = false;
+    bool isMixed = false;
+    bool isCosmic = false;
+    int nSelectedTracks = -999;
+    int nSelectedShowers = -999;
 
     // -- particleid
     std::vector<double>* noBragg_fwd_mip  = nullptr;
@@ -177,10 +177,21 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector< std::vector<double> >* track_dedxperhit_unsmeared = nullptr;
     std::vector< std::vector<double> >* track_resrangeperhit = nullptr;
 
+    // -- reco track mcs 
+    // n.b. the particle hypothesis is always a muon here
+    std::vector<double>* track_mcs_fwd = nullptr;
+    std::vector<double>* track_mcs_bwd = nullptr;
+    std::vector<double>* track_mcs_fwd_uncertainty = nullptr;
+    std::vector<double>* track_mcs_bwd_uncertainty = nullptr;
+    std::vector<int>* track_mcs_particlehypothesis = nullptr;
+    std::vector<double>* track_mcs_fwd_loglikelihood = nullptr;
+    std::vector<double>* track_mcs_bwd_loglikelihood = nullptr;
+
+
     // -- reco vertex
-    std::vector<double>* vertex_x = nullptr;
-    std::vector<double>* vertex_y = nullptr;
-    std::vector<double>* vertex_z = nullptr;
+    double vertex_x = -999;
+    double vertex_y = -999;
+    double vertex_z = -999;
 
     // -- truth information
     int true_truth_nparticles = 0;
@@ -319,9 +330,12 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   isData = e.isRealData();
   isSimulation = !isData;
 
+  std::cout << "[NuMuSelection] --- run.subrun.event: " 
+    << run << "." << subrun << "." << event << std::endl;
+
   // resize vectors here to avoid any over-running memory issues
-  NuMuSelection1muNpAnalyser::resizeVectors();
-  
+  NuMuSelection1muNpAnalyser::resizeVectors(isData);
+
   // get selection information for this event
   art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
   e.getByLabel(fSelectionLabel, selectionHandle);
@@ -350,7 +364,10 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   e.getByLabel(fMCSLabel, mcsHandle);
   std::vector< art::Ptr<recob::MCSFitResult> > mcsFitPtrVector;
   art::fill_ptr_vector(mcsFitPtrVector, mcsHandle);
-  
+
+  // there is no association between tracks and the MCSResult stored in the file, 
+  // so going to build a map between each track ID and an art::Ptr to the 
+  // recob::MCSFitResult for quick finding
   std::map<int, art::Ptr<recob::MCSFitResult> > trackIdMcsFitMap = mbutil.buildTrackIdMcsResultMap(trackPtrVector, mcsFitPtrVector);
 
   // finally, get  MCTruth, MCFlux, and GTruth information for reweighting                      
@@ -364,7 +381,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   art::Handle< std::vector< simb::GTruth > > gTruthHandle;                            
   std::vector< art::Ptr<simb::GTruth> > gTruthVec;                                    
 
-  if (isSimulation){                                                                     
+  if (isSimulation){                           
     e.getByLabel("generator", mcTruthHandle);                                         
     if (!mcTruthHandle.isValid()) return;                                             
     art::fill_ptr_vector(mcTruthVec, mcTruthHandle);                                  
@@ -434,14 +451,14 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       true_genie_process->push_back(mcParticle.Process());
       true_genie_endprocess->push_back(mcParticle.EndProcess());
       true_genie_numdaugters->push_back(mcParticle.NumberDaughters());
-      
+
       std::vector<int> daughterIds;
       daughterIds.resize(0);
       for (int j = 0; j < mcParticle.NumberDaughters(); j++){
         daughterIds.push_back(mcParticle.Daughter(j));
       }
       true_genie_daughterids->push_back(daughterIds);
-      
+
       true_genie_startx->push_back(mcParticle.Vx());
       true_genie_starty->push_back(mcParticle.Vy());
       true_genie_startz->push_back(mcParticle.Vz());
@@ -461,16 +478,16 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       true_genie_endpy->push_back(mcParticle.EndPy());
       true_genie_endpz->push_back(mcParticle.EndPz());
       true_genie_rescatter->push_back(mcParticle.Rescatter());
-    
+
     }
-  
+
     // now get the MCParticles from the MCTruth<->MCParticle Assn
     std::vector< art::Ptr<simb::MCParticle> > mcparticles = mcparticleFromTruth.at(mcTruth.key());
-   
+
     for (size_t i = 0; i < mcparticles.size(); i++){
 
       art::Ptr< simb::MCParticle > mcParticle = mcparticles.at(i);
-    
+
       if (i == 0) std::cout << "[NuMuSelection] Neutrino PDG code: " << mcParticle->PdgCode() << std::endl;
 
       true_mcp_pdg->push_back(mcParticle->PdgCode());
@@ -480,7 +497,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       true_mcp_process->push_back(mcParticle->Process());
       true_mcp_endprocess->push_back(mcParticle->EndProcess());
       true_mcp_numdaugters->push_back(mcParticle->NumberDaughters());
-     
+
       std::vector<int> daughterIds;
       daughterIds.resize(0);
       for (int j = 0; j < mcParticle->NumberDaughters(); j++){
@@ -512,16 +529,14 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
   }
 
-  std::cout << "[NuMuSelection] --- run.subrun.event: " 
-    << run << "." << subrun << "." << event << std::endl;
-
   // initialise variables which need scope
   recob::Vertex selectedVertex;
   nSelectedShowers = 0;
   nSelectedTracks = 0;
 
-
   int nSelectedTPCObjects = selectedTPCObjects.at(0).size();
+
+  std::cout << "[NuMuSelection] checking number of selected objects..." << std::endl;
 
   // we expect a single TPC object
   if (nSelectedTPCObjects == 1){
@@ -534,9 +549,9 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
     selectedVertex   = selectedTPCObject->GetVertex();
     double xyz[3];
     selectedVertex.XYZ(xyz);
-    vertex_x->push_back(xyz[0]);
-    vertex_y->push_back(xyz[1]);
-    vertex_z->push_back(xyz[2]);
+    vertex_x = xyz[0];
+    vertex_y = xyz[1];
+    vertex_z = xyz[2];
 
     nSelectedShowers = (int)selectedTPCObject->GetNShowers();
     nSelectedTracks  = (int)selectedTPCObject->GetNTracks();
@@ -583,7 +598,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       art::Ptr<recob::MCSFitResult> mcsFitResult;
 
       for (auto const& x : trackIdMcsFitMap){
-    
+
         if (track.ID() == x.first){
 
           std::cout << "[NuMuSelection] Found match in MCS map for track " << x.first << std::endl;
@@ -591,8 +606,16 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
           break;
 
         }
-  
+
       }
+
+      track_mcs_fwd->push_back(mcsFitResult->fwdMomentum());
+      track_mcs_bwd->push_back(mcsFitResult->bwdMomentum());
+      track_mcs_fwd_uncertainty->push_back(mcsFitResult->fwdMomUncertainty());
+      track_mcs_bwd_uncertainty->push_back(mcsFitResult->bwdMomUncertainty());
+      track_mcs_fwd_loglikelihood->push_back(mcsFitResult->fwdLogLikelihood());
+      track_mcs_bwd_loglikelihood->push_back(mcsFitResult->bwdLogLikelihood());
+      track_mcs_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
 
       if (pids.size() == 0){
 
@@ -604,12 +627,15 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       // get PID information
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
 
+      std::cout << "[NuMuSelection] Printing out PID information for track : " << track.ID() << std::endl;
       for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
 
         anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
 
+        std::cout << algScore.fAlgName << std::endl;
+
         if(algScore.fAlgName == "BraggPeakLLH" && algScore.fPlaneID.Plane == 2){                                   
-          if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_fwd){     
+          if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood_fwd){     
 
             if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu->push_back(algScore.fValue);   
             if (algScore.fAssumedPdg == 2212) bragg_fwd_p->push_back(algScore.fValue);   
@@ -618,7 +644,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
             if (algScore.fAssumedPdg == 0   ) noBragg_fwd_mip->push_back(algScore.fValue);   
 
           }                                                                        
-          else if (anab::kVariableType(algScore.fVariableType) == anab::kLogL_bwd){
+          else if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood_bwd){
 
             if (algScore.fAssumedPdg == 13  ) bragg_bwd_mu->push_back(algScore.fValue);      
             if (algScore.fAssumedPdg == 2212) bragg_bwd_p->push_back(algScore.fValue);      
@@ -781,6 +807,8 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("isData"           , &isData                                           );
   tree->Branch("isSimulation"     , &isSimulation                                     );
   tree->Branch("isUBXSecSelected" , &isUBXSecSelected                                 );
+  tree->Branch("nSelectedTracks"  , &nSelectedTracks                                  );
+  tree->Branch("nSelectedShowers" , &nSelectedShowers                                 );
   tree->Branch("noBragg_fwd_mip"  , "std::vector<double>"           , &noBragg_fwd_mip);
   tree->Branch("bragg_fwd_mu"     , "std::vector<double>"           , &bragg_fwd_mu   );
   tree->Branch("bragg_fwd_p"      , "std::vector<double>"           , &bragg_fwd_p    );
@@ -800,15 +828,22 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("track_endx"       , "std::vector<double>"           , &track_endx     );
   tree->Branch("track_endy"       , "std::vector<double>"           , &track_endy     );
   tree->Branch("track_endz"       , "std::vector<double>"           , &track_endz     );
-  tree->Branch("track_chi2"       , "std::vector<double>", &track_chi2                );
-  tree->Branch("track_ndof"       , "std::vector<int>"   , &track_ndof                );
-  tree->Branch("track_ntrajpoints", "std::vector<int>"   , &track_ntrajpoints         );
+  tree->Branch("track_chi2"       , "std::vector<double>"           , &track_chi2        );
+  tree->Branch("track_ndof"       , "std::vector<int>"              , &track_ndof        );
+  tree->Branch("track_ntrajpoints", "std::vector<int>"              , &track_ntrajpoints );
   tree->Branch("track_dedxperhit_smeared"  , "std::vector< std::vector<double> >", &track_dedxperhit_smeared); 
   tree->Branch("track_dedxperhit_unsmeared", "std::vector< std::vector<double> >", &track_dedxperhit_unsmeared);
   tree->Branch("track_resrangeperhit", "std::vector< std::vector<double> >", & track_resrangeperhit);
-  tree->Branch("vertex_x", "std::vector<double>", &vertex_x);
-  tree->Branch("vertex_y", "std::vector<double>", &vertex_y);
-  tree->Branch("vertex_z", "std::vector<double>", &vertex_z);
+  tree->Branch("vertex_x", &vertex_x);
+  tree->Branch("vertex_y", &vertex_y);
+  tree->Branch("vertex_z", &vertex_z);
+  tree->Branch("track_mcs_fwd", "std::vector<double>", &track_mcs_fwd); 
+  tree->Branch("track_mcs_bwd", "std::vector<double>", &track_mcs_bwd);
+  tree->Branch("track_mcs_fwd_uncertainty"   , "std::vector<double>", &track_mcs_fwd_uncertainty);
+  tree->Branch("track_mcs_bwd_uncertainty"   , "std::vector<double>", &track_mcs_bwd_uncertainty);
+  tree->Branch("track_mcs_particlehypothesis", "std::vector<int>"   , &track_mcs_particlehypothesis);
+  tree->Branch("track_mcs_fwd_loglikelihood" , "std::vector<double>", &track_mcs_fwd_loglikelihood);
+  tree->Branch("track_mcs_bwd_loglikelihood" , "std::vector<double>", &track_mcs_bwd_loglikelihood);
 
   if (!fIsData){
     tree->Branch("true_truth_nparticles"   , &true_truth_nparticles);
@@ -909,8 +944,9 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   }
 }
 
-void NuMuSelection1muNpAnalyser::resizeVectors(){
+void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
 
+  std::cout << "beginning... "<< std::endl;
   noBragg_fwd_mip->resize(0);
   bragg_fwd_mu->resize(0);
   bragg_fwd_p->resize(0);
@@ -936,91 +972,101 @@ void NuMuSelection1muNpAnalyser::resizeVectors(){
   track_dedxperhit_smeared->resize(0);
   track_dedxperhit_unsmeared->resize(0);
   track_resrangeperhit->resize(0);
-  vertex_x->resize(0);
-  vertex_y->resize(0);
-  vertex_z->resize(0);
-  true_genie_pdg->resize(0);
-  true_genie_statuscode->resize(0);
-  true_genie_trackid->resize(0);
-  true_genie_motherid->resize(0);
-  true_genie_process->resize(0);
-  true_genie_endprocess->resize(0);
-  true_genie_numdaugters->resize(0);
-  true_genie_daughterids->resize(0);
-  true_genie_startx->resize(0);
-  true_genie_starty->resize(0);
-  true_genie_startz->resize(0);
-  true_genie_startt->resize(0);
-  true_genie_endx->resize(0);
-  true_genie_endy->resize(0);
-  true_genie_endz->resize(0);
-  true_genie_endt->resize(0);
-  true_genie_mass->resize(0);
-  true_genie_starte->resize(0);
-  true_genie_startp->resize(0);
-  true_genie_startpx->resize(0);
-  true_genie_startpy->resize(0);
-  true_genie_startpz->resize(0);
-  true_genie_ende->resize(0);
-  true_genie_endpx->resize(0);
-  true_genie_endpy->resize(0);
-  true_genie_endpz->resize(0);
-  true_genie_rescatter->resize(0);
-  true_mcp_pdg->resize(0);
-  true_mcp_statuscode->resize(0);
-  true_mcp_trackid->resize(0);
-  true_mcp_motherid->resize(0);
-  true_mcp_process->resize(0);
-  true_mcp_endprocess->resize(0);
-  true_mcp_numdaugters->resize(0);
-  true_mcp_daughterids->resize(0);
-  true_mcp_startx->resize(0);
-  true_mcp_starty->resize(0);
-  true_mcp_startz->resize(0);
-  true_mcp_startt->resize(0);
-  true_mcp_endx->resize(0);
-  true_mcp_endy->resize(0);
-  true_mcp_endz->resize(0);
-  true_mcp_endt->resize(0);
-  true_mcp_mass->resize(0);
-  true_mcp_starte->resize(0);
-  true_mcp_startp->resize(0);
-  true_mcp_startpx->resize(0);
-  true_mcp_startpy->resize(0);
-  true_mcp_startpz->resize(0);
-  true_mcp_ende->resize(0);
-  true_mcp_endpx->resize(0);
-  true_mcp_endpy->resize(0);
-  true_mcp_endpz->resize(0);
-  true_mcp_rescatter->resize(0);
-  true_match_purity->resize(0);
-  true_match_pdg->resize(0);
-  true_match_statuscode->resize(0);
-  true_match_trackid->resize(0);
-  true_match_motherid->resize(0);
-  true_match_process->resize(0);
-  true_match_endprocess->resize(0);
-  true_match_numdaugters->resize(0);
-  true_match_daughterids->resize(0);
-  true_match_startx->resize(0);
-  true_match_starty->resize(0);
-  true_match_startz->resize(0);
-  true_match_startt->resize(0);
-  true_match_endx->resize(0);
-  true_match_endy->resize(0);
-  true_match_endz->resize(0);
-  true_match_endt->resize(0);
-  true_match_mass->resize(0);
-  true_match_starte->resize(0);
-  true_match_startp->resize(0);
-  true_match_startpx->resize(0);
-  true_match_startpy->resize(0);
-  true_match_startpz->resize(0);
-  true_match_ende->resize(0);
-  true_match_endpx->resize(0);
-  true_match_endpy->resize(0);
-  true_match_endpz->resize(0);
-  true_match_rescatter->resize(0);
+  track_mcs_fwd->resize(0);
+  track_mcs_bwd->resize(0);
+  track_mcs_fwd_uncertainty->resize(0);
+  track_mcs_bwd_uncertainty->resize(0);
+  track_mcs_particlehypothesis->resize(0);
+  track_mcs_fwd_loglikelihood->resize(0);
+  track_mcs_bwd_loglikelihood->resize(0);
+  if (!isData){
+    std::cout << "genie info..." << std::endl;
+    true_genie_pdg->resize(0);
+    true_genie_statuscode->resize(0);
+    true_genie_trackid->resize(0);
+    true_genie_motherid->resize(0);
+    true_genie_process->resize(0);
+    true_genie_endprocess->resize(0);
+    true_genie_numdaugters->resize(0);
+    true_genie_daughterids->resize(0);
+    true_genie_startx->resize(0);
+    true_genie_starty->resize(0);
+    true_genie_startz->resize(0);
+    true_genie_startt->resize(0);
+    true_genie_endx->resize(0);
+    true_genie_endy->resize(0);
+    true_genie_endz->resize(0);
+    true_genie_endt->resize(0);
+    true_genie_mass->resize(0);
+    true_genie_starte->resize(0);
+    true_genie_startp->resize(0);
+    true_genie_startpx->resize(0);
+    true_genie_startpy->resize(0);
+    true_genie_startpz->resize(0);
+    true_genie_ende->resize(0);
+    true_genie_endpx->resize(0);
+    true_genie_endpy->resize(0);
+    true_genie_endpz->resize(0);
+    true_genie_rescatter->resize(0);
+    std::cout << "mcp..." << std::endl;
+    true_mcp_pdg->resize(0);
+    true_mcp_statuscode->resize(0);
+    true_mcp_trackid->resize(0);
+    true_mcp_motherid->resize(0);
+    true_mcp_process->resize(0);
+    true_mcp_endprocess->resize(0);
+    true_mcp_numdaugters->resize(0);
+    true_mcp_daughterids->resize(0);
+    true_mcp_startx->resize(0);
+    true_mcp_starty->resize(0);
+    true_mcp_startz->resize(0);
+    true_mcp_startt->resize(0);
+    true_mcp_endx->resize(0);
+    true_mcp_endy->resize(0);
+    true_mcp_endz->resize(0);
+    true_mcp_endt->resize(0);
+    true_mcp_mass->resize(0);
+    true_mcp_starte->resize(0);
+    true_mcp_startp->resize(0);
+    true_mcp_startpx->resize(0);
+    true_mcp_startpy->resize(0);
+    true_mcp_startpz->resize(0);
+    true_mcp_ende->resize(0);
+    true_mcp_endpx->resize(0);
+    true_mcp_endpy->resize(0);
+    true_mcp_endpz->resize(0);
+    true_mcp_rescatter->resize(0);
+    std::cout << "match..." << std::endl;
+    true_match_purity->resize(0);
+    true_match_pdg->resize(0);
+    true_match_statuscode->resize(0);
+    true_match_trackid->resize(0);
+    true_match_motherid->resize(0);
+    true_match_process->resize(0);
+    true_match_endprocess->resize(0);
+    true_match_numdaugters->resize(0);
+    true_match_daughterids->resize(0);
+    true_match_startx->resize(0);
+    true_match_starty->resize(0);
+    true_match_startz->resize(0);
+    true_match_startt->resize(0);
+    true_match_endx->resize(0);
+    true_match_endy->resize(0);
+    true_match_endz->resize(0);
+    true_match_endt->resize(0);
+    true_match_mass->resize(0);
+    true_match_starte->resize(0);
+    true_match_startp->resize(0);
+    true_match_startpx->resize(0);
+    true_match_startpy->resize(0);
+    true_match_startpz->resize(0);
+    true_match_ende->resize(0);
+    true_match_endpx->resize(0);
+    true_match_endpy->resize(0);
+    true_match_endpz->resize(0);
+    true_match_rescatter->resize(0);
+  }
+  std::cout << "done." << std::endl;
 
 }
 
@@ -1051,9 +1097,13 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   track_dedxperhit_smeared->resize(1, {{-999.}});
   track_dedxperhit_unsmeared->resize(1, {{-999.}});
   track_resrangeperhit->resize(1, {{-999.}});
-  vertex_x->resize(1, -999);
-  vertex_y->resize(1, -999);
-  vertex_z->resize(1, -999);
+  track_mcs_fwd->resize(1, -999);
+  track_mcs_bwd->resize(1, -999);
+  track_mcs_fwd_uncertainty->resize(1, -999);
+  track_mcs_bwd_uncertainty->resize(1, -999);
+  track_mcs_particlehypothesis->resize(1, -999);
+  track_mcs_fwd_loglikelihood->resize(1, -999);
+  track_mcs_bwd_loglikelihood->resize(1, -999);
   true_match_purity->resize(1, -999);
   true_match_pdg->resize(1, -999);
   true_match_statuscode->resize(1, -999);
@@ -1082,6 +1132,12 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   true_match_endpy->resize(1, -999);
   true_match_endpz->resize(1, -999);
   true_match_rescatter->resize(1, -999);
+  nSelectedTracks = -999;
+  nSelectedShowers = -999;
+  vertex_x = -999;
+  vertex_y = -999;
+  vertex_z = -999;
+
 
 }
 
