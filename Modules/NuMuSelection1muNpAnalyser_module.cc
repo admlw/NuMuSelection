@@ -42,9 +42,12 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "larcoreobj/SummaryData/POTSummary.h" 
+#include "larcore/Geometry/Geometry.h"
 
 // ROOT includes
 #include "TTree.h"
+
+// ubxsec includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"        
 #include "uboone/UBXSec/DataTypes/TPCObject.h"              
 #include "uboone/UBXSec/Algorithms/FiducialVolume.h"        
@@ -101,6 +104,7 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
 
     // initialise services
     art::ServiceHandle< art::TFileService > tfs;
+    art::ServiceHandle< geo::Geometry > geo;
 
     // initialise classes
     ubana::SelectionResult selResult;
@@ -145,8 +149,10 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     bool isBeamNeutrino = false;
     bool isMixed = false;
     bool isCosmic = false;
+    bool isInFV = false;
     int nSelectedTracks = -999;
     int nSelectedShowers = -999;
+    int nSelectedPfparticles = -999;
 
     // -- particleid
     std::vector<double>* noBragg_fwd_mip  = nullptr;
@@ -319,6 +325,14 @@ NuMuSelection1muNpAnalyser::NuMuSelection1muNpAnalyser(fhicl::ParameterSet const
 
   fIsData = p.get<bool>("IsData", "false");
 
+  // configure
+  fiducialVolume.Configure(p_fv,
+      geo->DetHalfHeight(),
+      2.*geo->DetHalfWidth(),
+      geo->DetLength());
+
+  fiducialVolume.PrintConfig();
+
 }
 
 void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
@@ -440,6 +454,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
     true_nu_pt = mcNeutrino.Pt();
     true_nu_theta = mcNeutrino.Theta();
 
+
     for (int i = 0; i < true_truth_nparticles; i++){
 
       simb::MCParticle mcParticle = mcTruth->GetParticle(i);
@@ -481,14 +496,18 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     }
 
+    // MCParticle.at(0) is always the neutrino 
+    std::cout << "[NuMuSelection] True Neutrino PDG:  " << true_genie_pdg->at(0) << std::endl;
+    std::cout << "[NuMuSelection] True Neutrino CCNC: " << true_nu_ccnc << std::endl;
+    std::cout << "[NuMuSelection] True Neutrino Mode: " << true_nu_mode << std::endl;
+    std::cout << "[NuMuSelection] True Neutrino Interaction Type: " << true_nu_interactiontype << std::endl;
+
     // now get the MCParticles from the MCTruth<->MCParticle Assn
     std::vector< art::Ptr<simb::MCParticle> > mcparticles = mcparticleFromTruth.at(mcTruth.key());
 
     for (size_t i = 0; i < mcparticles.size(); i++){
 
       art::Ptr< simb::MCParticle > mcParticle = mcparticles.at(i);
-
-      if (i == 0) std::cout << "[NuMuSelection] Neutrino PDG code: " << mcParticle->PdgCode() << std::endl;
 
       true_mcp_pdg->push_back(mcParticle->PdgCode());
       true_mcp_statuscode->push_back(mcParticle->StatusCode());
@@ -527,16 +546,19 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     }
 
+    isInFV = fiducialVolume.InFV(true_mcp_startx->at(0), true_mcp_starty->at(0), true_mcp_startz->at(0));
+    std::cout << "[NuMuSelection] isInFV: " << isInFV << std::endl;
+
+
   }
 
   // initialise variables which need scope
   recob::Vertex selectedVertex;
   nSelectedShowers = 0;
   nSelectedTracks = 0;
+  nSelectedPfparticles = 0;
 
   int nSelectedTPCObjects = selectedTPCObjects.at(0).size();
-
-  std::cout << "[NuMuSelection] checking number of selected objects..." << std::endl;
 
   // we expect a single TPC object
   if (nSelectedTPCObjects == 1){
@@ -553,9 +575,24 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
     vertex_y = xyz[1];
     vertex_z = xyz[2];
 
-    nSelectedShowers = (int)selectedTPCObject->GetNShowers();
-    nSelectedTracks  = (int)selectedTPCObject->GetNTracks();
     const ubana::TPCObjectOrigin& selectedOrigin = selectedTPCObject->GetOrigin();
+    
+    //nSelectedShowers = (int)selectedTPCObject->GetNShowers();
+
+    //nSelectedTracks  = (int)selectedTPCObject->GetNTracks();
+
+    int nSelectedPfparticles, nSelectedTracks, nSelectedShowers;
+    selectedTPCObject->GetMultiplicity(nSelectedPfparticles,nSelectedTracks,nSelectedShowers);
+
+    /*if (nSelectedShowers != s || nSelectedTracks !=t ){
+
+      std::cout << "NO NO NO NO NO NO NO NO NO" << std::endl;
+      std::cout << "nSelectedShowers: " << nSelectedShowers << " s: " << s << std::endl;
+      std::cout << "nSelectedTracks:  " << nSelectedTracks << " t: " << t << std::endl;
+      throw std::exception();
+
+    }*/
+
 
     std::cout << "[NuMuSelection] Vertex position: " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl; 
     std::cout << "[NuMuSelection] Number of tracks: " << nSelectedTracks << std::endl;;
@@ -601,7 +638,6 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
         if (track.ID() == x.first){
 
-          std::cout << "[NuMuSelection] Found match in MCS map for track " << x.first << std::endl;
           mcsFitResult = x.second;
           break;
 
@@ -627,12 +663,9 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       // get PID information
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
 
-      std::cout << "[NuMuSelection] Printing out PID information for track : " << track.ID() << std::endl;
       for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
 
         anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
-
-        std::cout << algScore.fAlgName << std::endl;
 
         if(algScore.fAlgName == "BraggPeakLLH" && algScore.fPlaneID.Plane == 2){                                   
           if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood_fwd){     
@@ -738,21 +771,21 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   else if (nSelectedTPCObjects == 0){
     // this is probably fine
 
-    std::cout << "[NuMuSelection] Event has " << nSelectedTPCObjects << " TPC Objects." << std::endl;
+    std::cout << "[NuMuSelection] Event is not UBXSec selected" << std::endl;
     isUBXSecSelected = false;
     emplaceDummyVars();
-    return;
 
   }
   // this could indicate a problem
   else if (nSelectedTPCObjects > 1){
 
-    std::cout << "[NuMuSelection] Event has " << nSelectedTPCObjects << " TPC Objects! Aaaaahh!" <<  std::endl;
-    mf::LogError(__PRETTY_FUNCTION__) << "[NuMuSelection] Event has " << nSelectedTPCObjects << std::endl;
+    std::cout << "[NuMuSelection] Event has " << nSelectedTPCObjects << " TPC Objects! There should only be one! Something is very wrong! Aaaaahh!" <<  std::endl;
+    mf::LogError(__PRETTY_FUNCTION__) << "[NuMuSelection] Event has " << nSelectedTPCObjects << " TPC Objects when there should only be one. Something is very wrong!" << std::endl;
     throw std::exception();
 
   }
 
+  std::cout << "[NuMuSelection] Filling Tree... " << std::endl;
   ana_tree->Fill();
 
 }
@@ -801,51 +834,56 @@ void NuMuSelection1muNpAnalyser::endSubRun(art::SubRun const & sr)
 
 void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsData){
 
-  tree->Branch("run"              , &run                                              );
-  tree->Branch("subrun"           , &subrun                                           );
-  tree->Branch("event"            , &event                                            );
-  tree->Branch("isData"           , &isData                                           );
-  tree->Branch("isSimulation"     , &isSimulation                                     );
-  tree->Branch("isUBXSecSelected" , &isUBXSecSelected                                 );
-  tree->Branch("nSelectedTracks"  , &nSelectedTracks                                  );
-  tree->Branch("nSelectedShowers" , &nSelectedShowers                                 );
-  tree->Branch("noBragg_fwd_mip"  , "std::vector<double>"           , &noBragg_fwd_mip);
-  tree->Branch("bragg_fwd_mu"     , "std::vector<double>"           , &bragg_fwd_mu   );
-  tree->Branch("bragg_fwd_p"      , "std::vector<double>"           , &bragg_fwd_p    );
-  tree->Branch("bragg_fwd_pi"     , "std::vector<double>"           , &bragg_fwd_pi   );
-  tree->Branch("bragg_fwd_k"      , "std::vector<double>"           , &bragg_fwd_k    );
-  tree->Branch("bragg_bwd_mu"     , "std::vector<double>"           , &bragg_bwd_mu   );
-  tree->Branch("bragg_bwd_p"      , "std::vector<double>"           , &bragg_bwd_p    );
-  tree->Branch("bragg_bwd_pi"     , "std::vector<double>"           , &bragg_bwd_pi   );
-  tree->Branch("bragg_bwd_k"      , "std::vector<double>"           , &bragg_bwd_k    );
-  tree->Branch("track_length"     , "std::vector<double>"           , &track_length   );
-  tree->Branch("track_theta"      , "std::vector<double>"           , &track_theta    );
-  tree->Branch("track_costheta"   , "std::vector<double>"           , &track_costheta );
-  tree->Branch("track_phi"        , "std::vector<double>"           , &track_phi      );
-  tree->Branch("track_startx"     , "std::vector<double>"           , &track_startx   );
-  tree->Branch("track_starty"     , "std::vector<double>"           , &track_starty   );
-  tree->Branch("track_startz"     , "std::vector<double>"           , &track_startz   );
-  tree->Branch("track_endx"       , "std::vector<double>"           , &track_endx     );
-  tree->Branch("track_endy"       , "std::vector<double>"           , &track_endy     );
-  tree->Branch("track_endz"       , "std::vector<double>"           , &track_endz     );
-  tree->Branch("track_chi2"       , "std::vector<double>"           , &track_chi2        );
-  tree->Branch("track_ndof"       , "std::vector<int>"              , &track_ndof        );
-  tree->Branch("track_ntrajpoints", "std::vector<int>"              , &track_ntrajpoints );
-  tree->Branch("track_dedxperhit_smeared"  , "std::vector< std::vector<double> >", &track_dedxperhit_smeared); 
-  tree->Branch("track_dedxperhit_unsmeared", "std::vector< std::vector<double> >", &track_dedxperhit_unsmeared);
-  tree->Branch("track_resrangeperhit", "std::vector< std::vector<double> >", & track_resrangeperhit);
-  tree->Branch("vertex_x", &vertex_x);
-  tree->Branch("vertex_y", &vertex_y);
-  tree->Branch("vertex_z", &vertex_z);
-  tree->Branch("track_mcs_fwd", "std::vector<double>", &track_mcs_fwd); 
-  tree->Branch("track_mcs_bwd", "std::vector<double>", &track_mcs_bwd);
-  tree->Branch("track_mcs_fwd_uncertainty"   , "std::vector<double>", &track_mcs_fwd_uncertainty);
-  tree->Branch("track_mcs_bwd_uncertainty"   , "std::vector<double>", &track_mcs_bwd_uncertainty);
-  tree->Branch("track_mcs_particlehypothesis", "std::vector<int>"   , &track_mcs_particlehypothesis);
-  tree->Branch("track_mcs_fwd_loglikelihood" , "std::vector<double>", &track_mcs_fwd_loglikelihood);
-  tree->Branch("track_mcs_bwd_loglikelihood" , "std::vector<double>", &track_mcs_bwd_loglikelihood);
+  tree->Branch("run"                          , &run                                              );
+  tree->Branch("subrun"                       , &subrun                                           );
+  tree->Branch("event"                        , &event                                            );
+  tree->Branch("isData"                       , &isData                                           );
+  tree->Branch("isSimulation"                 , &isSimulation                                     );
+  tree->Branch("isUBXSecSelected"             , &isUBXSecSelected                                 );
+  tree->Branch("nSelectedTracks"              , &nSelectedTracks                                  );
+  tree->Branch("nSelectedShowers"             , &nSelectedShowers                                 );
+  tree->Branch("nSelectedPfparticles"         , &nSelectedPfparticles);
+  tree->Branch("noBragg_fwd_mip"              , "std::vector<double>"                                , &noBragg_fwd_mip);
+  tree->Branch("bragg_fwd_mu"                 , "std::vector<double>"                                , &bragg_fwd_mu   );
+  tree->Branch("bragg_fwd_p"                  , "std::vector<double>"                                , &bragg_fwd_p    );
+  tree->Branch("bragg_fwd_pi"                 , "std::vector<double>"                                , &bragg_fwd_pi   );
+  tree->Branch("bragg_fwd_k"                  , "std::vector<double>"                                , &bragg_fwd_k    );
+  tree->Branch("bragg_bwd_mu"                 , "std::vector<double>"                                , &bragg_bwd_mu   );
+  tree->Branch("bragg_bwd_p"                  , "std::vector<double>"                                , &bragg_bwd_p    );
+  tree->Branch("bragg_bwd_pi"                 , "std::vector<double>"                                , &bragg_bwd_pi   );
+  tree->Branch("bragg_bwd_k"                  , "std::vector<double>"                                , &bragg_bwd_k    );
+  tree->Branch("track_length"                 , "std::vector<double>"                                , &track_length   );
+  tree->Branch("track_theta"                  , "std::vector<double>"                                , &track_theta    );
+  tree->Branch("track_costheta"               , "std::vector<double>"                                , &track_costheta );
+  tree->Branch("track_phi"                    , "std::vector<double>"                                , &track_phi      );
+  tree->Branch("track_startx"                 , "std::vector<double>"                                , &track_startx   );
+  tree->Branch("track_starty"                 , "std::vector<double>"                                , &track_starty   );
+  tree->Branch("track_startz"                 , "std::vector<double>"                                , &track_startz   );
+  tree->Branch("track_endx"                   , "std::vector<double>"                                , &track_endx     );
+  tree->Branch("track_endy"                   , "std::vector<double>"                                , &track_endy     );
+  tree->Branch("track_endz"                   , "std::vector<double>"                                , &track_endz     );
+  tree->Branch("track_chi2"                   , "std::vector<double>"                                , &track_chi2        );
+  tree->Branch("track_ndof"                   , "std::vector<int>"                                   , &track_ndof        );
+  tree->Branch("track_ntrajpoints"            , "std::vector<int>"                                   , &track_ntrajpoints );
+  tree->Branch("track_dedxperhit_smeared"     , "std::vector< std::vector<double> >"                 , &track_dedxperhit_smeared);
+  tree->Branch("track_dedxperhit_unsmeared"   , "std::vector< std::vector<double> >"                 , &track_dedxperhit_unsmeared);
+  tree->Branch("track_resrangeperhit"         , "std::vector< std::vector<double> >"                 , & track_resrangeperhit);
+  tree->Branch("vertex_x"                     , &vertex_x);
+  tree->Branch("vertex_y"                     , &vertex_y);
+  tree->Branch("vertex_z"                     , &vertex_z);
+  tree->Branch("track_mcs_fwd"                , "std::vector<double>"                                , &track_mcs_fwd);
+  tree->Branch("track_mcs_bwd"                , "std::vector<double>"                                , &track_mcs_bwd);
+  tree->Branch("track_mcs_fwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_fwd_uncertainty);
+  tree->Branch("track_mcs_bwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_bwd_uncertainty);
+  tree->Branch("track_mcs_particlehypothesis" , "std::vector<int>"                                   , &track_mcs_particlehypothesis);
+  tree->Branch("track_mcs_fwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_fwd_loglikelihood);
+  tree->Branch("track_mcs_bwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_bwd_loglikelihood);
 
   if (!fIsData){
+    tree->Branch("isBeamNeutrino", &isBeamNeutrino);
+    tree->Branch("isCosmic", &isCosmic);
+    tree->Branch("isMixed", &isMixed);
+    tree->Branch("isInFV", &isInFV);
     tree->Branch("true_truth_nparticles"   , &true_truth_nparticles);
     tree->Branch("true_genie_pdg"            , "std::vector<int>"              , &true_genie_pdg         );
     tree->Branch("true_genie_statuscode "    , "std::vector<int>"              , &true_genie_statuscode  );
@@ -946,7 +984,6 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
 
 void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
 
-  std::cout << "beginning... "<< std::endl;
   noBragg_fwd_mip->resize(0);
   bragg_fwd_mu->resize(0);
   bragg_fwd_p->resize(0);
@@ -980,7 +1017,6 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   track_mcs_fwd_loglikelihood->resize(0);
   track_mcs_bwd_loglikelihood->resize(0);
   if (!isData){
-    std::cout << "genie info..." << std::endl;
     true_genie_pdg->resize(0);
     true_genie_statuscode->resize(0);
     true_genie_trackid->resize(0);
@@ -1008,7 +1044,6 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
     true_genie_endpy->resize(0);
     true_genie_endpz->resize(0);
     true_genie_rescatter->resize(0);
-    std::cout << "mcp..." << std::endl;
     true_mcp_pdg->resize(0);
     true_mcp_statuscode->resize(0);
     true_mcp_trackid->resize(0);
@@ -1036,7 +1071,6 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
     true_mcp_endpy->resize(0);
     true_mcp_endpz->resize(0);
     true_mcp_rescatter->resize(0);
-    std::cout << "match..." << std::endl;
     true_match_purity->resize(0);
     true_match_pdg->resize(0);
     true_match_statuscode->resize(0);
@@ -1066,7 +1100,6 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
     true_match_endpz->resize(0);
     true_match_rescatter->resize(0);
   }
-  std::cout << "done." << std::endl;
 
 }
 
@@ -1134,6 +1167,11 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   true_match_rescatter->resize(1, -999);
   nSelectedTracks = -999;
   nSelectedShowers = -999;
+  nSelectedPfparticles = -999;
+  isBeamNeutrino = false;
+  isCosmic = false;
+  isMixed = false;
+  isInFV  = false;
   vertex_x = -999;
   vertex_y = -999;
   vertex_z = -999;
