@@ -8,84 +8,108 @@ int main(){
   TTree* t_simulation = (TTree*)(new TFile(s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
 
   // initialise variables and trees
-  var_list onbeam_vars;
-  var_list offbeam_vars;
-  var_list simulation_vars;
+  var_list onbeam_vars_tmp;
+  var_list offbeam_vars_tmp;
+  var_list simulation_vars_tmp;
 
-  setTreeVars(t_onbeam, &onbeam_vars, false);
-  setTreeVars(t_offbeam, &offbeam_vars, false);
-  setTreeVars(t_simulation, &simulation_vars, true);
+  var_list* onbeam_vars = &onbeam_vars_tmp;
+  var_list* offbeam_vars = &offbeam_vars_tmp;
+  var_list* simulation_vars = &simulation_vars_tmp;
 
-  // make hitograms to fill
-  TH1D* h_nTracks_sim = new TH1D("h_nTracks_sim", ";Number of Tracks;", 5, 0, 5);
-  TH1D* h_nShowers_sim = new TH1D("h_nShowers_sim", ";Number of Showers;", 5, 0, 5);
-  TH1D* h_trackLength_sim = new TH1D("h_trackLength_sim", ";Track Length (cm);", 50, 0, 700);
-  TH1D* h_nTracks_onbeam = new TH1D("h_nTracks_onbeam", ";Number of Tracks;", 5, 0, 5);
-  TH1D* h_nShowers_onbeam = new TH1D("h_nShowers_onbeam", ";Number of Showers;", 5, 0, 5);
-  TH1D* h_trackLength_onbeam = new TH1D("h_trackLength_onbeam", ";Track Length (cm);", 50, 0, 700);
-  TH1D* h_nTracks_offbeam = new TH1D("h_nTracks_offbeam", ";Number of Tracks;", 5, 0, 5);
-  TH1D* h_nShowers_offbeam = new TH1D("h_nShowers_offbeam", ";Number of Showers;", 5, 0, 5);
-  TH1D* h_trackLength_offbeam = new TH1D("h_trackLength_offbeam", ";Track Length (cm);", 50, 0, 700);
+  setTreeVars(t_onbeam, &onbeam_vars_tmp, false);
+  setTreeVars(t_offbeam, &offbeam_vars_tmp, false);
+  setTreeVars(t_simulation, &simulation_vars_tmp, true);
 
-  // loop simulation
-  for (int i = 0; i < t_simulation->GetEntries(); i++){
-    
-    t_simulation->GetEntry(i);
+  // initialise classes
+  numusel::EventCategoriser evcat;
+  numusel::SelectionMaker selmaker;
 
-    h_nTracks_sim->Fill(simulation_vars.nSelectedTracks);
-    h_nShowers_sim->Fill(simulation_vars.nSelectedShowers);
-   // h_trackLength_sim->Fill(simulation_vars.track_length);
+  // find the number of plots we're going to make
+  int n_plots = (int)histoNames.size();
+  plots_to_make = std::vector<std::vector<hists_1d*> >(n_stages, std::vector<hists_1d*>(n_plots));
 
+  for (int i_st = 0; i_st < n_stages; i_st++){
+    for (int i_pl = 0; i_pl < n_plots; i_pl++){
+  
+      plots_to_make.at(i_st).at(i_pl) = new hists_1d(
+          std::string("h_"+histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+          histoLabels.at(i_pl),
+          histoBins.at(i_pl).at(0),
+          histoBins.at(i_pl).at(1),
+          histoBins.at(i_pl).at(2)
+          );
+    }
   }
 
-  h_nTracks_sim->Sumw2();
-  h_nShowers_sim->Sumw2();
-  h_trackLength_sim->Sumw2();
-  h_nTracks_sim->Scale(simscaling);
-  h_nShowers_sim->Scale(simscaling);
-  h_trackLength_sim->Scale(simscaling);
-  
+  // loop simulation
+  std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
+  for (int i = 0; i < t_simulation->GetEntries(); i++){
+
+    t_simulation->GetEntry(i);
+
+    if (simulation_vars->isUBXSecSelected){
+
+      if (simulation_vars->nSelectedTracks != simulation_vars->bragg_fwd_p->size()) continue;
+
+      // get bitset
+      std::bitset<8> eventCat = evcat.CategoriseEvent(simulation_vars);
+
+      std::vector<std::vector<double>> plottingVariables = selmaker.GetPlottingVariables(simulation_vars);
+
+      for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
+        for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
+
+          FillHistMC(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), eventCat);
+
+        }
+      }
+    }
+  }
+
   // loop onbeam
+  std::cout << "[MDSCP] Beginning onbeam loop..." << std::endl;
   for (int i = 0; i < t_onbeam->GetEntries(); i++){
 
     t_onbeam->GetEntry(i);
 
-    h_nTracks_onbeam->Fill(onbeam_vars.nSelectedTracks);
-    h_nShowers_onbeam->Fill(onbeam_vars.nSelectedShowers);
-   // h_trackLength_onbeam->Fill(onbeam_vars.track_length);
+    if (onbeam_vars->isUBXSecSelected){
 
+      if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
+
+      std::vector< std::vector<double> > plottingVariables = selmaker.GetPlottingVariables(onbeam_vars);
+
+      for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
+        for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
+
+          FillHistOnBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+        }
+      }
+    }
   }
- 
+
   // loop offbeam
+  std::cout << "[MDSCP] Beginning offbeam loop..." << std::endl;
   for (int i = 0; i < t_offbeam->GetEntries(); i++){
 
     t_offbeam->GetEntry(i);
 
-    h_nTracks_offbeam->Fill(offbeam_vars.nSelectedTracks);
-    h_nShowers_offbeam->Fill(offbeam_vars.nSelectedShowers);
-   // h_trackLength_offbeam->Fill(offbeam_vars.track_length);
+    if (offbeam_vars->isUBXSecSelected){
 
+      if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
+
+      std::vector< std::vector<double> > plottingVariables = selmaker.GetPlottingVariables(offbeam_vars);
+      for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
+        for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
+
+          FillHistOffBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+
+        }
+      }
+    }
   }
 
-  h_nTracks_offbeam->Sumw2();
-  h_nShowers_offbeam->Sumw2();
-  h_trackLength_offbeam->Sumw2();
-  h_nTracks_offbeam->Scale(offbeamscaling);
-  h_nShowers_offbeam->Scale(offbeamscaling);
-  h_trackLength_offbeam->Scale(offbeamscaling);
-
-  THStack *hs1 = new THStack("hs1", "hs1");
-  h_nTracks_offbeam->SetFillColor(kBlack);
-  h_nTracks_offbeam->SetFillStyle(3345);
-  hs1->Add(h_nTracks_offbeam);
-  h_nTracks_sim->SetFillColor(kGreen+1);
-  hs1->Add(h_nTracks_sim);
-  hs1->Draw("hist");
-
-  h_nTracks_onbeam->SetMarkerStyle(20);
-  h_nTracks_onbeam->Draw("samepE1");
-
-  std::cout << h_nTracks_onbeam->Integral() << std::endl;
+  MakeStackedHistogramsAndSave(plots_to_make);
 
   return 0;
+
 }

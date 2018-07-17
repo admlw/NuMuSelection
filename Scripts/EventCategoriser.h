@@ -5,6 +5,7 @@
 #include <bitset>
 #include <vector>
 #include <string>
+#include <iostream>
 
 // local
 #include "DataTypes.h"
@@ -15,9 +16,11 @@ namespace numusel{
 
     public:
 
-      std::bitset<8> CategoriseEvent(var_list vars);
+      void PrintInfo();
 
-      bool IsCC0PiEvent(std::vector<double>* pdgs, std::vector<double>* processes);
+      std::bitset<8> CategoriseEvent(var_list* vars);
+
+      bool IsCC0PiEvent(std::vector<double>* pdgs, std::vector<std::string>* processes);
 
   };
 
