@@ -17,6 +17,7 @@ struct var_list {
   std::vector<double>* bragg_fwd_p = nullptr;
   std::vector<double>* bragg_bwd_p = nullptr;
   std::vector<double>* noBragg_fwd_mip = nullptr;
+  std::vector<double>* track_length = nullptr;
   double vertex_x = -999;
   double vertex_y = -999;
   double vertex_z = -999;

@@ -5,6 +5,7 @@
 #include "THStack.h"
 #include "TCanvas.h"
 #include "TColor.h"
+#include "TLegend.h"
 
 // local
 #include "EventCategoriser.h"
@@ -43,6 +44,7 @@ void setTreeVars(TTree* tree, var_list* varstoset, bool isSimulation){
   tree->SetBranchAddress("bragg_fwd_p"      , &(varstoset->bragg_fwd_p));
   tree->SetBranchAddress("bragg_bwd_p"      , &(varstoset->bragg_bwd_p));
   tree->SetBranchAddress("noBragg_fwd_mip"  , &(varstoset->noBragg_fwd_mip));
+  tree->SetBranchAddress("track_length"     , &(varstoset->track_length));
   tree->SetBranchAddress("vertex_x"         , &(varstoset->vertex_x));
   tree->SetBranchAddress("vertex_y"         , &(varstoset->vertex_y));
   tree->SetBranchAddress("vertex_z"         , &(varstoset->vertex_z));
@@ -60,52 +62,58 @@ void setTreeVars(TTree* tree, var_list* varstoset, bool isSimulation){
 
 };
 
-void FillHistMC(hists_1d* h1d, double variable, std::bitset<8> eventCat){
+void FillHistMC(hists_1d* h1d, std::vector<double> variable, std::bitset<8> eventCat){
 
-  // cosmic
-  if (eventCat[7] == 1)
-    h1d->h_mccosmic->Fill(variable);
+  for (int i = 0; i < variable.size(); i++){
+    // cosmic
+    if (eventCat[7] == 1)
+      h1d->h_mccosmic->Fill(variable.at(i));
 
-  // mixed
-  else if (eventCat[6] == 1)
-    h1d->h_mcmixed->Fill(variable);
+    // mixed
+    else if (eventCat[6] == 1)
+      h1d->h_mcmixed->Fill(variable.at(i));
 
-  // oofv
-  else if (eventCat[5] == 1)
-    h1d->h_mcoofv->Fill(variable);
-  
-  // nc
-  else if (eventCat[4] == 1)
-    h1d->h_mcnc->Fill(variable);
+    // oofv
+    else if (eventCat[5] == 1)
+      h1d->h_mcoofv->Fill(variable.at(i));
 
-  // nuenuebar
-  else if (eventCat[3] == 1)
-    h1d->h_mcnuenuebar->Fill(variable);
+    // nc
+    else if (eventCat[4] == 1)
+      h1d->h_mcnc->Fill(variable.at(i));
 
-  // numubar
-  else if (eventCat[2] == 1)
-    h1d->h_mcnumubar->Fill(variable);
+    // nuenuebar
+    else if (eventCat[3] == 1)
+      h1d->h_mcnuenuebar->Fill(variable.at(i));
 
-  // numu-other
-  else if (eventCat[1] == 1)
-    h1d->h_mcnumuccother->Fill(variable);
+    // numubar
+    else if (eventCat[2] == 1)
+      h1d->h_mcnumubar->Fill(variable.at(i));
 
-  // numucc0pi
-  else if (eventCat[0] == 1)
-    h1d->h_mcnumucc0pinp->Fill(variable);
+    // numu-other
+    else if (eventCat[1] == 1)
+      h1d->h_mcnumuccother->Fill(variable.at(i));
 
+    // numucc0pi
+    else if (eventCat[0] == 1)
+      h1d->h_mcnumucc0pinp->Fill(variable.at(i));
 
-};
-
-void FillHistOnBeam(hists_1d* h1d, double variable){
-
-  h1d->h_onbeam->Fill(variable);
+  }
 
 };
 
-void FillHistOffBeam(hists_1d* h1d, double variable){
+void FillHistOnBeam(hists_1d* h1d, std::vector<double> variable){
 
-  h1d->h_offbeam->Fill(variable);
+  for (int i = 0; i < variable.size(); i++){
+    h1d->h_onbeam->Fill(variable.at(i));
+  }
+
+};
+
+void FillHistOffBeam(hists_1d* h1d, std::vector<double> variable){
+
+  for (int i = 0; i < variable.size(); i++){
+    h1d->h_offbeam->Fill(variable.at(i));
+  }
 
 };
 
@@ -120,9 +128,29 @@ void StyleHistograms(hists_1d* hists){
   hists->h_mcnumuccother->SetFillColor(TColor::GetColor(165,0,38));
   hists->h_mcnumucc0pinp->SetFillColor(TColor::GetColor(215,48,39));
 
+  hists->h_mccosmic->SetMarkerColor(TColor::GetColor(8,64,129));
+  hists->h_mcmixed->SetMarkerColor(TColor::GetColor(8,104,172));
+  hists->h_mcoofv->SetMarkerColor(TColor::GetColor(78,179,211));
+  hists->h_mcnc->SetMarkerColor(TColor::GetColor(113,1,98));
+  hists->h_mcnuenuebar->SetMarkerColor(TColor::GetColor(166,217,211));
+  hists->h_mcnumubar->SetMarkerColor(TColor::GetColor(0,104,55));
+  hists->h_mcnumuccother->SetMarkerColor(TColor::GetColor(165,0,38));
+  hists->h_mcnumucc0pinp->SetMarkerColor(TColor::GetColor(215,48,39));
+
+  hists->h_mccosmic->SetLineWidth(0);
+  hists->h_mcmixed->SetLineWidth(0);
+  hists->h_mcoofv->SetLineWidth(0);
+  hists->h_mcnc->SetLineWidth(0);
+  hists->h_mcnuenuebar->SetLineWidth(0);
+  hists->h_mcnumubar->SetLineWidth(0);
+  hists->h_mcnumuccother->SetLineWidth(0);
+  hists->h_mcnumucc0pinp->SetLineWidth(0);
+
+
   hists->h_offbeam->SetFillColor(kBlack);
   hists->h_offbeam->SetFillStyle(3345);
 
+  hists->h_onbeam->SetLineColor(kBlack);
   hists->h_onbeam->SetMarkerStyle(20);
   hists->h_onbeam->SetMarkerSize(0.6);
 }
@@ -152,15 +180,17 @@ void ScaleHistograms(hists_1d* hists){
 }
 void MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
 
+  TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
+  c1->SetTopMargin(0.20);
+
   for (int i_st = 0; i_st < hists.size(); i_st++){
     for (int i_pl = 0; i_pl < hists.at(i_st).size(); i_pl++){
-     
+
       hists_1d* thisHistSet = hists.at(i_st).at(i_pl);
 
       StyleHistograms(thisHistSet);
       ScaleHistograms(thisHistSet);
 
-      TCanvas *c1 = new TCanvas();
 
       THStack *hs = new THStack("hs", std::string(histoLabels.at(i_pl)).c_str());
       hs->Add(thisHistSet->h_offbeam);
@@ -175,7 +205,43 @@ void MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
 
       hs->Draw("hist");
 
+      TH1D *h_tot = (TH1D*)thisHistSet->h_offbeam->Clone("h_tot");
+      h_tot->Add(thisHistSet->h_mccosmic);
+      h_tot->Add(thisHistSet->h_mcmixed);
+      h_tot->Add(thisHistSet->h_mcoofv);
+      h_tot->Add(thisHistSet->h_mcnc);
+      h_tot->Add(thisHistSet->h_mcnuenuebar);
+      h_tot->Add(thisHistSet->h_mcnumubar);
+      h_tot->Add(thisHistSet->h_mcnumuccother);
+      h_tot->Add(thisHistSet->h_mcnumucc0pinp);
+
+      h_tot->SetFillStyle(3354);
+      h_tot->SetFillColor(kBlack);
+      h_tot->Draw("sameE2");
+
       thisHistSet->h_onbeam->Draw("samepE1");
+
+      TLegend *leg_1 = new TLegend(0.1, 0.82, 0.5, 0.98);
+      leg_1->AddEntry(thisHistSet->h_mccosmic, "Cosmic");
+      leg_1->AddEntry(thisHistSet->h_mcmixed, "Mixed");
+      leg_1->AddEntry(thisHistSet->h_mcoofv, "OOFV");
+      leg_1->AddEntry(thisHistSet->h_mcnc, "NC");
+      leg_1->AddEntry(thisHistSet->h_mcnuenuebar, "#nu_{e}/#bar{#nu_{e}}");
+
+      TLegend *leg_2 = new TLegend(0.5, 0.82, 0.9, 0.98);
+      leg_2->AddEntry(thisHistSet->h_mcnumubar, "#bar{#nu_{#mu}}");
+      leg_2->AddEntry(thisHistSet->h_mcnumuccother, "#nu_{#mu}CC-Other");
+      leg_2->AddEntry(thisHistSet->h_mcnumucc0pinp, "#nu_{#mu}CC0#piNP");
+      leg_2->AddEntry(thisHistSet->h_offbeam, "Off-beam Data");
+      leg_2->AddEntry(thisHistSet->h_onbeam, "On-beam Data");
+
+      leg_1->SetLineWidth(0);
+      leg_1->SetFillStyle(0);
+      leg_1->Draw("same");
+      leg_2->SetLineWidth(0);
+      leg_2->SetFillStyle(0);
+      leg_2->Draw("same");
+
 
       c1->SaveAs(std::string(
             std::string("plots/")
@@ -183,8 +249,9 @@ void MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
             +std::string("_stage")
             +std::to_string(i_st)
             +std::string(".png")).c_str());
-
+      
     }
+
   }
 
 }

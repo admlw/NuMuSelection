@@ -546,7 +546,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     }
 
-    isInFV = fiducialVolume.InFV(true_mcp_startx->at(0), true_mcp_starty->at(0), true_mcp_startz->at(0));
+    isInFV = fiducialVolume.InFV(true_genie_startx->at(0), true_genie_starty->at(0), true_genie_startz->at(0));
     std::cout << "[NuMuSelection] isInFV: " << isInFV << std::endl;
 
 
@@ -577,26 +577,11 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     const ubana::TPCObjectOrigin& selectedOrigin = selectedTPCObject->GetOrigin();
     
-    //nSelectedShowers = (int)selectedTPCObject->GetNShowers();
-
-    //nSelectedTracks  = (int)selectedTPCObject->GetNTracks();
-
-    int nSelectedPfparticles, nSelectedTracks, nSelectedShowers;
     selectedTPCObject->GetMultiplicity(nSelectedPfparticles,nSelectedTracks,nSelectedShowers);
 
-    /*if (nSelectedShowers != s || nSelectedTracks !=t ){
-
-      std::cout << "NO NO NO NO NO NO NO NO NO" << std::endl;
-      std::cout << "nSelectedShowers: " << nSelectedShowers << " s: " << s << std::endl;
-      std::cout << "nSelectedTracks:  " << nSelectedTracks << " t: " << t << std::endl;
-      throw std::exception();
-
-    }*/
-
-
     std::cout << "[NuMuSelection] Vertex position: " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl; 
-    std::cout << "[NuMuSelection] Number of tracks: " << nSelectedTracks << std::endl;;
-    std::cout << "[NuMuSelection] Number of showers: " << nSelectedShowers << std::endl;;
+    std::cout << "[NuMuSelection] Number of tracks: " << nSelectedTracks << std::endl;
+    std::cout << "[NuMuSelection] Number of showers: " << nSelectedShowers << std::endl;
 
     if (isSimulation){
 

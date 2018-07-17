@@ -54,7 +54,7 @@ int main(){
       // get bitset
       std::bitset<8> eventCat = evcat.CategoriseEvent(simulation_vars);
 
-      std::vector<std::vector<double>> plottingVariables = selmaker.GetPlottingVariables(simulation_vars);
+      std::vector<std::vector<std::vector<double>>> plottingVariables = selmaker.GetPlottingVariables(simulation_vars);
 
       for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
         for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
@@ -76,7 +76,7 @@ int main(){
 
       if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<double> > plottingVariables = selmaker.GetPlottingVariables(onbeam_vars);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = selmaker.GetPlottingVariables(onbeam_vars);
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
@@ -97,7 +97,7 @@ int main(){
 
       if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<double> > plottingVariables = selmaker.GetPlottingVariables(offbeam_vars);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = selmaker.GetPlottingVariables(offbeam_vars);
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
