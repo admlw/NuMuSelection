@@ -2,7 +2,7 @@
 
 namespace numusel{
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
 
     thisMatrix.clear();
     m_stage0.resize(0);
@@ -13,21 +13,34 @@ namespace numusel{
     numusel::AnalysisCuts anacuts; 
     numusel::SelectionMaker selmaker;
 
-    selmaker.PushBackVectors(s_stage0, vars);
+    if (isEffPur == false)
+      selmaker.PushBackVVectors(s_stage0, vars, false);
+    if (isEffPur == true)
+      selmaker.PushBackEPVectors(s_stage0, vars);
 
     // passes first cut
     if (anacuts.isPassNTrackSelection(vars)){
-  
-      selmaker.PushBackVectors(s_stage1, vars);
+
+      if (isEffPur == false)
+        selmaker.PushBackVVectors(s_stage1, vars, false);
+      if (isEffPur == true)
+        selmaker.PushBackEPVectors(s_stage1, vars);
 
       // passes second cut
       if (anacuts.isPassNShowerSelection(vars)){
 
-        selmaker.PushBackVectors(s_stage2, vars);
+        if (isEffPur == false)
+          selmaker.PushBackVVectors(s_stage2, vars, false);
+        if (isEffPur == true)
+          selmaker.PushBackEPVectors(s_stage2, vars);
 
+        // passes third cut
         if (anacuts.isPassParticleIDSelection(vars).first){
 
-          selmaker.PushBackVectors(s_stage3, vars);
+          if (isEffPur == false)
+            selmaker.PushBackVVectors(s_stage3, vars, true);
+          if (isEffPur == true)
+            selmaker.PushBackEPVectors(s_stage3, vars);
 
         }
 
@@ -43,11 +56,36 @@ namespace numusel{
     return thisMatrix;
   };
 
-  void SelectionMaker::PushBackVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
+  void SelectionMaker::PushBackEPVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
+
+    // for genie mcparicles, the first entry is always the neutrino, and the second is the outgoing lepton
+
+    m_stagex->push_back(std::vector<double>({(double)vars->true_genie_starte->at(0)}));
+    if (vars->true_genie_startp->size() >= 5)
+      m_stagex->push_back(std::vector<double>({(double)vars->true_genie_startp->at(4)}));
+    else m_stagex->push_back(std::vector<double>({-1.0}));
+
+  }
+
+  void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
+
+    numusel::AnalysisCuts anacuts;
 
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
     m_stagex->push_back(*vars->track_length);
+    m_stagex->push_back(std::vector<double>({(double)vars->vertex_x}));
+    m_stagex->push_back(std::vector<double>({(double)vars->vertex_y}));
+    m_stagex->push_back(std::vector<double>({(double)vars->vertex_z}));
+    m_stagex->push_back(*vars->track_startx);
+    m_stagex->push_back(*vars->track_endx);
+    m_stagex->push_back(*vars->track_starty);
+    m_stagex->push_back(*vars->track_endy);
+    m_stagex->push_back(*vars->track_startz);
+    m_stagex->push_back(*vars->track_endz);
+    m_stagex->push_back(*vars->track_theta);
+    m_stagex->push_back(*vars->track_costheta);
+    m_stagex->push_back(*vars->track_phi);
 
     std::vector<double> pid;
     for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
@@ -56,6 +94,43 @@ namespace numusel{
       pid.push_back(std::log(lmip/lp));
     }
     m_stagex->push_back(pid);
+
+    m_stagex->push_back(*vars->track_mcs_fwd);
+    m_stagex->push_back(*vars->track_mcs_bwd);
+
+    if (isHasPID == true){
+
+      std::vector<double> candMuonLength;
+      std::vector<double> candMuonTheta;
+      std::vector<double> candMuonCosTheta;
+      std::vector<double> candMuonPhi;
+      std::vector<double> candMuonMCSFwd;
+      std::vector<double> candMuonMCSBwd;
+
+      for (int i = 0; i < pid.size(); i++){
+
+        // get muon candidate
+        if (pid.at(i) > anacuts.pid_cutvalue){
+
+          candMuonLength.push_back(vars->track_length->at(i));
+          candMuonTheta.push_back(vars->track_theta->at(i));
+          candMuonCosTheta.push_back(vars->track_costheta->at(i));
+          candMuonPhi.push_back(vars->track_phi->at(i));
+          candMuonMCSFwd.push_back(vars->track_mcs_fwd->at(i));
+          candMuonMCSBwd.push_back(vars->track_mcs_bwd->at(i));
+
+        }
+
+      }
+
+      m_stagex->push_back(candMuonLength);
+      m_stagex->push_back(candMuonTheta);
+      m_stagex->push_back(candMuonCosTheta);
+      m_stagex->push_back(candMuonPhi);
+      m_stagex->push_back(candMuonMCSFwd);
+      m_stagex->push_back(candMuonMCSBwd);
+
+    }
 
   }
 

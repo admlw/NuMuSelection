@@ -17,7 +17,7 @@ namespace numusel{
       int n_tracks_max_cut_val = 100;
       int n_showers_min_cut_val = 0;
       int n_showers_max_cut_val = 0;
-      float pid_cutvalue = 1.0;
+      float pid_cutvalue = -1.0;
 
       /**
        * Does event meet number of track specification?

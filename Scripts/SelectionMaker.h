@@ -29,9 +29,11 @@ namespace numusel{
       /**
        * gets variables to plot for each stage of the selection
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur);
+      
+      void PushBackEPVectors(std::vector<std::vector<double>>* vec, var_list* vars);
 
-      void PushBackVectors(std::vector<std::vector<double>>* vec, var_list* vars);
+      void PushBackVVectors(std::vector<std::vector<double>>* vec, var_list* vars, bool isHasPID);
 
   };
 

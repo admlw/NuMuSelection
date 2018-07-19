@@ -8,31 +8,53 @@
 // ROOT
 #include "TH1.h"
 
-// define structs to use
+/**
+ * holds all variables to be pulled from the root file for each event
+ */
 struct var_list {
 
   bool isUBXSecSelected = false;
+  bool isSimulation = false;
   int nSelectedTracks = -999;
   int nSelectedShowers = -999;
-  std::vector<double>* bragg_fwd_p = nullptr;
-  std::vector<double>* bragg_bwd_p = nullptr;
-  std::vector<double>* noBragg_fwd_mip = nullptr;
   std::vector<double>* track_length = nullptr;
   double vertex_x = -999;
   double vertex_y = -999;
   double vertex_z = -999;
+  std::vector<double>* track_startx = nullptr;
+  std::vector<double>* track_endx = nullptr;
+  std::vector<double>* track_starty = nullptr;
+  std::vector<double>* track_endy = nullptr;
+  std::vector<double>* track_startz = nullptr;
+  std::vector<double>* track_endz = nullptr;
+  std::vector<double>* track_theta = nullptr;
+  std::vector<double>* track_costheta = nullptr;
+  std::vector<double>* track_phi = nullptr;
+  std::vector<double>* bragg_fwd_p = nullptr;
+  std::vector<double>* bragg_bwd_p = nullptr;
+  std::vector<double>* noBragg_fwd_mip = nullptr;
+  std::vector<double>* track_mcs_fwd = nullptr;
+  std::vector<double>* track_mcs_bwd = nullptr;
 
   bool isBeamNeutrino = false;
   bool isCosmic = false;
   bool isMixed = false;
   bool isInFV = false;
+  std::vector<double>* true_genie_starte = nullptr;
+  std::vector<double>* true_genie_startp = nullptr;
+  std::vector<double>* true_genie_pdg = nullptr;
   int true_nu_ccnc = -999;
   std::vector<double>* true_match_pdg = nullptr;
   std::vector<double>* true_mcp_pdg = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;
+  std::vector<double>* true_mcp_starte = nullptr;
+  std::vector<double>* true_mcp_startp = nullptr;
 
 };
 
+/**
+ * holds all histograms for data-simulation comparisons
+ */
 struct hists_1d {
   TH1D* h_mccosmic;
   TH1D* h_mcmixed;
@@ -57,6 +79,28 @@ struct hists_1d {
     h_onbeam = new TH1D(std::string(name+"onbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_offbeam = new TH1D(std::string(name+"offbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
   }
+};
+
+struct eff_1d{
+  TH1D* h_num;
+  TH1D* h_denom;
+
+  eff_1d(std::string name, std::string title, double nbinsx, double binlowx, double binhighx){
+    h_num = new TH1D(std::string(name+"_effnum").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_denom = new TH1D(std::string(name+"_effdenom").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+  }
+
+};
+
+struct pur_1d{
+  TH1D* h_num;
+  TH1D* h_denom;
+
+  pur_1d(std::string name, std::string title, double nbinsx, double binlowx, double binhighx){
+    h_num = new TH1D(std::string(name+"_purnum").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_denom = new TH1D(std::string(name+"_purdenom").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+  }
+
 };
 
 #endif

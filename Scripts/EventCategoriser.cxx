@@ -33,7 +33,7 @@ namespace numusel{
     if (vars->true_mcp_pdg->at(0) == -14)
       thisBitSet.set(2);
 
-    bool isCC0Pi = EventCategoriser::IsCC0PiEvent(vars->true_mcp_pdg, vars->true_mcp_process);
+    bool isCC0Pi = EventCategoriser::IsCC0PiNPEvent(vars->true_mcp_pdg, vars->true_mcp_process, vars->true_nu_ccnc, vars->true_mcp_starte, vars->isBeamNeutrino);
 
     // cc other
     if (!isCC0Pi)
@@ -47,9 +47,10 @@ namespace numusel{
 
   }
 
-  bool EventCategoriser::IsCC0PiEvent(std::vector<double>* pdgs, std::vector<std::string>* processes){
+  bool EventCategoriser::IsCC0PiNPEvent(std::vector<double>* pdgs, std::vector<std::string>* processes, int ccnc, std::vector<double>* starte, bool isBeamNeutrino){
 
     int nPrimaryPions = 0;
+    int nPrimaryProtonsAboveThreshold = 0;
 
     for (int i = 0; i < (int)pdgs->size(); i++){
 
@@ -57,9 +58,13 @@ namespace numusel{
         nPrimaryPions++;
 
       }
+      
+      if ((std::abs(pdgs->at(i)) == 2212) && starte->at(i) > 0.04 && processes->at(i) == "primary")
+        nPrimaryProtonsAboveThreshold++;
+
     }
 
-    if (nPrimaryPions == 0)
+    if (nPrimaryPions == 0 && ccnc == 0 && nPrimaryProtonsAboveThreshold > 0 )
       return true;
     else return false;
 

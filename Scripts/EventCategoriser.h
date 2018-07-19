@@ -16,11 +16,9 @@ namespace numusel{
 
     public:
 
-      void PrintInfo();
-
       std::bitset<8> CategoriseEvent(var_list* vars);
 
-      bool IsCC0PiEvent(std::vector<double>* pdgs, std::vector<std::string>* processes);
+      bool IsCC0PiNPEvent(std::vector<double>* pdgs, std::vector<std::string>* processes, int ccnc, std::vector<double>* starte, bool isBeamNeutrino);
 
   };
 
