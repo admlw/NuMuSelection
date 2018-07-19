@@ -2,7 +2,7 @@
 
 namespace numusel{
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, float cutval){
 
     thisMatrix.clear();
     m_stage0.resize(0);
@@ -35,7 +35,7 @@ namespace numusel{
           selmaker.PushBackEPVectors(s_stage2, vars);
 
         // passes third cut
-        if (anacuts.isPassParticleIDSelection(vars).first){
+        if (anacuts.isPassParticleIDSelection(vars).first, cutval){
 
           if (isEffPur == false)
             selmaker.PushBackVVectors(s_stage3, vars, true);
@@ -55,6 +55,15 @@ namespace numusel{
 
     return thisMatrix;
   };
+
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
+
+      numusel::AnalysisCuts anacuts; 
+      thisMatrix = GetPlottingVariables(vars, anacuts.pid_cutvalue);
+
+      return thisMatrix;
+
+  }
 
   void SelectionMaker::PushBackEPVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
 

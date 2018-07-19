@@ -34,8 +34,16 @@ namespace numusel{
        *
        * pair.first: bool which returns whether event passes
        * pair.second: vector of pdg codes returned from PID
+       *
+       * this assumes the default pid cut values
        */
       std::pair< bool, std::vector<int> > isPassParticleIDSelection(var_list *vars);
+
+      /**
+       *
+       * same as above but assumes we pass new cut values
+       */
+      std::pair< bool, std::vector<int> > isPassParticleIDSelection(var_list *vars, float cutval);
 
   };
 

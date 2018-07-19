@@ -27,6 +27,11 @@ namespace numusel{
       std::vector<std::vector<double>>* s_stage3 = &m_stage3;
 
       /**
+       * gets variables to plot for each stage of the selection with input cut value
+       */
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, float cutvalue);
+ 
+      /**
        * gets variables to plot for each stage of the selection
        */
       std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur);
