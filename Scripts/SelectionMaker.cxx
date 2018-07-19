@@ -59,7 +59,7 @@ namespace numusel{
   std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
 
       numusel::AnalysisCuts anacuts; 
-      thisMatrix = GetPlottingVariables(vars, anacuts.pid_cutvalue);
+      thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue);
 
       return thisMatrix;
 

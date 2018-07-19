@@ -83,7 +83,7 @@ int main(){
 
         effpur.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
-        effpur.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(0).at(i_pl), eventCat, simulation_vars);
+        effpur.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
 
       }

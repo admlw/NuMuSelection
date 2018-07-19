@@ -25,9 +25,9 @@
 #include <string>
 
 // vars
-std::string s_onbeam     = "/uboone/data/users/alister1/numuSelection/18-07-16-NuMuSelection/numusel_onbeam.root";
-std::string s_offbeam    = "/uboone/data/users/alister1/numuSelection/18-07-16-NuMuSelection/numusel_offbeam.root";
-std::string s_simulation = "/uboone/data/users/alister1/numuSelection/18-07-16-NuMuSelection/numusel_bnbcos2.root";
+std::string s_onbeam     = "~/Documents/numu_constraint/data_files/numusel_onbeam.root";
+std::string s_offbeam    = "~/Documents/numu_constraint/data_files/numusel_offbeam.root";
+std::string s_simulation = "~/Documents/numu_constraint/data_files/numusel_bnbcos2.root";
 
 double offbeamscaling = 1.05;
 double simscaling = 2.3; 
