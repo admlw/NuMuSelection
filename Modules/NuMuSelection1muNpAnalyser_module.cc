@@ -398,7 +398,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   if (isSimulation){                           
     e.getByLabel("generator", mcTruthHandle);                                         
     if (!mcTruthHandle.isValid()) return;                                             
-    art::fill_ptr_vector(mcTruthVec, mcTruthHandle);                                  
+    art::fill_ptr_vector(mcTruthVec, mcTruthHandle);                                 
     if (mcTruthVec.size() == 0){                                                      
       std::cout << "\n[NuMuSelection] No MCTruth Information" << std::endl;                 
       return;                                                                         
@@ -1156,7 +1156,6 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   isBeamNeutrino = false;
   isCosmic = false;
   isMixed = false;
-  isInFV  = false;
   vertex_x = -999;
   vertex_y = -999;
   vertex_z = -999;
