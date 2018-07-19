@@ -145,8 +145,12 @@ int main(){
     }
   }
 
+  ScaleHistograms(plots_to_make);
   MakeStackedHistogramsAndSave(plots_to_make);
   MakeEfficiencyHistogramsAndSave(eff_to_make);
+
+  std::cout << "efficiency: " << eff_to_make.at(3).at(0)->h_num->GetBinContent(1)/eff_to_make.at(0).at(0)->h_denom->GetBinContent(1) << std::endl;;
+
 
   return 0;
 

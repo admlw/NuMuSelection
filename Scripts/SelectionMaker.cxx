@@ -35,7 +35,7 @@ namespace numusel{
           selmaker.PushBackEPVectors(s_stage2, vars);
 
         // passes third cut
-        if (anacuts.isPassParticleIDSelection(vars).first, cutval){
+        if (anacuts.isPassParticleIDSelection(vars, cutval).first){
 
           if (isEffPur == false)
             selmaker.PushBackVVectors(s_stage3, vars, true);
@@ -68,7 +68,7 @@ namespace numusel{
   void SelectionMaker::PushBackEPVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
 
     // for genie mcparicles, the first entry is always the neutrino, and the second is the outgoing lepton
-
+    m_stagex->push_back(std::vector<double>({(double)vars->true_genie_starte->at(0)}));
     m_stagex->push_back(std::vector<double>({(double)vars->true_genie_starte->at(0)}));
     if (vars->true_genie_startp->size() >= 5)
       m_stagex->push_back(std::vector<double>({(double)vars->true_genie_startp->at(4)}));

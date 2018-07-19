@@ -92,16 +92,19 @@ std::vector<std::vector<double>> histoBins = {
  * These three vectors fully define all of the efficiency/purity histograms to produce
  */
 std::vector<std::string> effpurNames = {
+  "total",
   "true_enu",
   "true_mu_p"
 };
 
 std::vector<std::string> effpurLabels = {
+  "Total Efficiency",
   ";E_{#nu}^{true} (Gev);",
   ";p_{#mu} (Gev);"
 };
 
 std::vector< std::vector<double> > effpurBins = {
+  {1, 0, 100},
   {25, 0, 3},
   {25, 0, 2.5}
 };
