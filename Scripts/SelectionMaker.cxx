@@ -79,7 +79,7 @@ namespace numusel{
   void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
     numusel::AnalysisCuts anacuts;
-
+    m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
     m_stagex->push_back(*vars->track_length);

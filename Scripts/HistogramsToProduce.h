@@ -8,6 +8,7 @@
  * These three vectors fully define all of the data/mc histograms to produce
  */
 std::vector<std::string> histoNames = {
+  "total_for_purity",
   "nTracks",
   "nShowers",
   "trackLength",
@@ -35,6 +36,7 @@ std::vector<std::string> histoNames = {
 };
 
 std::vector<std::string> histoLabels = {
+  "total for purity",
   ";Number of tracks;",
   ";Number of showers;",
   ";Track length (cm);",
@@ -62,6 +64,7 @@ std::vector<std::string> histoLabels = {
 };
 
 std::vector<std::vector<double>> histoBins = {
+  {1, 0, 10},
   {10, 0, 10},
   {10, 0, 10},
   {50, 0, 700},
