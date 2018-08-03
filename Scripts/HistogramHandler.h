@@ -152,6 +152,16 @@ namespace numusel{
       void FillHistOffBeam(hists_1d* h1d, std::vector<double> variable);
 
       /**
+       * Initialise vector of hists_1ds
+       */
+      void InitialiseHistoVec(std::vector< std::vector<hists_1d*> >* plots_to_make, int n_plots);
+
+      /**
+       * Initialise vector of eff_1ds
+       */
+      void InitialiseHistoVec(std::vector< std::vector<eff_1d*> >* plots_to_make, int n_plots);
+
+      /**
        * Style histograms
        */
       void StyleHistograms(hists_1d* hists);

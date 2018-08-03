@@ -57,6 +57,43 @@ namespace numusel{
 
   };
 
+  void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<hists_1d*> > *plots_to_make, int n_plots){
+    
+    numusel::HistogramHandler _histohandler;
+
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
+      for (int i_pl = 0; i_pl < n_plots; i_pl++){
+
+        plots_to_make->at(i_st).at(i_pl) = new hists_1d(
+            std::string("h_"+_histohandler.histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+            _histohandler.histoLabels.at(i_pl),
+            _histohandler.histoBins.at(i_pl).at(0),
+            _histohandler.histoBins.at(i_pl).at(1),
+            _histohandler.histoBins.at(i_pl).at(2)
+            );
+      }
+    }
+  };
+
+  void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<eff_1d*> > *plots_to_make, int n_plots){
+    
+    numusel::HistogramHandler _histohandler;
+
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
+      for (int i_pl = 0; i_pl < n_plots; i_pl++){
+
+        plots_to_make->at(i_st).at(i_pl) = new eff_1d(
+            std::string("h_"+_histohandler.effpurNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+            _histohandler.effpurLabels.at(i_pl),
+            _histohandler.effpurBins.at(i_pl).at(0),
+            _histohandler.effpurBins.at(i_pl).at(1),
+            _histohandler.effpurBins.at(i_pl).at(2)
+            );
+      }
+    }
+  };
+
+
   void HistogramHandler::StyleHistograms(hists_1d* hists){
 
     hists->h_mccosmic->SetFillColor(TColor::GetColor(8,64,129));
@@ -128,7 +165,7 @@ namespace numusel{
 
   void HistogramHandler::MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
 
-    numusel::HistogramHandler _histhandler;
+    numusel::HistogramHandler _histohandler;
 
     TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
     TPad *topPad = new TPad("topPad", "", 0.005, 0.3, 0.995, 0.995);
@@ -147,11 +184,11 @@ namespace numusel{
 
         if (thisHistSet->h_onbeam->Integral() == 0) continue;
 
-        _histhandler.StyleHistograms(thisHistSet);
+        _histohandler.StyleHistograms(thisHistSet);
 
         topPad->cd();
 
-        THStack *hs = new THStack("hs", std::string(_histhandler.histoLabels.at(i_pl)).c_str());
+        THStack *hs = new THStack("hs", std::string(_histohandler.histoLabels.at(i_pl)).c_str());
         hs->Add(thisHistSet->h_offbeam);
         hs->Add(thisHistSet->h_mccosmic);
         hs->Add(thisHistSet->h_mcmixed);
@@ -219,16 +256,16 @@ namespace numusel{
         h_onbeam_clone->Divide(h_tot);
 
         TF1* f0 = new TF1("f0", "[0]", 
-            _histhandler.histoBins.at(i_pl).at(1), 
-            _histhandler.histoBins.at(i_pl).at(2));
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2));
 
-        f0->SetTitle(_histhandler.histoLabels.at(i_pl).c_str());
+        f0->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
         f0->SetParameter(0,0.0);
         f0->SetNpx(100);
         f0->SetLineStyle(2);
         f0->SetLineColor(kGray+2);
         f0->GetYaxis()->SetRangeUser(-1, 1);
-        f0->GetXaxis()->SetRangeUser(_histhandler.histoBins.at(i_pl).at(1), _histhandler.histoBins.at(i_pl).at(2));
+        f0->GetXaxis()->SetRangeUser(_histohandler.histoBins.at(i_pl).at(1), _histohandler.histoBins.at(i_pl).at(2));
         f0->GetXaxis()->SetLabelSize(0.08);
         f0->GetYaxis()->SetLabelSize(0.08);
         f0->GetXaxis()->SetTitleSize(0.1);
@@ -240,11 +277,11 @@ namespace numusel{
         f0->Draw();
 
         TF1* f50low = new TF1("f50low", "[0]", 
-            _histhandler.histoBins.at(i_pl).at(1), 
-            _histhandler.histoBins.at(i_pl).at(2) + (_histhandler.histoBins.at(i_pl).at(2)-_histhandler.histoBins.at(i_pl).at(1))/(2*_histhandler.histoBins.at(i_pl).at(0)));
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2) + (_histohandler.histoBins.at(i_pl).at(2)-_histohandler.histoBins.at(i_pl).at(1))/(2*_histohandler.histoBins.at(i_pl).at(0)));
 
         f50low->SetParameter(0,0.5);
-        f50low->SetTitle(_histhandler.histoLabels.at(i_pl).c_str());
+        f50low->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
 
         f50low->SetLineStyle(2);
         f50low->SetLineColor(kGray);
@@ -255,11 +292,11 @@ namespace numusel{
         f50low->Draw("same");
 
         TF1* f50high = new TF1("f50high", "[0]", 
-            _histhandler.histoBins.at(i_pl).at(1), 
-            _histhandler.histoBins.at(i_pl).at(2) + (_histhandler.histoBins.at(i_pl).at(2)-_histhandler.histoBins.at(i_pl).at(1))/(2*_histhandler.histoBins.at(i_pl).at(0)));
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2) + (_histohandler.histoBins.at(i_pl).at(2)-_histohandler.histoBins.at(i_pl).at(1))/(2*_histohandler.histoBins.at(i_pl).at(0)));
 
         f50high->SetParameter(0,-0.5);
-        f50high->SetTitle(_histhandler.histoLabels.at(i_pl).c_str());
+        f50high->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
 
         f50high->SetLineStyle(2);
         f50high->SetLineColor(kGray);
@@ -274,14 +311,14 @@ namespace numusel{
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.histoNames.at(i_pl)
+              +_histohandler.histoNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".pdf")).c_str());
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.histoNames.at(i_pl)
+              +_histohandler.histoNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".png")).c_str());
@@ -307,14 +344,14 @@ namespace numusel{
 
         c2->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.histoNames.at(i_pl)
+              +_histohandler.histoNames.at(i_pl)
               +std::string("_purity_stage")
               +std::to_string(i_st)
               +std::string(".pdf")).c_str());
 
         c2->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.histoNames.at(i_pl)
+              +_histohandler.histoNames.at(i_pl)
               +std::string("_purity_stage")
               +std::to_string(i_st)
               +std::string(".png")).c_str());
@@ -327,7 +364,7 @@ namespace numusel{
 
   void HistogramHandler::MakeEfficiencyHistogramsAndSave(std::vector<std::vector<eff_1d*>> effplots){
 
-    numusel::HistogramHandler _histhandler;
+    numusel::HistogramHandler _histohandler;
 
     TCanvas *c1 = new TCanvas();
 
@@ -350,14 +387,14 @@ namespace numusel{
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.effpurNames.at(i_pl)
+              +_histohandler.effpurNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".pdf")).c_str());
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histhandler.effpurNames.at(i_pl)
+              +_histohandler.effpurNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".png")).c_str());

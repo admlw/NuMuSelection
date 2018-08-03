@@ -24,37 +24,12 @@ int main(){
   int n_plots = (int)_histoHandler.histoNames.size();
 
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
-
-  for (int i_st = 0; i_st < _config.n_stages; i_st++){
-    for (int i_pl = 0; i_pl < n_plots; i_pl++){
-
-      plots_to_make.at(i_st).at(i_pl) = new hists_1d(
-          std::string("h_"+_histoHandler.histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
-          _histoHandler.histoLabels.at(i_pl),
-          _histoHandler.histoBins.at(i_pl).at(0),
-          _histoHandler.histoBins.at(i_pl).at(1),
-          _histoHandler.histoBins.at(i_pl).at(2)
-          );
-    }
-  }
+  _histoHandler.InitialiseHistoVec(&plots_to_make, n_plots);
 
   // find the number of eff/pur plots we're going to make
   int n_effpur = (int)_histoHandler.effpurNames.size();
   eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_effpur));
-
-  for (int i_st = 0; i_st < _config.n_stages; i_st++){
-    for (int i_pl = 0; i_pl < n_effpur; i_pl++){
-
-      eff_to_make.at(i_st).at(i_pl) = new eff_1d(
-          std::string("h_"+_histoHandler.effpurNames.at(i_pl)+"_stage"+std::to_string(i_st)),
-          _histoHandler.effpurLabels.at(i_pl),
-          _histoHandler.effpurBins.at(i_pl).at(0),
-          _histoHandler.effpurBins.at(i_pl).at(1),
-          _histoHandler.effpurBins.at(i_pl).at(2)
-          );
-    }
-  }
-
+  _histoHandler.InitialiseHistoVec(&eff_to_make, n_effpur);
 
   // loop simulation
   std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
