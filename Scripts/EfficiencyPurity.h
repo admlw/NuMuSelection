@@ -20,6 +20,10 @@ namespace numusel{
 
       void FillEfficiencyNumerator(eff_1d* eff_plots, std::vector<double> vals, std::bitset<8> evcat, var_list* vars);
 
+      void FillPurityDenominator(pur_1d* pur_plots, std::vector<double> vals, std::bitset<8> evcat, var_list* vars);
+ 
+      void FillPurityNumerator(pur_1d* pur_plots, std::vector<double> vals, std::bitset<8> evcat, var_list* vars);
+
   };
 
 }
