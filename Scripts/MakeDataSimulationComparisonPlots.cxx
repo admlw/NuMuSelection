@@ -2,13 +2,6 @@
 
 int main(){
 
-  // initialise classes
-  numusel::Configuration    _config;
-  numusel::EventCategoriser _evcat;
-  numusel::SelectionMaker   _selmaker;
-  numusel::EfficiencyPurity _effpur;
-  numusel::HistogramHandler _histhandler;
-
   // pull out TTrees from provided TFiles
   TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_offbeam = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
@@ -23,9 +16,9 @@ int main(){
   var_list* offbeam_vars = &offbeam_vars_tmp;
   var_list* simulation_vars = &simulation_vars_tmp;
 
-  setTreeVars(t_onbeam, &onbeam_vars_tmp, false);
-  setTreeVars(t_offbeam, &offbeam_vars_tmp, false);
-  setTreeVars(t_simulation, &simulation_vars_tmp, true);
+  _treehandler.SetTreeVars(t_onbeam, &onbeam_vars_tmp, false);
+  _treehandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
+  _treehandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
 
   // find the number of plots we're going to make
   int n_plots = (int)_histhandler.histoNames.size();

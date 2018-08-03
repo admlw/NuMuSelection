@@ -5,7 +5,7 @@ CXX=g++
 
 LDFLAGS=$$(root-config --libs)
 
-MakeDataSimulationComparisonPlots: MakeDataSimulationComparisonPlots.cxx EventCategoriser.cxx SelectionMaker.cxx AnalysisCuts.cxx EfficiencyPurity.cxx HistogramHandler.cxx
+MakeDataSimulationComparisonPlots: MakeDataSimulationComparisonPlots.cxx EventCategoriser.cxx SelectionMaker.cxx AnalysisCuts.cxx EfficiencyPurity.cxx HistogramHandler.cxx TreeHandler.cxx
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 	
 all: MakeDataSimulationComparisonPlots
