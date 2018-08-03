@@ -1,14 +1,6 @@
-#include "MakeDataSimulationComparisonPlots.h"
+#include "Main.h"
 
 int main(){
-
-  // initialise classes
-  numusel::Configuration    _config;
-  numusel::EventCategoriser _evcat;
-  numusel::SelectionMaker   _selmaker;
-  numusel::EfficiencyPurity _effpur;
-  numusel::HistogramHandler _histoHandler;
-  numusel::TreeHandler      _treeHandler;
 
   // pull out TTrees from provided TFiles
   TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
