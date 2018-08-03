@@ -22,8 +22,9 @@ namespace numusel{
       // * no cuts (pure UBXSec)
       // * n tracks cut
       // * n showers cut
+      // * n pfparticles cut
       // * pid cut
-      int n_stages = 4; 
+      int n_stages = 5; 
 
   };
 

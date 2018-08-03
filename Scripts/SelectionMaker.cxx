@@ -9,6 +9,7 @@ namespace numusel{
     m_stage1.resize(0);
     m_stage2.resize(0);
     m_stage3.resize(0);
+    m_stage4.resize(0);
 
     numusel::AnalysisCuts anacuts; 
     numusel::SelectionMaker selmaker;
@@ -19,7 +20,7 @@ namespace numusel{
       selmaker.PushBackEPVectors(s_stage0, vars);
 
     // passes first cut
-    if (anacuts.isPassNTrackSelection(vars)){
+    if (anacuts.isPassNPfparticleSelection(vars)){
 
       if (isEffPur == false)
         selmaker.PushBackVVectors(s_stage1, vars, false);
@@ -27,7 +28,7 @@ namespace numusel{
         selmaker.PushBackEPVectors(s_stage1, vars);
 
       // passes second cut
-      if (anacuts.isPassNShowerSelection(vars)){
+      if (anacuts.isPassNTrackSelection(vars)){
 
         if (isEffPur == false)
           selmaker.PushBackVVectors(s_stage2, vars, false);
@@ -35,12 +36,22 @@ namespace numusel{
           selmaker.PushBackEPVectors(s_stage2, vars);
 
         // passes third cut
-        if (anacuts.isPassParticleIDSelection(vars, cutval).first){
+        if (anacuts.isPassNShowerSelection(vars)){
 
           if (isEffPur == false)
-            selmaker.PushBackVVectors(s_stage3, vars, true);
+            selmaker.PushBackVVectors(s_stage3, vars, false);
           if (isEffPur == true)
             selmaker.PushBackEPVectors(s_stage3, vars);
+
+          // passes fourth cut
+          if (anacuts.isPassParticleIDSelection(vars, cutval).first){
+
+            if (isEffPur == false)
+              selmaker.PushBackVVectors(s_stage4, vars, true);
+            if (isEffPur == true)
+              selmaker.PushBackEPVectors(s_stage4, vars);
+
+          }
 
         }
 
@@ -52,16 +63,17 @@ namespace numusel{
     thisMatrix.push_back(m_stage1);
     thisMatrix.push_back(m_stage2);
     thisMatrix.push_back(m_stage3); 
+    thisMatrix.push_back(m_stage4); 
 
     return thisMatrix;
   };
 
   std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
 
-      numusel::AnalysisCuts anacuts; 
-      thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue);
+    numusel::AnalysisCuts anacuts; 
+    thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue);
 
-      return thisMatrix;
+    return thisMatrix;
 
   }
 

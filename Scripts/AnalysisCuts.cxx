@@ -2,6 +2,15 @@
 
 namespace numusel{
 
+  bool AnalysisCuts::isPassNPfparticleSelection(var_list* vars){
+
+      if (vars->nSelectedPfparticles >= n_pfParticles_min_cut_val &&
+          vars->nSelectedPfparticles <= n_pfParticles_max_cut_val)
+        return true;
+      else return false;
+
+    };
+
     bool AnalysisCuts::isPassNTrackSelection(var_list* vars){
 
         if (vars->nSelectedTracks >= n_tracks_min_cut_val && 

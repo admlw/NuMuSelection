@@ -20,12 +20,14 @@ namespace numusel{
       std::vector<std::vector<double>> m_stage1;
       std::vector<std::vector<double>> m_stage2;
       std::vector<std::vector<double>> m_stage3;
+      std::vector<std::vector<double>> m_stage4;
 
       std::vector<std::vector<double>>* s_stage0 = &m_stage0;
       std::vector<std::vector<double>>* s_stage1 = &m_stage1;
       std::vector<std::vector<double>>* s_stage2 = &m_stage2;
       std::vector<std::vector<double>>* s_stage3 = &m_stage3;
-
+      std::vector<std::vector<double>>* s_stage4 = &m_stage4;
+      
       /**
        * gets variables to plot for each stage of the selection with input cut value
        */

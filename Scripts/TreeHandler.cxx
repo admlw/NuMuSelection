@@ -8,6 +8,7 @@ namespace numusel{
     tree->SetBranchAddress("isSimulation"     , &(varstoset->isSimulation));
     tree->SetBranchAddress("nSelectedTracks"  , &(varstoset->nSelectedTracks));
     tree->SetBranchAddress("nSelectedShowers" , &(varstoset->nSelectedShowers));
+    tree->SetBranchAddress("nSelectedPfparticles", &(varstoset->nSelectedPfparticles));
     tree->SetBranchAddress("track_length"     , &(varstoset->track_length));
     tree->SetBranchAddress("vertex_x"         , &(varstoset->vertex_x));
     tree->SetBranchAddress("vertex_y"         , &(varstoset->vertex_y));

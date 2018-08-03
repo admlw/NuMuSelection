@@ -10,9 +10,10 @@
  *              each stage of the selection
  *              the stages are currently set to be
  *                0. pure UBXSec CC-inclusive
- *                1. Topology cut: N tracks
- *                2. Topology cut: N showers
- *                3. ParticleID cut
+ *                1. Topology cut: N Pfparticles
+ *                2. Topology cut: N tracks
+ *                3. Topology cut: N showers
+ *                4. ParticleID cut
  */
 
 #include "Main.h"
@@ -152,19 +153,21 @@ int main(){
   // print efficiency and purity info
   //------------------------------------
 
-  std::cout << "efficiency: " << eff_to_make.at(3).at(0)->h_num->GetBinContent(1)/eff_to_make.at(0).at(0)->h_denom->GetBinContent(1) << std::endl;;
+  int finalStage = plots_to_make.size() - 1;
 
-  TH1D *h_tot = (TH1D*)plots_to_make.at(3).at(0)->h_offbeam->Clone("h_tot");
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mccosmic);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcmixed);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcoofv);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcnc);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcnuenuebar);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcnumubar);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcnumuccother);
-  h_tot->Add(plots_to_make.at(3).at(0)->h_mcnumucc0pinp);
+  std::cout << "efficiency: " << eff_to_make.at(finalStage).at(0)->h_num->GetBinContent(1)/eff_to_make.at(0).at(0)->h_denom->GetBinContent(1) << std::endl;;
 
-  std::cout << "purity:" << plots_to_make.at(3).at(0)->h_mcnumucc0pinp->GetBinContent(1)/h_tot->GetBinContent(1) << std::endl;
+  TH1D *h_tot = (TH1D*)plots_to_make.at(finalStage).at(0)->h_offbeam->Clone("h_tot");
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mccosmic);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcmixed);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcoofv);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnc);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnuenuebar);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnumubar);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnumuccother);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp);
+
+  std::cout << "purity:" << plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp->GetBinContent(1)/h_tot->GetBinContent(1) << std::endl;
 
   return 0;
 

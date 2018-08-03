@@ -17,6 +17,7 @@ struct var_list {
   bool isSimulation = false;
   int nSelectedTracks = -999;
   int nSelectedShowers = -999;
+  int nSelectedPfparticles = -999;
   std::vector<double>* track_length = nullptr;
   double vertex_x = -999;
   double vertex_y = -999;

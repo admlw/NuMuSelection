@@ -34,15 +34,6 @@ namespace numusel{
 
   };
 
-  void EfficiencyPurity::FillPurityNumerator(pur_1d* pur_plots, std::vector<double> val, std::bitset<8> evcat, var_list* vars){
-
-
-  };
-
-  void EfficiencyPurity::FillPurityDenominator(pur_1d* pur_plots, std::vector<double> val, std::bitset<8> evcat, var_list* vars){
-
-  };
-
 
 }
 
