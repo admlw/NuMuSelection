@@ -1,8 +1,26 @@
+/**
+ * \author Adam Lister
+ *
+ * \email a.lister1@lancaster.ac.uk
+ *
+ * \description this framework is designed to work with the output of the 
+ *              NuMuSelection module contained in the Module directory
+ *              in this repository
+ *              it pulls out many different data/mc comparisons at
+ *              each stage of the selection
+ *              the stages are currently set to be
+ *                0. pure UBXSec CC-inclusive
+ *                1. Topology cut: N tracks
+ *                2. Topology cut: N showers
+ *                3. ParticleID cut
+ */
+
 #include "Main.h"
 
 int main(){
 
   // pull out TTrees from provided TFiles
+  // input trees are set in Configuration.h
   TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_offbeam = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
@@ -20,18 +38,20 @@ int main(){
   _treeHandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
 
-  // find the number of plots we're going to make
+  // initialise data/mc comparison plots to make
   int n_plots = (int)_histoHandler.histoNames.size();
-
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
   _histoHandler.InitialiseHistoVec(&plots_to_make, n_plots);
 
-  // find the number of eff/pur plots we're going to make
+  // initialise efficiency plots to make
   int n_effpur = (int)_histoHandler.effpurNames.size();
   eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_effpur));
   _histoHandler.InitialiseHistoVec(&eff_to_make, n_effpur);
 
+  //------------------------------------
   // loop simulation
+  //------------------------------------
+ 
   std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
   for (int i = 0; i < t_simulation->GetEntries(); i++){
 
@@ -72,7 +92,10 @@ int main(){
     }
   }
 
+  //------------------------------------
   // loop onbeam
+  //------------------------------------
+ 
   std::cout << "[MDSCP] Beginning onbeam loop..." << std::endl;
   for (int i = 0; i < t_onbeam->GetEntries(); i++){
 
@@ -93,7 +116,10 @@ int main(){
     }
   }
 
+  //------------------------------------
   // loop offbeam
+  //------------------------------------
+
   std::cout << "[MDSCP] Beginning offbeam loop..." << std::endl;
   for (int i = 0; i < t_offbeam->GetEntries(); i++){
 
@@ -114,9 +140,17 @@ int main(){
     }
   }
 
+  //------------------------------------
+  // scale histograms, draw, and save
+  //------------------------------------
+
   _histoHandler.ScaleHistograms(plots_to_make);
   _histoHandler.MakeStackedHistogramsAndSave(plots_to_make);
   _histoHandler.MakeEfficiencyHistogramsAndSave(eff_to_make);
+
+  //------------------------------------
+  // print efficiency and purity info
+  //------------------------------------
 
   std::cout << "efficiency: " << eff_to_make.at(3).at(0)->h_num->GetBinContent(1)/eff_to_make.at(0).at(0)->h_denom->GetBinContent(1) << std::endl;;
 
