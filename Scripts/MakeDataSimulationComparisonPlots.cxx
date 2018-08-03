@@ -2,10 +2,17 @@
 
 int main(){
 
+    // initialise classes
+    numusel::Configuration    _config;
+    numusel::EventCategoriser _evcat;
+    numusel::SelectionMaker   _selmaker;
+    numusel::EfficiencyPurity _effpur;
+    numusel::HistogramHandler _histoHandler;
+
     // pull out TTrees from provided TFiles
-    TTree* t_onbeam = (TTree*)(new TFile(s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
-    TTree* t_offbeam = (TTree*)(new TFile(s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
-    TTree* t_simulation = (TTree*)(new TFile(s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
+    TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
+    TTree* t_offbeam = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
+    TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
 
     // initialise variables and trees
     var_list onbeam_vars_tmp;
@@ -20,41 +27,36 @@ int main(){
     setTreeVars(t_offbeam, &offbeam_vars_tmp, false);
     setTreeVars(t_simulation, &simulation_vars_tmp, true);
 
-    // initialise classes
-    numusel::EventCategoriser evcat;
-    numusel::SelectionMaker selmaker;
-    numusel::EfficiencyPurity effpur;
-
     // find the number of plots we're going to make
-    int n_plots = (int)histoNames.size();
-    plots_to_make = std::vector<std::vector<hists_1d*> >(n_stages, std::vector<hists_1d*>(n_plots));
+    int n_plots = (int)_histoHandler.histoNames.size();
+    plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
 
-    for (int i_st = 0; i_st < n_stages; i_st++){
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
         for (int i_pl = 0; i_pl < n_plots; i_pl++){
 
             plots_to_make.at(i_st).at(i_pl) = new hists_1d(
-                    std::string("h_"+histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
-                    histoLabels.at(i_pl),
-                    histoBins.at(i_pl).at(0),
-                    histoBins.at(i_pl).at(1),
-                    histoBins.at(i_pl).at(2)
+                    std::string("h_"+_histoHandler.histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+                    _histoHandler.histoLabels.at(i_pl),
+                    _histoHandler.histoBins.at(i_pl).at(0),
+                    _histoHandler.histoBins.at(i_pl).at(1),
+                    _histoHandler.histoBins.at(i_pl).at(2)
                     );
         }
     }
 
     // find the number of eff/pur plots we're going to make
-    int n_effpur = (int)effpurNames.size();
-    eff_to_make = std::vector<std::vector<eff_1d*> >(n_stages, std::vector<eff_1d*>(n_effpur));
+    int n_effpur = (int)_histoHandler.effpurNames.size();
+    eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_effpur));
 
-    for (int i_st = 0; i_st < n_stages; i_st++){
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
         for (int i_pl = 0; i_pl < n_effpur; i_pl++){
 
             eff_to_make.at(i_st).at(i_pl) = new eff_1d(
-                    std::string("h_"+effpurNames.at(i_pl)+"_stage"+std::to_string(i_st)),
-                    effpurLabels.at(i_pl),
-                    effpurBins.at(i_pl).at(0),
-                    effpurBins.at(i_pl).at(1),
-                    effpurBins.at(i_pl).at(2)
+                    std::string("h_"+_histoHandler.effpurNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+                    _histoHandler.effpurLabels.at(i_pl),
+                    _histoHandler.effpurBins.at(i_pl).at(0),
+                    _histoHandler.effpurBins.at(i_pl).at(1),
+                    _histoHandler.effpurBins.at(i_pl).at(2)
                     );
         }
     }
@@ -67,7 +69,7 @@ int main(){
         t_simulation->GetEntry(i);
 
         // get bitset
-        std::bitset<8> eventCat = evcat.CategoriseEvent(simulation_vars);
+        std::bitset<8> eventCat = _evcat.CategoriseEvent(simulation_vars);
 
 
         // protect against tracks which don't have PID in the collection plane
@@ -76,14 +78,14 @@ int main(){
         // get eff/pur plots
         // n.b. this is some duplication of code whcih could be improved but just
         // do things the stupid way for now
-        std::vector<std::vector<std::vector<double>>> effVariables = selmaker.GetPlottingVariables(simulation_vars, true); 
+        std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, true); 
 
         for (size_t i_st = 0; i_st < effVariables.size(); i_st++){
             for (size_t i_pl = 0; i_pl < effVariables.at(i_st).size(); i_pl++){
 
-                effpur.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
+                _effpur.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
-                effpur.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
+                _effpur.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
 
             }
@@ -91,12 +93,12 @@ int main(){
 
         // get plots for data/MC comparisons
         if (simulation_vars->isUBXSecSelected){
-            std::vector<std::vector<std::vector<double>>> plottingVariables = selmaker.GetPlottingVariables(simulation_vars, false);
+            std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, false);
 
             for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
                 for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
 
-                    FillHistMC(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), eventCat);
+                    _histoHandler.FillHistMC(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), eventCat);
 
                 }
             }
@@ -113,12 +115,12 @@ int main(){
 
             if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
 
-            std::vector< std::vector<std::vector<double>> > plottingVariables = selmaker.GetPlottingVariables(onbeam_vars, false);
+            std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, false);
 
             for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
                 for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
-                    FillHistOnBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+                    _histoHandler.FillHistOnBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
                 }
             }
         }
@@ -134,20 +136,20 @@ int main(){
 
             if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
 
-            std::vector< std::vector<std::vector<double>> > plottingVariables = selmaker.GetPlottingVariables(offbeam_vars, false);
+            std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, false);
             for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
                 for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
-                    FillHistOffBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+                    _histoHandler.FillHistOffBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
 
                 }
             }
         }
     }
 
-    ScaleHistograms(plots_to_make);
-    MakeStackedHistogramsAndSave(plots_to_make);
-    MakeEfficiencyHistogramsAndSave(eff_to_make);
+    _histoHandler.ScaleHistograms(plots_to_make);
+    _histoHandler.MakeStackedHistogramsAndSave(plots_to_make);
+    _histoHandler.MakeEfficiencyHistogramsAndSave(eff_to_make);
 
     std::cout << "efficiency: " << eff_to_make.at(3).at(0)->h_num->GetBinContent(1)/eff_to_make.at(0).at(0)->h_denom->GetBinContent(1) << std::endl;;
 
