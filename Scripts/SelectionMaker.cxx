@@ -67,8 +67,8 @@ namespace numusel{
 
   void SelectionMaker::PushBackEPVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
 
-    // for genie mcparicles, the first entry is always the neutrino, and the second is the outgoing lepton
-    m_stagex->push_back(std::vector<double>({(double)vars->true_genie_starte->at(0)}));
+    // for genie mcparicles, the first entry is always the neutrino, and the fourth is the outgoing lepton
+    m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->true_genie_starte->at(0)}));
     if (vars->true_genie_startp->size() >= 5)
       m_stagex->push_back(std::vector<double>({(double)vars->true_genie_startp->at(4)}));
@@ -79,7 +79,7 @@ namespace numusel{
   void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
     numusel::AnalysisCuts anacuts;
-    m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
+    m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
     m_stagex->push_back(*vars->track_length);

@@ -31,6 +31,7 @@ namespace numusel{
     public:
 
       std::vector<std::string> histoNames = {
+        "total_purity",
         "nTracks",
         "nShowers",
         "trackLength",
@@ -58,6 +59,7 @@ namespace numusel{
       };
 
       std::vector<std::string> histoLabels = {
+        ";Total purity;",
         ";Number of tracks;",
         ";Number of showers;",
         ";Track length (cm);",
@@ -85,6 +87,7 @@ namespace numusel{
       };
 
       std::vector<std::vector<double>> histoBins = {
+        {1, 0, 1},
         {10, 0, 10},
         {10, 0, 10},
         {50, 0, 700},
@@ -115,16 +118,19 @@ namespace numusel{
        * These three vectors fully define all of the efficiency/purity histograms to produce
        */
       std::vector<std::string> effpurNames = {
+        "totel_eff",
         "true_enu",
         "true_mu_p"
       };
 
       std::vector<std::string> effpurLabels = {
+        ";Total Efficiency;",
         ";E_{#nu}^{true} (Gev);",
         ";p_{#mu} (Gev);"
       };
 
       std::vector< std::vector<double> > effpurBins = {
+        {1, 0, 1},
         {25, 0, 3},
         {25, 0, 2.5}
       };

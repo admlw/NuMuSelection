@@ -29,6 +29,7 @@ int main(){
 
     // find the number of plots we're going to make
     int n_plots = (int)_histoHandler.histoNames.size();
+
     plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
 
     for (int i_st = 0; i_st < _config.n_stages; i_st++){
@@ -71,17 +72,15 @@ int main(){
         // get bitset
         std::bitset<8> eventCat = _evcat.CategoriseEvent(simulation_vars);
 
-
         // protect against tracks which don't have PID in the collection plane
         if ( (simulation_vars->nSelectedTracks != simulation_vars->bragg_fwd_p->size()) && simulation_vars->isUBXSecSelected) continue;
 
-        // get eff/pur plots
-        // n.b. this is some duplication of code whcih could be improved but just
-        // do things the stupid way for now
         std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, true); 
 
+
         for (size_t i_st = 0; i_st < effVariables.size(); i_st++){
-            for (size_t i_pl = 0; i_pl < effVariables.at(i_st).size(); i_pl++){
+
+          for (size_t i_pl = 0; i_pl < effVariables.at(i_st).size(); i_pl++){
 
                 _effpur.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
