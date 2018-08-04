@@ -2,7 +2,7 @@
 
 namespace numusel{
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, float cutval){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, float cutval, TTree* infile, TTree* outfile, int entry){
 
     thisMatrix.clear();
     m_stage0.resize(0);
@@ -49,8 +49,12 @@ namespace numusel{
             if (isEffPur == false)
               selmaker.PushBackVVectors(s_stage4, vars, true);
             if (isEffPur == true)
-              selmaker.PushBackEPVectors(s_stage4, vars);
+              selmaker.PushBackEPVectors(s_stage4, vars); 
 
+            if (entry != -1){
+              infile->GetEntry(entry);
+              outfile->Fill();
+            }
           }
 
         }
@@ -68,10 +72,10 @@ namespace numusel{
     return thisMatrix;
   };
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, TTree* infile,  TTree* outfile, int entry){
 
     numusel::AnalysisCuts anacuts; 
-    thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue);
+    thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue, infile, outfile, entry);
 
     return thisMatrix;
 

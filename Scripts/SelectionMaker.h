@@ -5,9 +5,12 @@
 #include "AnalysisCuts.h"
 #include "DataTypes.h"
 
-//cpp
+// cpp
 #include <vector>
 #include <iostream>
+
+// ROOT
+#include "TTree.h"
 
 namespace numusel{
 
@@ -31,12 +34,12 @@ namespace numusel{
       /**
        * gets variables to plot for each stage of the selection with input cut value
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, float cutvalue);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, float cutvalue, TTree* infile=nullptr, TTree* outfile=nullptr, int entry=-1);
  
       /**
        * gets variables to plot for each stage of the selection
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, TTree* infile = nullptr, TTree* outfile = nullptr, int entry=-1);
       
       void PushBackEPVectors(std::vector<std::vector<double>>* vec, var_list* vars);
 

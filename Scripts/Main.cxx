@@ -39,6 +39,23 @@ int main(){
   _treeHandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
 
+  // initialise output trees
+
+  TFile *outfile = new TFile("selectedEvents.root", "RECREATE");
+  outfile->cd();
+
+  TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
+  TTree *t_offbeam_out = (TTree*)t_offbeam->CloneTree(0);
+  TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
+
+  //_treeHandler.SetTreeVars(t_onbeam_out, &onbeam_vars_tmp, false);
+  //_treeHandler.SetTreeVars(t_offbeam_out, &offbeam_vars_tmp, false);
+  //_treeHandler.SetTreeVars(t_simulation_out, &simulation_vars_tmp, true);
+
+  t_onbeam_out->SetName("onbeam");
+  t_offbeam_out->SetName("offbeam");
+  t_simulation_out->SetName("simulation");
+
   // initialise data/mc comparison plots to make
   int n_plots = (int)_histoHandler.histoNames.size();
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
@@ -81,7 +98,7 @@ int main(){
 
     // get plots for data/MC comparisons
     if (simulation_vars->isUBXSecSelected){
-      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, false);
+      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, false, t_simulation, t_simulation_out, i);
 
       for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
         for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
@@ -106,7 +123,7 @@ int main(){
 
       if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, false);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, false, t_onbeam, t_onbeam_out, i);
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
@@ -130,7 +147,7 @@ int main(){
 
       if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, false);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, false, t_offbeam, t_offbeam_out, i);
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
@@ -168,6 +185,10 @@ int main(){
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp);
 
   std::cout << "purity:" << plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp->GetBinContent(1)/h_tot->GetBinContent(1) << std::endl;
+
+ t_onbeam_out->Write();
+ t_offbeam_out->Write();
+ t_simulation_out->Write();
 
   return 0;
 
