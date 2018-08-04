@@ -5,10 +5,14 @@ CXX=g++
 
 LDFLAGS=$$(root-config --libs)
 
-ProducePlots: Main.cxx EventCategoriser.cxx SelectionMaker.cxx AnalysisCuts.cxx EfficiencyPurity.cxx HistogramHandler.cxx TreeHandler.cxx
+DoProducePlots: DoProducePlots.cxx EventCategoriser.cxx SelectionMaker.cxx AnalysisCuts.cxx EfficiencyPurity.cxx HistogramHandler.cxx TreeHandler.cxx
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
-	
-all: ProducePlots
+
+DoEnergyRecoStudies: DoEnergyRecoStudies.cxx EnergyReco.cxx TreeHandler.cxx
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+
+all: DoProducePlots DoEnergyRecoStudies
 
 clean:
-	rm *.o ProducePlots
+	rm *.o DoProducePlots
+	rm *.o DoEnergyRecoStudies

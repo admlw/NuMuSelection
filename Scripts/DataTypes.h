@@ -46,6 +46,7 @@ struct var_list {
   std::vector<double>* true_genie_pdg = nullptr;
   int true_nu_ccnc = -999;
   std::vector<double>* true_match_pdg = nullptr;
+  std::vector<double>* true_match_starte = nullptr;
   std::vector<double>* true_mcp_pdg = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;
   std::vector<double>* true_mcp_starte = nullptr;

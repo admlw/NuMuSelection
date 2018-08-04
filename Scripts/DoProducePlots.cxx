@@ -16,7 +16,7 @@
  *                4. ParticleID cut
  */
 
-#include "Main.h"
+#include "DoProducePlots.h"
 
 int main(){
 

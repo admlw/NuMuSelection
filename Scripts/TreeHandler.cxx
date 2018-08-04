@@ -66,6 +66,7 @@ namespace numusel{
       tree->SetBranchStatus("true_genie_pdg"   , 1);
       tree->SetBranchStatus("true_nu_ccnc"     , 1);
       tree->SetBranchStatus("true_match_pdg"   , 1);
+      tree->SetBranchStatus("true_match_starte", 1);
       tree->SetBranchStatus("true_mcp_pdg"     , 1);
       tree->SetBranchStatus("true_mcp_process" , 1);
       tree->SetBranchStatus("true_mcp_starte"  , 1);
@@ -80,6 +81,7 @@ namespace numusel{
       tree->SetBranchAddress("true_genie_pdg"   , &(varstoset->true_genie_pdg));
       tree->SetBranchAddress("true_nu_ccnc"     , &(varstoset->true_nu_ccnc));
       tree->SetBranchAddress("true_match_pdg"   , &(varstoset->true_match_pdg));
+      tree->SetBranchAddress("true_match_starte", &(varstoset->true_match_starte));
       tree->SetBranchAddress("true_mcp_pdg"     , &(varstoset->true_mcp_pdg));
       tree->SetBranchAddress("true_mcp_process" , &(varstoset->true_mcp_process));
       tree->SetBranchAddress("true_mcp_starte"  , &(varstoset->true_mcp_starte));
