@@ -7,7 +7,7 @@
 
 #include "config_numu_analyser.fcl"
 #include "config_particle_identification.fcl"
-#include "config_simulation_calibration.fcl"
+#include "config_dedx_calibration.fcl"
 
 #
 # fcl file which produces calribated calorimetry objects, runs particle 
@@ -42,7 +42,7 @@ physics:
   {
 
     pidcalibration: @local::microboone_calibrationdedx
-    simcalibration: @local::simulation_calibration
+    dedxcalibration: @local::simulation_calibration
     pid: @local::particleidconfig
   
   }
@@ -55,7 +55,7 @@ physics:
   }
 
   stream1: [ out1 ]
-  prod: [ pidcalibration, simcalibration, pid ]
+  prod: [ pidcalibration, dedxcalibration, pid ]
   analysis: [ numuselection ]
   trigger_paths: [ prod ]
   end_paths: [ analysis, stream1 ]
@@ -77,8 +77,8 @@ services.DetectorClocksService.InheritClockConfig: false
 physics.producers.pidcalibration.TrackModuleLabel: "pandoraNu::UBXSec"
 physics.producers.pidcalibration.CalorimetryModuleLabel: "pandoraNucalo::UBXSec"
 
-physics.producers.simcalibration.ProducerLabels: @local::cs_producerlabels_mcc8_UBXSec_uncalib_simcalib
-physics.producers.simcalibration.ProducerLabels.CalorimetryLabel: "pidcalibration::numusel"
+physics.producers.dedxcalibration.ProducerLabels: @local::cs_producerlabels_mcc8_UBXSec_uncalib_dedxcalib
+physics.producers.dedxcalibration.ProducerLabels.CalorimetryLabel: "pidcalibration::numusel"
 
-physics.producers.pid.ProducerLabels: @local::producerlabels_mcc8_UBXSec_simcalib
-physics.producers.pid.ProducerLabels.CalorimetryLabel: "simcalibration::numusel"
+physics.producers.pid.ProducerLabels: @local::producerlabels_mcc8_UBXSec_dedxcalib
+physics.producers.pid.ProducerLabels.CalorimetryLabel: "dedxcalibration::numusel"

@@ -169,8 +169,7 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector<double>* bragg_bwd_pi     = nullptr;
     std::vector<double>* bragg_bwd_k      = nullptr;
 
-    std::vector<double>* track_dep_energy_p = nullptr;
-    std::vector<double>* track_dep_energy_mu = nullptr;
+    std::vector<double>* track_dep_energy = nullptr;
 
     // -- reco track
     std::vector<double>* track_length    = nullptr;
@@ -629,6 +628,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       std::vector< art::Ptr< anab::Calorimetry > > unsmearedCalos = unsmearedCaloFromTrack.at(track.ID());
       std::vector< art::Ptr< anab::Calorimetry > > smearedCalos   = smearedCaloFromTrack.at(track.ID());
 
+      std::cout << "[NuMuSelection] checking fiducial volume" << std::endl;
       // check whether track is contained in FV or not
       bool start_isContained = _fiducialVolume.InFV(track.Start().X(), track.Start().Y(), track.Start().Z());
       bool end_isContained   = _fiducialVolume.InFV(track.End().X(), track.End().Y(), track.End().Z());
@@ -654,19 +654,21 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       // Note MCS assumption is muon-like
       track_mcs_muassmp_fwd->push_back(mcsFitResult->fwdMomentum());
       track_mcs_muassmp_bwd->push_back(mcsFitResult->bwdMomentum());
-      track_mcs_muassmp_energy_fwd->push_back(std::sqrt(std::pow(mcsFitResult->fwdMomentum(),2)+std::pow(105.7,2)) - 105.7);
-      track_mcs_muassmp_energy_bwd->push_back(std::sqrt(std::pow(mcsFitResult->bwdMomentum(),2)+std::pow(105.7,2)) - 105.7);
+      track_mcs_muassmp_energy_fwd->push_back((std::sqrt(std::pow(mcsFitResult->fwdMomentum(),2)+std::pow(105.7,2)) - 105.7)/1000.);
+      track_mcs_muassmp_energy_bwd->push_back((std::sqrt(std::pow(mcsFitResult->bwdMomentum(),2)+std::pow(105.7,2)) - 105.7)/1000.);
       track_mcs_muassmp_fwd_uncertainty->push_back(mcsFitResult->fwdMomUncertainty());
       track_mcs_muassmp_bwd_uncertainty->push_back(mcsFitResult->bwdMomUncertainty());
       track_mcs_muassmp_fwd_loglikelihood->push_back(mcsFitResult->fwdLogLikelihood());
       track_mcs_muassmp_bwd_loglikelihood->push_back(mcsFitResult->bwdLogLikelihood());
       track_mcs_muassmp_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
 
+      std::cout << "[NuMuSelection] getting trkmom information" << std::endl;
+ 
       // get momentum and energy from range (for contained particles)
       track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track.Length(),13)*1000.);
       track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.);
-      track_range_energy_muassumption->push_back(std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7);
-      track_range_energy_passumption ->push_back(std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272);
+      track_range_energy_muassumption->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7) / 1000.);
+      track_range_energy_passumption ->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272) /1000.);
 
       if (pids.size() == 0){
 
@@ -703,12 +705,11 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
         }
 
-        if (algScore.fAlgName == "DepEvsRangeE" 
+        if (algScore.fAlgName == "DepEvsRangeE"
             && anab::kVariableType(algScore.fVariableType) == anab::kEdeposited
             && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){
 
-          if (algScore.fAssumedPdg == 13) track_dep_energy_mu->push_back(algScore.fValue);
-          if (algScore.fAssumedPdg == 2212) track_dep_energy_p->push_back(algScore.fValue);
+            track_dep_energy->push_back(algScore.fValue / 1000.);
 
 
         }
@@ -877,8 +878,8 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("bragg_bwd_p"                  , "std::vector<double>"                                , &bragg_bwd_p    );
   tree->Branch("bragg_bwd_pi"                 , "std::vector<double>"                                , &bragg_bwd_pi   );
   tree->Branch("bragg_bwd_k"                  , "std::vector<double>"                                , &bragg_bwd_k    );
-  tree->Branch("track_dep_energy_mu"                , "std::vector<double>"                                , &track_dep_energy_mu  );
-  tree->Branch("track_dep_energy_p"                 , "std::vector<double>"                                , &track_dep_energy_p  );
+  tree->Branch("track_isContained"            , "std::vector<bool>"                                  , &track_isContained);
+  tree->Branch("track_dep_energy"          , "std::vector<double>"                                   , &track_dep_energy  );
   tree->Branch("track_length"                 , "std::vector<double>"                                , &track_length   );
   tree->Branch("track_theta"                  , "std::vector<double>"                                , &track_theta    );
   tree->Branch("track_costheta"               , "std::vector<double>"                                , &track_costheta );
@@ -1026,8 +1027,8 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   bragg_bwd_p->resize(0);
   bragg_bwd_pi->resize(0);
   bragg_bwd_k->resize(0);
-  track_dep_energy_mu->resize(0);
-  track_dep_energy_p->resize(0);
+  track_isContained->resize(0);
+  track_dep_energy->resize(0);
   track_length->resize(0);
   track_theta->resize(0);
   track_costheta->resize(0);
@@ -1155,8 +1156,8 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   bragg_bwd_p->resize(1, -999);
   bragg_bwd_pi->resize(1, -999);
   bragg_bwd_k->resize(1, -999);
-  track_dep_energy_mu->resize(1,-999);
-  track_dep_energy_p->resize(1,-999);
+  track_isContained->resize(1,-999);
+  track_dep_energy->resize(1,-999);
   track_length->resize(1, -999);
   track_theta->resize(1, -999);
   track_costheta->resize(1, -999);

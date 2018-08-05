@@ -13,7 +13,7 @@ numuproducerlabels:
   MCSSLabel: "pandoraNuMCSMu::UBXSec"
 
   TrackParticleIdAssn: "pid::numusel"
-  TrackSmearedCaloAssn: "simcalibration::numusel"
+  TrackSmearedCaloAssn: "dedxcalibration::numusel"
   TrackUnsmearedCaloAssn: "pidcalibration::numusel"
   SelectionTPCObjAssn: "UBXSec::UBXSec"
   HitTrackAssn: "pandoraNu::UBXSec"
@@ -29,7 +29,7 @@ numuproducerlabels_data:
   MCSSLabel: "pandoraNuMCSMu::UBXSec"
  
   TrackParticleIdAssn: "pid::numusel"
-  TrackSmearedCaloAssn: "simcalibration::numusel"
+  TrackSmearedCaloAssn: "dedxcalibration::numusel"
   TrackUnsmearedCaloAssn: "pidcalibration::numusel"
   SelectionTPCObjAssn: "UBXSec::UBXSec"
   HitTrackAssn: "pandoraNu::UBXSec"
