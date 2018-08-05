@@ -53,6 +53,9 @@
 #include "uboone/UBXSec/DataTypes/TPCObject.h"              
 #include "uboone/UBXSec/Algorithms/FiducialVolume.h"        
 
+// ParticleID includes
+#include "uboone/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
+
 // EventWeight includes                                     
 #include "uboone/EventWeight/EventWeightTreeUtility.h"      
 
@@ -676,8 +679,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
         anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
 
-        if(algScore.fAlgName == "BraggPeakLLH" && algScore.fPlaneID.Plane == 2){                                   
-          if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood_fwd){     
+        if(algScore.fAlgName == "BraggPeakLLH" && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){                                   
+          if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(algScore.fTrackDir) == anab::kForward){     
 
             if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu->push_back(algScore.fValue);   
             if (algScore.fAssumedPdg == 2212) bragg_fwd_p->push_back(algScore.fValue);   
@@ -686,7 +689,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
             if (algScore.fAssumedPdg == 0   ) noBragg_fwd_mip->push_back(algScore.fValue);   
 
           }                                                                        
-          else if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood_bwd){
+          else if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(algScore.fTrackDir) == anab::kBackward){
 
             if (algScore.fAssumedPdg == 13  ) bragg_bwd_mu->push_back(algScore.fValue);      
             if (algScore.fAssumedPdg == 2212) bragg_bwd_p->push_back(algScore.fValue);      
