@@ -180,6 +180,7 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector<double>* track_chi2      = nullptr;
     std::vector<int>* track_ndof         = nullptr;
     std::vector<int>* track_ntrajpoints  = nullptr;
+    std::vector<bool>* track_isContained = nullptr;
     std::vector< std::vector<double> >* track_dedxperhit_smeared = nullptr;
     std::vector< std::vector<double> >* track_dedxperhit_unsmeared = nullptr;
     std::vector< std::vector<double> >* track_resrangeperhit = nullptr;
@@ -621,6 +622,14 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track.ID());
       std::vector< art::Ptr< anab::Calorimetry > > unsmearedCalos = unsmearedCaloFromTrack.at(track.ID());
       std::vector< art::Ptr< anab::Calorimetry > > smearedCalos   = smearedCaloFromTrack.at(track.ID());
+
+      // check whether track is contained in FV or not
+      bool start_isContained = _fiducialVolume.InFV(track.Start().X(), track.Start().Y(), track.Start().Z());
+      bool end_isContained   = _fiducialVolume.InFV(track.End().X(), track.End().Y(), track.End().Z());
+
+      if (start_isContained && end_isContained)
+        track_isContained->push_back(true);
+      else track_isContained->push_back(false);
 
       // also get MCS fit result from MCS map we built earlier
       art::Ptr<recob::MCSFitResult> mcsFitResult;
