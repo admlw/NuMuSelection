@@ -169,6 +169,9 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector<double>* bragg_bwd_pi     = nullptr;
     std::vector<double>* bragg_bwd_k      = nullptr;
 
+    std::vector<double>* track_dep_energy_p = nullptr;
+    std::vector<double>* track_dep_energy_mu = nullptr;
+
     // -- reco track
     std::vector<double>* track_length    = nullptr;
     std::vector<double>* track_theta     = nullptr;
@@ -700,6 +703,16 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
         }
 
+        if (algScore.fAlgName == "DepEvsRangeE" 
+            && anab::kVariableType(algScore.fVariableType) == anab::kEdeposited
+            && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){
+
+          if (algScore.fAssumedPdg == 13) track_dep_energy_mu->push_back(algScore.fValue);
+          if (algScore.fAssumedPdg == 2212) track_dep_energy_p->push_back(algScore.fValue);
+
+
+        }
+
       }
 
       track_length->push_back(track.Length());
@@ -864,6 +877,8 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("bragg_bwd_p"                  , "std::vector<double>"                                , &bragg_bwd_p    );
   tree->Branch("bragg_bwd_pi"                 , "std::vector<double>"                                , &bragg_bwd_pi   );
   tree->Branch("bragg_bwd_k"                  , "std::vector<double>"                                , &bragg_bwd_k    );
+  tree->Branch("track_dep_energy_mu"                , "std::vector<double>"                                , &track_dep_energy_mu  );
+  tree->Branch("track_dep_energy_p"                 , "std::vector<double>"                                , &track_dep_energy_p  );
   tree->Branch("track_length"                 , "std::vector<double>"                                , &track_length   );
   tree->Branch("track_theta"                  , "std::vector<double>"                                , &track_theta    );
   tree->Branch("track_costheta"               , "std::vector<double>"                                , &track_costheta );
@@ -1011,6 +1026,8 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   bragg_bwd_p->resize(0);
   bragg_bwd_pi->resize(0);
   bragg_bwd_k->resize(0);
+  track_dep_energy_mu->resize(0);
+  track_dep_energy_p->resize(0);
   track_length->resize(0);
   track_theta->resize(0);
   track_costheta->resize(0);
@@ -1138,6 +1155,8 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   bragg_bwd_p->resize(1, -999);
   bragg_bwd_pi->resize(1, -999);
   bragg_bwd_k->resize(1, -999);
+  track_dep_energy_mu->resize(1,-999);
+  track_dep_energy_p->resize(1,-999);
   track_length->resize(1, -999);
   track_theta->resize(1, -999);
   track_costheta->resize(1, -999);
