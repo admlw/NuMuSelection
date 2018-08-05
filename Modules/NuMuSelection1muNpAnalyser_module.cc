@@ -43,6 +43,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "larcoreobj/SummaryData/POTSummary.h" 
 #include "larcore/Geometry/Geometry.h"
+#include "larreco/RecoAlg/TrackMomentumCalculator.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -107,10 +108,10 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     art::ServiceHandle< geo::Geometry > geo;
 
     // initialise classes
-    ubana::SelectionResult selResult;
-    ubana::FiducialVolume fiducialVolume;
-    uboone::EWTreeUtil ewutil;
-    numusel::MapBuilderUtil mbutil;
+    ubana::FiducialVolume _fiducialVolume;
+    uboone::EWTreeUtil _ewutil;
+    numusel::MapBuilderUtil _mbutil;
+    trkf::TrackMomentumCalculator _trkmom;
 
     // fhicl parameters
     std::string fSelectionLabel;
@@ -185,14 +186,19 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
 
     // -- reco track mcs 
     // n.b. the particle hypothesis is always a muon here
-    std::vector<double>* track_mcs_fwd = nullptr;
-    std::vector<double>* track_mcs_bwd = nullptr;
-    std::vector<double>* track_mcs_fwd_uncertainty = nullptr;
-    std::vector<double>* track_mcs_bwd_uncertainty = nullptr;
-    std::vector<int>* track_mcs_particlehypothesis = nullptr;
-    std::vector<double>* track_mcs_fwd_loglikelihood = nullptr;
-    std::vector<double>* track_mcs_bwd_loglikelihood = nullptr;
-
+    std::vector<double>* track_mcs_muassmp_fwd = nullptr;
+    std::vector<double>* track_mcs_muassmp_bwd = nullptr;
+    std::vector<double>* track_mcs_muassmp_energy_fwd = nullptr;
+    std::vector<double>* track_mcs_muassmp_energy_bwd = nullptr;
+    std::vector<double>* track_mcs_muassmp_fwd_uncertainty = nullptr;
+    std::vector<double>* track_mcs_muassmp_bwd_uncertainty = nullptr;
+    std::vector<int>* track_mcs_muassmp_particlehypothesis = nullptr;
+    std::vector<double>* track_mcs_muassmp_fwd_loglikelihood = nullptr;
+    std::vector<double>* track_mcs_muassmp_bwd_loglikelihood = nullptr;
+    std::vector<double>* track_range_mom_muassumption = nullptr;
+    std::vector<double>* track_range_mom_passumption = nullptr;
+    std::vector<double>* track_range_energy_muassumption = nullptr;
+    std::vector<double>* track_range_energy_passumption = nullptr;
 
     // -- reco vertex
     double vertex_x = -999;
@@ -326,12 +332,12 @@ NuMuSelection1muNpAnalyser::NuMuSelection1muNpAnalyser(fhicl::ParameterSet const
   fIsData = p.get<bool>("IsData", "false");
 
   // configure
-  fiducialVolume.Configure(p_fv,
+  _fiducialVolume.Configure(p_fv,
       geo->DetHalfHeight(),
       2.*geo->DetHalfWidth(),
       geo->DetLength());
 
-  fiducialVolume.PrintConfig();
+  _fiducialVolume.PrintConfig();
 
 }
 
@@ -382,7 +388,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   // there is no association between tracks and the MCSResult stored in the file, 
   // so going to build a map between each track ID and an art::Ptr to the 
   // recob::MCSFitResult for quick finding
-  std::map<int, art::Ptr<recob::MCSFitResult> > trackIdMcsFitMap = mbutil.buildTrackIdMcsResultMap(trackPtrVector, mcsFitPtrVector);
+  std::map<int, art::Ptr<recob::MCSFitResult> > trackIdMcsFitMap = _mbutil.buildTrackIdMcsResultMap(trackPtrVector, mcsFitPtrVector);
 
   // finally, get  MCTruth, MCFlux, and GTruth information for reweighting                      
 
@@ -546,7 +552,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     }
 
-    isInFV = fiducialVolume.InFV(true_genie_startx->at(0), true_genie_starty->at(0), true_genie_startz->at(0));
+    isInFV = _fiducialVolume.InFV(true_genie_startx->at(0), true_genie_starty->at(0), true_genie_startz->at(0));
     std::cout << "[NuMuSelection] isInFV: " << isInFV << std::endl;
 
 
@@ -585,7 +591,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     if (isSimulation){
 
-      ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
+      _ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
 
       isBeamNeutrino = false;
       isMixed        = false;
@@ -630,13 +636,22 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
       }
 
-      track_mcs_fwd->push_back(mcsFitResult->fwdMomentum());
-      track_mcs_bwd->push_back(mcsFitResult->bwdMomentum());
-      track_mcs_fwd_uncertainty->push_back(mcsFitResult->fwdMomUncertainty());
-      track_mcs_bwd_uncertainty->push_back(mcsFitResult->bwdMomUncertainty());
-      track_mcs_fwd_loglikelihood->push_back(mcsFitResult->fwdLogLikelihood());
-      track_mcs_bwd_loglikelihood->push_back(mcsFitResult->bwdLogLikelihood());
-      track_mcs_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
+      // Note MCS assumption is muon-like
+      track_mcs_muassmp_fwd->push_back(mcsFitResult->fwdMomentum());
+      track_mcs_muassmp_bwd->push_back(mcsFitResult->bwdMomentum());
+      track_mcs_muassmp_energy_fwd->push_back(std::sqrt(std::pow(mcsFitResult->fwdMomentum(),2)+std::pow(105.7,2)) - 105.7);
+      track_mcs_muassmp_energy_bwd->push_back(std::sqrt(std::pow(mcsFitResult->bwdMomentum(),2)+std::pow(105.7,2)) - 105.7);
+      track_mcs_muassmp_fwd_uncertainty->push_back(mcsFitResult->fwdMomUncertainty());
+      track_mcs_muassmp_bwd_uncertainty->push_back(mcsFitResult->bwdMomUncertainty());
+      track_mcs_muassmp_fwd_loglikelihood->push_back(mcsFitResult->fwdLogLikelihood());
+      track_mcs_muassmp_bwd_loglikelihood->push_back(mcsFitResult->bwdLogLikelihood());
+      track_mcs_muassmp_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
+
+      // get momentum and energy from range (for contained particles)
+      track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track.Length(),13)*1000.);
+      track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.);
+      track_range_energy_muassumption->push_back(std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7);
+      track_range_energy_passumption ->push_back(std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272);
 
       if (pids.size() == 0){
 
@@ -856,13 +871,19 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("vertex_x"                     , &vertex_x);
   tree->Branch("vertex_y"                     , &vertex_y);
   tree->Branch("vertex_z"                     , &vertex_z);
-  tree->Branch("track_mcs_fwd"                , "std::vector<double>"                                , &track_mcs_fwd);
-  tree->Branch("track_mcs_bwd"                , "std::vector<double>"                                , &track_mcs_bwd);
-  tree->Branch("track_mcs_fwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_fwd_uncertainty);
-  tree->Branch("track_mcs_bwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_bwd_uncertainty);
-  tree->Branch("track_mcs_particlehypothesis" , "std::vector<int>"                                   , &track_mcs_particlehypothesis);
-  tree->Branch("track_mcs_fwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_fwd_loglikelihood);
-  tree->Branch("track_mcs_bwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_bwd_loglikelihood);
+  tree->Branch("track_mcs_muassmp_fwd"                , "std::vector<double>"                                , &track_mcs_muassmp_fwd);
+  tree->Branch("track_mcs_muassmp_bwd"                , "std::vector<double>"                                , &track_mcs_muassmp_bwd);
+  tree->Branch("track_mcs_muassmp_energy_fwd"         , "std::vector<double>"                                , &track_mcs_muassmp_energy_fwd);
+  tree->Branch("track_mcs_muassmp_energy_bwd"         , "std::vector<double>"                                , &track_mcs_muassmp_energy_bwd);
+  tree->Branch("track_mcs_muassmp_fwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_muassmp_fwd_uncertainty);
+  tree->Branch("track_mcs_muassmp_bwd_uncertainty"    , "std::vector<double>"                                , &track_mcs_muassmp_bwd_uncertainty);
+  tree->Branch("track_mcs_muassmp_particlehypothesis" , "std::vector<int>"                                   , &track_mcs_muassmp_particlehypothesis);
+  tree->Branch("track_mcs_muassmp_fwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_muassmp_fwd_loglikelihood);
+  tree->Branch("track_mcs_muassmp_bwd_loglikelihood"  , "std::vector<double>"                                , &track_mcs_muassmp_bwd_loglikelihood);
+  tree->Branch("track_range_mom_muassumption"         , "std::vector<double>"                                , &track_range_mom_muassumption);
+  tree->Branch("track_range_mom_passumption"          , "std::vector<double>"                                , &track_range_mom_passumption);
+  tree->Branch("track_range_energy_muassumption"      , "std::vector<double>"                                , &track_range_energy_muassumption);
+  tree->Branch("track_range_energy_passumption"       , "std::vector<double>"                                , &track_range_energy_passumption);
 
   if (!fIsData){
     tree->Branch("isBeamNeutrino", &isBeamNeutrino);
@@ -994,13 +1015,19 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   track_dedxperhit_smeared->resize(0);
   track_dedxperhit_unsmeared->resize(0);
   track_resrangeperhit->resize(0);
-  track_mcs_fwd->resize(0);
-  track_mcs_bwd->resize(0);
-  track_mcs_fwd_uncertainty->resize(0);
-  track_mcs_bwd_uncertainty->resize(0);
-  track_mcs_particlehypothesis->resize(0);
-  track_mcs_fwd_loglikelihood->resize(0);
-  track_mcs_bwd_loglikelihood->resize(0);
+  track_mcs_muassmp_fwd->resize(0);
+  track_mcs_muassmp_bwd->resize(0);
+  track_mcs_muassmp_energy_fwd->resize(0);
+  track_mcs_muassmp_energy_bwd->resize(0);
+  track_mcs_muassmp_fwd_uncertainty->resize(0);
+  track_mcs_muassmp_bwd_uncertainty->resize(0);
+  track_mcs_muassmp_particlehypothesis->resize(0);
+  track_mcs_muassmp_fwd_loglikelihood->resize(0);
+  track_mcs_muassmp_bwd_loglikelihood->resize(0);
+  track_range_mom_muassumption->resize(0);
+  track_range_mom_passumption->resize(0);
+  track_range_energy_muassumption->resize(0);
+  track_range_energy_passumption->resize(0);
   if (!isData){
     true_genie_pdg->resize(0);
     true_genie_statuscode->resize(0);
@@ -1115,13 +1142,19 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   track_dedxperhit_smeared->resize(1, {{-999.}});
   track_dedxperhit_unsmeared->resize(1, {{-999.}});
   track_resrangeperhit->resize(1, {{-999.}});
-  track_mcs_fwd->resize(1, -999);
-  track_mcs_bwd->resize(1, -999);
-  track_mcs_fwd_uncertainty->resize(1, -999);
-  track_mcs_bwd_uncertainty->resize(1, -999);
-  track_mcs_particlehypothesis->resize(1, -999);
-  track_mcs_fwd_loglikelihood->resize(1, -999);
-  track_mcs_bwd_loglikelihood->resize(1, -999);
+  track_mcs_muassmp_fwd->resize(1, -999);
+  track_mcs_muassmp_bwd->resize(1, -999);
+  track_mcs_muassmp_energy_fwd->resize(1, -999);
+  track_mcs_muassmp_energy_bwd->resize(1, -999);
+  track_mcs_muassmp_fwd_uncertainty->resize(1, -999);
+  track_mcs_muassmp_bwd_uncertainty->resize(1, -999);
+  track_mcs_muassmp_particlehypothesis->resize(1, -999);
+  track_mcs_muassmp_fwd_loglikelihood->resize(1, -999);
+  track_mcs_muassmp_bwd_loglikelihood->resize(1, -999);
+  track_range_mom_muassumption->resize(1,-999);
+  track_range_mom_passumption->resize(1,-999);
+  track_range_energy_muassumption->resize(1,-999);
+  track_range_energy_passumption->resize(1,-999);
   true_match_purity->resize(1, -999);
   true_match_pdg->resize(1, -999);
   true_match_statuscode->resize(1, -999);
