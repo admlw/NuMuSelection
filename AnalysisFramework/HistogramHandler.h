@@ -34,6 +34,7 @@ namespace numusel{
         "total_purity",
         "nTracks",
         "nShowers",
+        "nSelectedPfParticles",
         "trackLength",
         "vertex_x",
         "vertex_y",
@@ -48,8 +49,14 @@ namespace numusel{
         "track_costheta",
         "track_phi",
         "log(lmipoverp)",
-        "track_mcs_fwd",
-        "track_mcs_bwd",
+        "track_mcs_muassmp_fwd",
+        "track_mcs_muassmp_bwd",
+        "track_mcs_muassmp_energy_fwd",
+        "track_mcs_muassmp_energy_bwd",
+        "track_range_mom_muassumption",
+        "track_range_mom_passumption",
+        "track_range_energy_muassumption",
+        "track_range_energy_passumption",
         "muoncand_track_length",
         "muoncand_track_theta",
         "muoncand_track_costheta",
@@ -62,6 +69,7 @@ namespace numusel{
         ";Total purity;",
         ";Number of tracks;",
         ";Number of showers;",
+        ";Number of PFParticles;",
         ";Track length (cm);",
         ";Vertex x position (cm);",
         ";Vertex y position (cm);",
@@ -76,8 +84,14 @@ namespace numusel{
         ";Track cos(theta);",
         ";Track phi;",
         ";Log(L_{MIP}/L_{p});",
-        ";Track MCS (forward);",
-        ";Track MCS (backward);",
+        ";Track MCS (forward, muon assumption);",
+        ";Track MCS (backward, muon assumption);",
+        ";Track MCS Energy (forward, muon assumption);",
+        ";Track MCS Energy (backward, muon assumption);",
+        ";Track Range Momentum (muon assumption);",
+        ";Track Range Momentum (proton assumption);",
+        ";Track Range Energy (muon assumption);",
+        ";Track Range Energy (proton assumption);",
         ";Muon candidate track length (cm);",
         ";Muon candidate track theta (rad);",
         ";Muon candidate track cos(theta);",
@@ -87,31 +101,38 @@ namespace numusel{
       };
 
       std::vector<std::vector<double>> histoBins = {
-        {1, 0, 1},
-        {10, 0, 10},
-        {10, 0, 10},
-        {50, 0, 700},
-        {50, 0, 256},
-        {50, -116.5, 116.5},
-        {50, 0, 1040},
-        {50, 0, 256},
-        {50, 0, 256},
-        {50, -116.5, 116.5},
-        {50, -116.5, 116.5},
-        {50, 0, 1040},
-        {50, 0, 1040},
-        {25, 0, 3.15},
-        {25, -1, 1},
-        {50, -3.15, 3.15},
-        {50, -10, 10},
-        {50, 0, 3},
-        {50, 0, 3},
-        {25, 0, 700},
-        {25, 0, 3.15},
-        {25, -1, 1},
-        {25, -3.15, 3.15},
-        {25, 0, 3},
-        {25, 0, 3}
+        {1, 0, 1},            // total purity 
+        {10, 0, 10},          // number of tracks
+        {10, 0, 10},          // number of showers
+        {10, 0, 10},          // number of pfparticles
+        {50, 0, 700},         // track length
+        {50, 0, 256},         // vertex x
+        {50, -116.5, 116.5},  // vertex y
+        {50, 0, 1040},        // vertex z
+        {50, 0, 256},         // track start x
+        {50, 0, 256},         // track end x
+        {50, -116.5, 116.5},  // track start y
+        {50, -116.5, 116.5},  // track end y
+        {50, 0, 1040},        // track start z
+        {50, 0, 1040},        // track end z
+        {25, 0, 3.15},        // track theta
+        {25, -1, 1},          // track cos(theta)
+        {50, -3.15, 3.15},    // track phi
+        {50, -10, 10},        // log(lmip/lp)
+        {50, 0, 3},           // track mcs fwd
+        {50, 0, 3},           // track mcs bwd
+        {50, 0, 0.000015},    // track mcs energy fwd
+        {50, 0, 0.000015},    // track mcs energy bwd
+        {50, 0, 3},           // track range momentum muon
+        {50, 0, 3},           // track range momentum proton
+        {50, 0, 3},           // track range energy muon
+        {50, 0, 3},           // track range energy proton
+        {25, 0, 700},         // muon cand length
+        {25, 0, 3.15},        // muon cand theta
+        {25, -1, 1},          // muon cand cos(theta)
+        {25, -3.15, 3.15},    // muon cand phi
+        {25, 0, 3},           // muon candidate mcs fwd
+        {25, 0, 3}            // muon candidate mcs bwd
       };
 
       /*

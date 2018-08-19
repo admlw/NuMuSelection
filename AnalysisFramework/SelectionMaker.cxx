@@ -98,6 +98,7 @@ namespace numusel{
     m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
+    m_stagex->push_back(std::vector<double>({(double)vars->nSelectedPfparticles}));
     m_stagex->push_back(*vars->track_length);
     m_stagex->push_back(std::vector<double>({(double)vars->vertex_x}));
     m_stagex->push_back(std::vector<double>({(double)vars->vertex_y}));
@@ -120,8 +121,14 @@ namespace numusel{
     }
     m_stagex->push_back(pid);
 
-    m_stagex->push_back(*vars->track_mcs_fwd);
-    m_stagex->push_back(*vars->track_mcs_bwd);
+    m_stagex->push_back(*vars->track_mcs_muassmp_fwd);
+    m_stagex->push_back(*vars->track_mcs_muassmp_bwd);
+    m_stagex->push_back(*vars->track_mcs_muassmp_energy_fwd);
+    m_stagex->push_back(*vars->track_mcs_muassmp_energy_bwd);
+    m_stagex->push_back(*vars->track_range_mom_muassumption);
+    m_stagex->push_back(*vars->track_range_mom_passumption);
+    m_stagex->push_back(*vars->track_range_energy_muassumption);
+    m_stagex->push_back(*vars->track_range_energy_passumption);
 
     if (isHasPID == true){
 
@@ -141,8 +148,8 @@ namespace numusel{
           candMuonTheta.push_back(vars->track_theta->at(i));
           candMuonCosTheta.push_back(vars->track_costheta->at(i));
           candMuonPhi.push_back(vars->track_phi->at(i));
-          candMuonMCSFwd.push_back(vars->track_mcs_fwd->at(i));
-          candMuonMCSBwd.push_back(vars->track_mcs_bwd->at(i));
+          candMuonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(i));
+          candMuonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
 
         }
 

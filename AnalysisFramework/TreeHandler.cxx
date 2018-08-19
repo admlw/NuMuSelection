@@ -27,8 +27,15 @@ namespace numusel{
     tree->SetBranchStatus("bragg_fwd_p"          , 1);
     tree->SetBranchStatus("bragg_bwd_p"          , 1);
     tree->SetBranchStatus("noBragg_fwd_mip"      , 1);
-    tree->SetBranchStatus("track_mcs_fwd"        , 1);
-    tree->SetBranchStatus("track_mcs_bwd"        , 1);
+    tree->SetBranchStatus("track_mcs_muassmp_fwd"        , 1);
+    tree->SetBranchStatus("track_mcs_muassmp_bwd"        , 1);
+    tree->SetBranchStatus("track_mcs_muassmp_energy_fwd", 1);
+    tree->SetBranchStatus("track_mcs_muassmp_energy_bwd", 1);
+    tree->SetBranchStatus("track_range_mom_muassumption", 1);
+    tree->SetBranchStatus("track_range_mom_passumption", 1);
+    tree->SetBranchStatus("track_range_energy_muassumption", 1);
+    tree->SetBranchStatus("track_range_energy_passumption", 1);
+
 
     tree->SetBranchAddress("isUBXSecSelected"     , &(varstoset->isUBXSecSelected));
     tree->SetBranchAddress("isSimulation"         , &(varstoset->isSimulation));
@@ -51,9 +58,14 @@ namespace numusel{
     tree->SetBranchAddress("bragg_fwd_p"          , &(varstoset->bragg_fwd_p));
     tree->SetBranchAddress("bragg_bwd_p"          , &(varstoset->bragg_bwd_p));
     tree->SetBranchAddress("noBragg_fwd_mip"      , &(varstoset->noBragg_fwd_mip));
-    tree->SetBranchAddress("track_mcs_fwd"        , &(varstoset->track_mcs_fwd));
-    tree->SetBranchAddress("track_mcs_bwd"        , &(varstoset->track_mcs_bwd));
-
+    tree->SetBranchAddress("track_mcs_muassmp_fwd"        , &(varstoset->track_mcs_muassmp_fwd));
+    tree->SetBranchAddress("track_mcs_muassmp_bwd"        , &(varstoset->track_mcs_muassmp_bwd));
+    tree->SetBranchAddress("track_mcs_muassmp_energy_fwd", &(varstoset->track_mcs_muassmp_energy_fwd));
+    tree->SetBranchAddress("track_mcs_muassmp_energy_bwd", &(varstoset->track_mcs_muassmp_energy_bwd));
+    tree->SetBranchAddress("track_range_mom_muassumption", &(varstoset->track_range_mom_muassumption));
+    tree->SetBranchAddress("track_range_mom_passumption", &(varstoset->track_range_mom_passumption));
+    tree->SetBranchAddress("track_range_energy_muassumption", &(varstoset->track_range_energy_muassumption));
+    tree->SetBranchAddress("track_range_energy_passumption", &(varstoset->track_range_energy_passumption));
 
     if (b_isSimulation){
 

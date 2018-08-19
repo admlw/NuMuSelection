@@ -34,8 +34,14 @@ struct var_list {
   std::vector<double>* bragg_fwd_p = nullptr;
   std::vector<double>* bragg_bwd_p = nullptr;
   std::vector<double>* noBragg_fwd_mip = nullptr;
-  std::vector<double>* track_mcs_fwd = nullptr;
-  std::vector<double>* track_mcs_bwd = nullptr;
+  std::vector<double>* track_mcs_muassmp_fwd = nullptr;
+  std::vector<double>* track_mcs_muassmp_bwd = nullptr;
+  std::vector<double>* track_mcs_muassmp_energy_fwd = nullptr;
+  std::vector<double>* track_mcs_muassmp_energy_bwd = nullptr;
+  std::vector<double>* track_range_mom_muassumption = nullptr;
+  std::vector<double>* track_range_mom_passumption = nullptr;
+  std::vector<double>* track_range_energy_muassumption = nullptr;
+  std::vector<double>* track_range_energy_passumption = nullptr;
 
   bool isBeamNeutrino = false;
   bool isCosmic = false;
