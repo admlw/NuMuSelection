@@ -138,6 +138,12 @@ namespace numusel{
       std::vector<double> candMuonPhi;
       std::vector<double> candMuonMCSFwd;
       std::vector<double> candMuonMCSBwd;
+      std::vector<double> candProtonLength;
+      std::vector<double> candProtonTheta;
+      std::vector<double> candProtonCosTheta;
+      std::vector<double> candProtonPhi;
+      std::vector<double> candProtonMCSFwd;
+      std::vector<double> candProtonMCSBwd;
 
       for (int i = 0; i < pid.size(); i++){
 
@@ -152,6 +158,17 @@ namespace numusel{
           candMuonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
 
         }
+        // else they're proton candidates
+        else {
+
+          candProtonLength.push_back(vars->track_length->at(i));
+          candProtonTheta.push_back(vars->track_theta->at(i));
+          candProtonCosTheta.push_back(vars->track_costheta->at(i));
+          candProtonPhi.push_back(vars->track_phi->at(i));
+          candProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(i));
+          candProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
+
+        }
 
       }
 
@@ -161,6 +178,12 @@ namespace numusel{
       m_stagex->push_back(candMuonPhi);
       m_stagex->push_back(candMuonMCSFwd);
       m_stagex->push_back(candMuonMCSBwd);
+      m_stagex->push_back(candProtonLength);
+      m_stagex->push_back(candProtonTheta);
+      m_stagex->push_back(candProtonCosTheta);
+      m_stagex->push_back(candProtonPhi);
+      m_stagex->push_back(candProtonMCSFwd);
+      m_stagex->push_back(candProtonMCSBwd);
 
     }
 

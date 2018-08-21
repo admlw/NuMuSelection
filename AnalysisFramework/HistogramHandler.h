@@ -62,7 +62,13 @@ namespace numusel{
         "muoncand_track_costheta",
         "muoncand_track_phi",
         "muoncand_track_mcs_fwd",
-        "muoncand_track_mcs_bwd"
+        "muoncand_track_mcs_bwd",
+        "protoncand_track_length",
+        "protoncand_track_theta",
+        "protoncand_track_costheta",
+        "protoncand_track_phi",
+        "protoncand_track_mcs_fwd",
+        "protoncand_track_mcs_bwd"
       };
 
       std::vector<std::string> histoLabels = {
@@ -98,6 +104,12 @@ namespace numusel{
         ";Muon candidate track phi;",
         ";Muon candidate track MCS (forward);",
         ";Muon candidate track MCS (backward;",
+        ";Proton candidate track length (cm);",
+        ";Proton candidate track theta (rad);",
+        ";Proton candidate track cos(theta);",
+        ";Proton candidate track phi;",
+        ";Proton candidate track MCS (forward);",
+        ";Proton candidate track MCS (backward;"
       };
 
       std::vector<std::vector<double>> histoBins = {
@@ -132,7 +144,13 @@ namespace numusel{
         {25, -1, 1},          // muon cand cos(theta)
         {25, -3.15, 3.15},    // muon cand phi
         {25, 0, 3},           // muon candidate mcs fwd
-        {25, 0, 3}            // muon candidate mcs bwd
+        {25, 0, 3},           // muon candidate mcs bwd
+        {25, 0, 700},         // proton cand length
+        {25, 0, 3.15},        // proton cand theta
+        {25, -1, 1},          // proton cand cos(theta)
+        {25, -3.15, 3.15},    // proton cand phi
+        {25, 0, 3},           // proton candidate mcs fwd
+        {25, 0, 3}            // proton candidate mcs bwd
       };
 
       /*
