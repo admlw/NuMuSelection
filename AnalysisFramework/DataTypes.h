@@ -36,12 +36,15 @@ struct var_list {
   std::vector<double>* noBragg_fwd_mip = nullptr;
   std::vector<double>* track_mcs_muassmp_fwd = nullptr;
   std::vector<double>* track_mcs_muassmp_bwd = nullptr;
+  std::vector<double>* track_mcs_muassmp_fwd_loglikelihood = nullptr;
+  std::vector<double>* track_mcs_muassmp_bwd_loglikelihood = nullptr;
   std::vector<double>* track_mcs_muassmp_energy_fwd = nullptr;
   std::vector<double>* track_mcs_muassmp_energy_bwd = nullptr;
   std::vector<double>* track_range_mom_muassumption = nullptr;
   std::vector<double>* track_range_mom_passumption = nullptr;
   std::vector<double>* track_range_energy_muassumption = nullptr;
   std::vector<double>* track_range_energy_passumption = nullptr;
+  std::vector<bool>* track_isContained = nullptr;
 
   bool isBeamNeutrino = false;
   bool isCosmic = false;
@@ -51,7 +54,7 @@ struct var_list {
   std::vector<double>* true_genie_startp = nullptr;
   std::vector<double>* true_genie_pdg = nullptr;
   int true_nu_ccnc = -999;
-  std::vector<double>* true_match_pdg = nullptr;
+  std::vector<int>* true_match_pdg = nullptr;
   std::vector<double>* true_match_starte = nullptr;
   std::vector<double>* true_mcp_pdg = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;

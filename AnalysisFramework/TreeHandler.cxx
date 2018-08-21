@@ -23,10 +23,13 @@ namespace numusel{
     tree->SetBranchStatus("track_endz"           , 1);
     tree->SetBranchStatus("track_theta"          , 1);
     tree->SetBranchStatus("track_costheta"       , 1);
+    tree->SetBranchStatus("track_isContained"    , 1);
     tree->SetBranchStatus("track_phi"            , 1);
     tree->SetBranchStatus("bragg_fwd_p"          , 1);
     tree->SetBranchStatus("bragg_bwd_p"          , 1);
     tree->SetBranchStatus("noBragg_fwd_mip"      , 1);
+    tree->SetBranchStatus("track_mcs_muassmp_fwd_loglikelihood", 1);
+    tree->SetBranchStatus("track_mcs_muassmp_bwd_loglikelihood", 1);
     tree->SetBranchStatus("track_mcs_muassmp_fwd"        , 1);
     tree->SetBranchStatus("track_mcs_muassmp_bwd"        , 1);
     tree->SetBranchStatus("track_mcs_muassmp_energy_fwd", 1);
@@ -55,11 +58,14 @@ namespace numusel{
     tree->SetBranchAddress("track_theta"          , &(varstoset->track_theta));
     tree->SetBranchAddress("track_costheta"       , &(varstoset->track_costheta));
     tree->SetBranchAddress("track_phi"            , &(varstoset->track_phi));
+    tree->SetBranchAddress("track_isContained"    , &(varstoset->track_isContained));
     tree->SetBranchAddress("bragg_fwd_p"          , &(varstoset->bragg_fwd_p));
     tree->SetBranchAddress("bragg_bwd_p"          , &(varstoset->bragg_bwd_p));
     tree->SetBranchAddress("noBragg_fwd_mip"      , &(varstoset->noBragg_fwd_mip));
     tree->SetBranchAddress("track_mcs_muassmp_fwd"        , &(varstoset->track_mcs_muassmp_fwd));
     tree->SetBranchAddress("track_mcs_muassmp_bwd"        , &(varstoset->track_mcs_muassmp_bwd));
+    tree->SetBranchAddress("track_mcs_muassmp_fwd_loglikelihood", &(varstoset->track_mcs_muassmp_fwd_loglikelihood));
+    tree->SetBranchAddress("track_mcs_muassmp_bwd_loglikelihood", &(varstoset->track_mcs_muassmp_bwd_loglikelihood));
     tree->SetBranchAddress("track_mcs_muassmp_energy_fwd", &(varstoset->track_mcs_muassmp_energy_fwd));
     tree->SetBranchAddress("track_mcs_muassmp_energy_bwd", &(varstoset->track_mcs_muassmp_energy_bwd));
     tree->SetBranchAddress("track_range_mom_muassumption", &(varstoset->track_range_mom_muassumption));
