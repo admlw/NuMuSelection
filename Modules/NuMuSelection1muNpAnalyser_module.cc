@@ -632,9 +632,14 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       bool start_isContained = _fiducialVolume.InFV(track.Start().X(), track.Start().Y(), track.Start().Z());
       bool end_isContained   = _fiducialVolume.InFV(track.End().X(), track.End().Y(), track.End().Z());
 
-      if (start_isContained && end_isContained)
+      if (start_isContained && end_isContained){
+        std::cout << "track is contained" << std::endl;
         track_isContained->push_back(true);
-      else track_isContained->push_back(false);
+      }
+      else{
+        std::cout << "track is uncontained" << std::endl;
+        track_isContained->push_back(false);
+      }
 
       // also get MCS fit result from MCS map we built earlier
       art::Ptr<recob::MCSFitResult> mcsFitResult;
@@ -653,8 +658,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       // Note MCS assumption is muon-like
       track_mcs_muassmp_fwd->push_back(mcsFitResult->fwdMomentum());
       track_mcs_muassmp_bwd->push_back(mcsFitResult->bwdMomentum());
-      track_mcs_muassmp_energy_fwd->push_back((std::sqrt(std::pow(mcsFitResult->fwdMomentum(),2)+std::pow(105.7,2)) - 105.7)*1000.);
-      track_mcs_muassmp_energy_bwd->push_back((std::sqrt(std::pow(mcsFitResult->bwdMomentum(),2)+std::pow(105.7,2)) - 105.7)*1000.);
+      track_mcs_muassmp_energy_fwd->push_back((std::sqrt(std::pow(mcsFitResult->fwdMomentum()*1000,2)+std::pow(105.7,2)) - 105.7)/1000.);
+      track_mcs_muassmp_energy_bwd->push_back((std::sqrt(std::pow(mcsFitResult->bwdMomentum()*1000,2)+std::pow(105.7,2)) - 105.7)/1000.);
       track_mcs_muassmp_fwd_uncertainty->push_back(mcsFitResult->fwdMomUncertainty());
       track_mcs_muassmp_bwd_uncertainty->push_back(mcsFitResult->bwdMomUncertainty());
       track_mcs_muassmp_fwd_loglikelihood->push_back(mcsFitResult->fwdLogLikelihood());
@@ -662,10 +667,10 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       track_mcs_muassmp_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
 
       // get momentum and energy from range (for contained particles)
-      track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track.Length(),13)*1000.);
-      track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.);
-      track_range_energy_muassumption->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)* 1000.);
-      track_range_energy_passumption ->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272)*1000.);
+      track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track.Length(),13));
+      track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track.Length(),2212));
+      track_range_energy_muassumption->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000.);
+      track_range_energy_passumption ->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272)/1000.);
 
       if (pids.size() == 0){
 
@@ -673,6 +678,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         throw std::exception();
 
       }
+
 
       // get PID information
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
@@ -751,6 +757,13 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         true_match_statuscode->push_back(mcpMatchedParticle->StatusCode());
         true_match_trackid->push_back(mcpMatchedParticle->TrackId());
         true_match_motherid->push_back(mcpMatchedParticle->Mother());
+
+        std::cout << "[NuMuSelection] pdg code: " << mcpMatchedParticle->PdgCode() 
+        << " mcs momentum: " << mcsFitResult->fwdMomentum()  
+        << " mcs energy: " << (std::sqrt(std::pow(mcsFitResult->fwdMomentum()*1000,2)+std::pow(105.7,2)) - 105.7)/1000.
+        << " range momentum: " << _trkmom.GetTrackMomentum(track.Length(),13)
+        << " range energy: " << (std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000. << std::endl;
+        
 
         // need something smart to deal with these two
         true_match_process->push_back(mcpMatchedParticle->Process());
