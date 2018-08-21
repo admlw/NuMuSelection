@@ -7,7 +7,7 @@
 
 #include "config_numu_analyser.fcl"
 #include "config_particle_identification.fcl"
-#include "config_dedxulation_calibration.fcl"
+#include "config_dedx_calibration.fcl"
 
 #
 # fcl file which produces calribated calorimetry objects, runs particle 
