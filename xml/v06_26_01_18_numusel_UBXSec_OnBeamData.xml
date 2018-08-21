@@ -6,8 +6,7 @@
 <!ENTITY name "PIDproducer_UBXSec_OnBeamData">
 <!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/NUMUSEL/numusel_UBXSec_OnBeamData">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/NUMUSEL/numusel_UBXSec_OnBeamData">
-<!ENTITY app_dir "/uboone/app/users/alister1/numuSelection/ubcode_v06_26_01_18/srcs/uboonecode/uboone/NuMuSelection">
-<!ENTITY data_dir "/uboone/data/users/alister1/NUMUSEL/numusel_UBXSec_OnBeamData">
+<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/NUMUSEL/numusel_UBXSec_OnBeamData_bookdir">
 ]>
 
 <job>
@@ -32,18 +31,16 @@
     <!-- particle id producer -->
     <stage name="numusel">
         <inputdef>prod_reco_optfilter_bnb_ccinclusive_v13_mcc8_gooodruns_v4s</inputdef>
-        <fcl>&app_dir;/job/run_numu_analyser_withcalibration_withparticleid_data.fcl</fcl>
+        <fcl>run_numu_analyser_withcalibration_withparticleid_data.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>500</numjobs>
-        <numevents>150</numevents>
-        <maxfilesperjob>3</maxfilesperjob>
-        <!--<memory>2000</memory>-->
+        <numjobs>745</numjobs>
+        <numevents>100</numevents>
+        <maxfilesperjob>2</maxfilesperjob>
         <memory>6000</memory>
         <datatier>pid</datatier>
-        <!--<inputstream>test</inputstream>-->
         <schema>root</schema>
    </stage>
 

@@ -6,8 +6,7 @@
 <!ENTITY name "PIDproducer_UBXSec_BNBCosmic">
 <!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/NUMUSEL/numusel_UBXSec_BNBCosmic">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/NUMUSEL/numusel_UBXSec_BNBCosmic">
-<!ENTITY app_dir "/uboone/app/users/alister1/numuSelection/ubcode_v06_26_01_18/srcs/uboonecode/uboone/NuMuSelection">
-<!ENTITY data_dir "/uboone/data/users/alister1/NUMUSEL/numusel_UBXSec_BNBCosmic">
+<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/NUMUSEL/numusel_UBXSec_BNBCosmic_bookdir">
 ]>
 
 <job>
@@ -20,7 +19,7 @@
     <!-- batchOS -->
     <os>SL6</os>
 
-    <resource>DEDICATED,OPPORTUNISTIC,OFFSITE</resource>
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
 
     <!-- larsoft info -->
     <larsoft>
@@ -29,21 +28,19 @@
         <local>/pnfs/uboone/resilient/users/alister1/tars/ubcode_v06_26_01_18.tar</local>
     </larsoft>
 
-    <!-- particle id producer -->
+    <!-- NuMu Selection Stage -->
     <stage name="numusel">
-        <inputlist>&app_dir;/xml/input.list</inputlist>
-        <fcl>&app_dir;/job/run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
+        <inputdef>alister1_ubxsectruthfilter_devsample</inputdef>
+        <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>460</numjobs>
-        <numevents>150</numevents>
-        <maxfilesperjob>1</maxfilesperjob>
-        <!--<memory>2000</memory>-->
+        <numjobs>554</numjobs>
+        <numevents>100</numevents>
+        <maxfilesperjob>2</maxfilesperjob>
         <memory>6000</memory>
         <datatier>pid</datatier>
-        <!--<inputstream>test</inputstream>-->
         <schema>root</schema>
    </stage>
 
