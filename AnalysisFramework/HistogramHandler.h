@@ -63,12 +63,54 @@ namespace numusel{
         "muoncand_track_phi",
         "muoncand_track_mcs_fwd",
         "muoncand_track_mcs_bwd",
+        "muoncand_track_mcs_energy_fwd",
+        "muoncand_track_mcs_energy_bwd",
+        "muoncand_track_range_momentum_muassmp",
+        "muoncand_track_range_energy_muassmp",
+        "muoncand_track_contained_length",
+        "muoncand_track_contained_theta",
+        "muoncand_track_contained_costheta",
+        "muoncand_track_contained_phi",
+        "muoncand_track_contained_mcs_fwd",
+        "muoncand_track_contained_mcs_bwd",
+        "muoncand_track_contained_mcs_energy_fwd",
+        "muoncand_track_contained_mcs_energy_bwd",
+        "muoncand_track_contained_range_momentum_muassmp",
+        "muoncand_track_contained_range_energy_muassmp",
+        "muoncand_track_uncontained_length",
+        "muoncand_track_uncontained_theta",
+        "muoncand_track_uncontained_costheta",
+        "muoncand_track_uncontained_phi",
+        "muoncand_track_uncontained_mcs_fwd",
+        "muoncand_track_uncontained_mcs_bwd",
+        "muoncand_track_uncontained_mcs_energy_fwd",
+        "muoncand_track_uncontained_mcs_energy_bwd",
+        "muoncand_track_uncontained_range_momentum_muassmp",
+        "muoncand_track_uncontained_range_energy_muassmp",
         "protoncand_track_length",
         "protoncand_track_theta",
         "protoncand_track_costheta",
         "protoncand_track_phi",
         "protoncand_track_mcs_fwd",
-        "protoncand_track_mcs_bwd"
+        "protoncand_track_mcs_bwd",
+        "protoncand_track_range_mom",
+        "protoncand_track_range_energy",
+        "protoncand_leading_track_length",
+        "protoncand_leading_track_theta",
+        "protoncand_leading_track_costheta",
+        "protoncand_leading_track_phi",
+        "protoncand_leading_track_mcs_fwd",
+        "protoncand_leading_track_mcs_bwd",
+        "protoncand_leading_track_range_mom",
+        "protoncand_leading_track_range_energy",
+        "protoncand_nonleading_track_length",
+        "protoncand_nonleading_track_theta",
+        "protoncand_nonleading_track_costheta",
+        "protoncand_nonleading_track_phi",
+        "protoncand_nonleading_track_mcs_fwd",
+        "protoncand_nonleading_track_mcs_bwd",
+        "protoncand_nonleading_track_range_mom",
+        "protoncand_nonleading_track_range_energy"
       };
 
       std::vector<std::string> histoLabels = {
@@ -103,13 +145,55 @@ namespace numusel{
         ";Muon candidate track cos(theta);",
         ";Muon candidate track phi;",
         ";Muon candidate track MCS (forward);",
-        ";Muon candidate track MCS (backward;",
+        ";Muon candidate track MCS (backward);",
+        ";Muon candidate track MCS Energy (forward);",
+        ";Muon candidate track MCS Energy (backward);",
+        ";Muon candidate Momentum (range, muon assumption);",
+        ";Muon candidate Energy (range, muon assumption);",
+        ";Contained Muon candidate track length (cm);",
+        ";Contained Muon candidate track theta (rad);",
+        ";Contained Muon candidate track cos(theta);",
+        ";Contained Muon candidate track phi;",
+        ";Contained Muon candidate track MCS (forward);",
+        ";Contained Muon candidate track MCS (backward);",
+        ";Contained Muon candidate track MCS Energy (forward);",
+        ";Contained Muon candidate track MCS Energy (backward);",
+        ";Contained Muon candidate Momentum (range, muon assumption);",
+        ";Contained Muon candidate Energy (range, muon assumption);",
+        ";Uncontained Muon candidate track length (cm);",
+        ";Uncontained Muon candidate track theta (rad);",
+        ";Uncontained Muon candidate track cos(theta);",
+        ";Uncontained Muon candidate track phi;",
+        ";Uncontained Muon candidate track MCS (forward);",
+        ";Uncontained Muon candidate track MCS (backward);",
+        ";Uncontained Muon candidate track MCS Energy (forward);",
+        ";Uncontained Muon candidate track MCS Energy (backward);",
+        ";Uncontained Muon candidate Momentum (range, muon assumption);",
+        ";Uncontained Muon candidate Energy (range, muon assumption);",
         ";Proton candidate track length (cm);",
         ";Proton candidate track theta (rad);",
         ";Proton candidate track cos(theta);",
         ";Proton candidate track phi;",
         ";Proton candidate track MCS (forward);",
-        ";Proton candidate track MCS (backward;"
+        ";Proton candidate track MCS (backward);",
+        ";Proton candidate track momentum (range);",
+        ";Proton candidate track energy (range);",
+        ";Leading Proton candidate track length (cm);",
+        ";Leading Proton candidate track theta (rad);",
+        ";Leading Proton candidate track cos(theta);",
+        ";Leading Proton candidate track phi;",
+        ";Leading Proton candidate track MCS (forward);",
+        ";Leading Proton candidate track MCS (backward;",
+        ";Leading Proton candidate track momentum (range);",
+        ";Leading Proton candidate track energy (range);",
+        ";Non-Leading Proton candidate track length (cm);",
+        ";Non-Leading Proton candidate track theta (rad);",
+        ";Non-Leading Proton candidate track cos(theta);",
+        ";Non-Leading Proton candidate track phi;",
+        ";Non-Leading Proton candidate track MCS (forward);",
+        ";Non-Leading Proton candidate track MCS (backward);",
+        ";Non-Leading Proton candidate track momentum (range);",
+        ";Non-Leading Proton candidate track energy (range);"
       };
 
       std::vector<std::vector<double>> histoBins = {
@@ -145,12 +229,54 @@ namespace numusel{
         {25, -3.15, 3.15},    // muon cand phi
         {25, 0, 3},           // muon candidate mcs fwd
         {25, 0, 3},           // muon candidate mcs bwd
-        {25, 0, 700},         // proton cand length
+        {25, 0, 2},           // muon candidate mc energy forward
+        {25, 0, 2},           // muon candidate mc energy backward
+        {25, 0, 3},           // muon candidate momentum from range
+        {25, 0, 2},           // muon candidate energy from range
+        {25, 0, 700},         // contained muon cand length
+        {25, 0, 3.15},        // contained muon cand theta
+        {25, -1, 1},          // contained muon cand cos(theta)
+        {25, -3.15, 3.15},    // contained muon cand phi
+        {25, 0, 3},           // contained muon candidate mcs fwd
+        {25, 0, 3},           // contained muon candidate mcs bwd
+        {25, 0, 2},           // contained muon candidate mc energy forward
+        {25, 0, 2},           // contained muon candidate mc energy backward
+        {25, 0, 3},           // contained muon candidate momentum from range
+        {25, 0, 2},           // contained muon candidate energy from range
+        {25, 0, 700},         // uncontained muon cand length
+        {25, 0, 3.15},        // uncontained muon cand theta
+        {25, -1, 1},          // uncontained muon cand cos(theta)
+        {25, -3.15, 3.15},    // uncontained muon cand phi
+        {25, 0, 3},           // uncontained muon candidate mcs fwd
+        {25, 0, 3},           // uncontained muon candidate mcs bwd
+        {25, 0, 2},           // uncontained muon candidate mc energy forward
+        {25, 0, 2},           // uncontained muon candidate mc energy backward
+        {25, 0, 3},           // uncontained muon candidate momentum from range
+        {25, 0, 2},           // uncontained muon candidate energy from range
+        {25, 0, 300},         // proton cand length
         {25, 0, 3.15},        // proton cand theta
         {25, -1, 1},          // proton cand cos(theta)
         {25, -3.15, 3.15},    // proton cand phi
         {25, 0, 3},           // proton candidate mcs fwd
-        {25, 0, 3}            // proton candidate mcs bwd
+        {25, 0, 3},           // proton candidate mcs bwd
+        {25, 0, 3.0},         // proton candidate range momentum
+        {25, 0, 0.7},         // proton candidate range energy
+        {25, 0, 300},         // leading proton cand length
+        {25, 0, 3.15},        // leading proton cand theta
+        {25, -1, 1},          // leading proton cand cos(theta)
+        {25, -3.15, 3.15},    // leading proton cand phi
+        {25, 0, 3},           // leading proton candidate mcs fwd
+        {25, 0, 3},           // leading proton candidate mcs bwd
+        {25, 0, 3.0},         // leading proton candidate range momentum
+        {25, 0, 0.7},         // leading proton candidate range energy
+        {25, 0, 300},         // non-leading proton cand length
+        {25, 0, 3.15},        // non-leading proton cand theta
+        {25, -1, 1},          // non-leading proton cand cos(theta)
+        {25, -3.15, 3.15},    // non-leading proton cand phi
+        {25, 0, 3},           // non-leading proton candidate mcs fwd
+        {25, 0, 3},           // non-leading proton candidate mcs bwd
+        {25, 0, 3.0},         // non-leading proton candidate range momentum
+        {25, 0, 0.7}          // non-leading proton candidate range energy
       };
 
       /*

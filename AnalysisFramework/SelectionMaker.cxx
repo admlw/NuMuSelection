@@ -94,6 +94,10 @@ namespace numusel{
 
   void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
+    // n.b. every time you add a variable here you need to
+    // add the histogram name, title, and bin ranges in HistogramHandler.h
+    // vectors
+
     numusel::AnalysisCuts anacuts;
     m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
@@ -132,18 +136,65 @@ namespace numusel{
 
     if (isHasPID == true){
 
+      // candidate muon variables
       std::vector<double> candMuonLength;
       std::vector<double> candMuonTheta;
       std::vector<double> candMuonCosTheta;
       std::vector<double> candMuonPhi;
       std::vector<double> candMuonMCSFwd;
       std::vector<double> candMuonMCSBwd;
+      std::vector<double> candMuonMCSFwdEnergy;
+      std::vector<double> candMuonMCSBwdEnergy;
+      std::vector<double> candMuonRangeMomentumMuassmp;
+      std::vector<double> candMuonRangeEnergyMuassmp;
+      std::vector<double> candMuonLength_contained;
+      std::vector<double> candMuonTheta_contained;
+      std::vector<double> candMuonCosTheta_contained;
+      std::vector<double> candMuonPhi_contained;
+      std::vector<double> candMuonMCSFwd_contained;
+      std::vector<double> candMuonMCSBwd_contained;
+      std::vector<double> candMuonMCSFwdEnergy_contained;
+      std::vector<double> candMuonMCSBwdEnergy_contained;
+      std::vector<double> candMuonRangeMomentumMuassmp_contained;
+      std::vector<double> candMuonRangeEnergyMuassmp_contained;
+      std::vector<double> candMuonLength_uncontained;
+      std::vector<double> candMuonTheta_uncontained;
+      std::vector<double> candMuonCosTheta_uncontained;
+      std::vector<double> candMuonPhi_uncontained;
+      std::vector<double> candMuonMCSFwd_uncontained;
+      std::vector<double> candMuonMCSBwd_uncontained;
+      std::vector<double> candMuonMCSFwdEnergy_uncontained;
+      std::vector<double> candMuonMCSBwdEnergy_uncontained;
+      std::vector<double> candMuonRangeMomentumMuassmp_uncontained;
+      std::vector<double> candMuonRangeEnergyMuassmp_uncontained;
+
+      // candidate proton variables
       std::vector<double> candProtonLength;
       std::vector<double> candProtonTheta;
       std::vector<double> candProtonCosTheta;
       std::vector<double> candProtonPhi;
       std::vector<double> candProtonMCSFwd;
       std::vector<double> candProtonMCSBwd;
+      std::vector<double> candProtonRangeMomentumPassmp;
+      std::vector<double> candProtonRangeEnergyPassmp;
+      std::vector<double> candLeadingProtonLength;
+      std::vector<double> candLeadingProtonTheta;
+      std::vector<double> candLeadingProtonCosTheta;
+      std::vector<double> candLeadingProtonPhi;
+      std::vector<double> candLeadingProtonMCSFwd;
+      std::vector<double> candLeadingProtonMCSBwd;
+      std::vector<double> candLeadingProtonRangeMomentumPassmp;
+      std::vector<double> candLeadingProtonRangeEnergyPassmp;
+      std::vector<double> candNonLeadingProtonLength;
+      std::vector<double> candNonLeadingProtonTheta;
+      std::vector<double> candNonLeadingProtonCosTheta;
+      std::vector<double> candNonLeadingProtonPhi;
+      std::vector<double> candNonLeadingProtonMCSFwd;
+      std::vector<double> candNonLeadingProtonMCSBwd;
+      std::vector<double> candNonLeadingProtonRangeMomentumPassmp;
+      std::vector<double> candNonLeadingProtonRangeEnergyPassmp;
+
+      std::vector<std::pair<int, float>> leadingProtonFinder;
 
       for (int i = 0; i < pid.size(); i++){
 
@@ -156,6 +207,37 @@ namespace numusel{
           candMuonPhi.push_back(vars->track_phi->at(i));
           candMuonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(i));
           candMuonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
+          candMuonMCSFwdEnergy.push_back(vars->track_mcs_muassmp_energy_fwd->at(i));
+          candMuonMCSBwdEnergy.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
+          candMuonRangeMomentumMuassmp.push_back(vars->track_range_mom_muassumption->at(i));
+          candMuonRangeEnergyMuassmp.push_back(vars->track_range_energy_muassumption->at(i));
+
+          if (vars->track_isContained->at(i) == true){
+
+            candMuonLength_contained.push_back(vars->track_length->at(i));
+            candMuonTheta_contained.push_back(vars->track_theta->at(i));
+            candMuonCosTheta_contained.push_back(vars->track_costheta->at(i));
+            candMuonPhi_contained.push_back(vars->track_phi->at(i));
+            candMuonMCSFwd_contained.push_back(vars->track_mcs_muassmp_fwd->at(i));
+            candMuonMCSBwd_contained.push_back(vars->track_mcs_muassmp_bwd->at(i));
+            candMuonMCSFwdEnergy_contained.push_back(vars->track_mcs_muassmp_energy_fwd->at(i));
+            candMuonMCSBwdEnergy_contained.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
+            candMuonRangeMomentumMuassmp_contained.push_back(vars->track_range_mom_muassumption->at(i));
+            candMuonRangeEnergyMuassmp_contained.push_back(vars->track_range_energy_muassumption->at(i));
+
+          }
+          else{
+            candMuonLength_uncontained.push_back(vars->track_length->at(i));
+            candMuonTheta_uncontained.push_back(vars->track_theta->at(i));
+            candMuonCosTheta_uncontained.push_back(vars->track_costheta->at(i));
+            candMuonPhi_uncontained.push_back(vars->track_phi->at(i));
+            candMuonMCSFwd_uncontained.push_back(vars->track_mcs_muassmp_fwd->at(i));
+            candMuonMCSBwd_uncontained.push_back(vars->track_mcs_muassmp_bwd->at(i));
+            candMuonMCSFwdEnergy_uncontained.push_back(vars->track_mcs_muassmp_energy_fwd->at(i));
+            candMuonMCSBwdEnergy_uncontained.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
+            candMuonRangeMomentumMuassmp_uncontained.push_back(vars->track_range_mom_muassumption->at(i));
+            candMuonRangeEnergyMuassmp_uncontained.push_back(vars->track_range_energy_muassumption->at(i));
+          }
 
         }
         // else they're proton candidates
@@ -167,9 +249,46 @@ namespace numusel{
           candProtonPhi.push_back(vars->track_phi->at(i));
           candProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(i));
           candProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
+          candProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(i));
+          candProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(i));
+
+          std::pair<int, float> thisProtonInformation;
+          thisProtonInformation.first = i;
+          thisProtonInformation.second = vars->track_length->at(i);
+          leadingProtonFinder.push_back(thisProtonInformation);
 
         }
 
+      }
+
+      // sort thisProtonInformation based on length
+      std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
+          return left.second > right.second;
+          });
+
+      // get leading proton information
+      candLeadingProtonLength.push_back(vars->track_length->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonTheta.push_back(vars->track_theta->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonCosTheta.push_back(vars->track_costheta->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonPhi.push_back(vars->track_phi->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(0).first));
+      candLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(0).first));
+
+      
+
+      //and non-leading proton information
+      for (int i = 1; i <leadingProtonFinder.size(); i++){
+      
+        candNonLeadingProtonLength.push_back(vars->track_length->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonTheta.push_back(vars->track_theta->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonCosTheta.push_back(vars->track_costheta->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonPhi.push_back(vars->track_phi->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(i).first));
       }
 
       m_stagex->push_back(candMuonLength);
@@ -178,12 +297,54 @@ namespace numusel{
       m_stagex->push_back(candMuonPhi);
       m_stagex->push_back(candMuonMCSFwd);
       m_stagex->push_back(candMuonMCSBwd);
+      m_stagex->push_back(candMuonMCSFwdEnergy);
+      m_stagex->push_back(candMuonMCSBwdEnergy);
+      m_stagex->push_back(candMuonRangeMomentumMuassmp);
+      m_stagex->push_back(candMuonRangeEnergyMuassmp);
+      m_stagex->push_back(candMuonLength_contained);
+      m_stagex->push_back(candMuonTheta_contained);
+      m_stagex->push_back(candMuonCosTheta_contained);
+      m_stagex->push_back(candMuonPhi_contained);
+      m_stagex->push_back(candMuonMCSFwd_contained);
+      m_stagex->push_back(candMuonMCSBwd_contained);
+      m_stagex->push_back(candMuonMCSFwdEnergy_contained);
+      m_stagex->push_back(candMuonMCSBwdEnergy_contained);
+      m_stagex->push_back(candMuonRangeMomentumMuassmp_contained);
+      m_stagex->push_back(candMuonRangeEnergyMuassmp_contained);
+      m_stagex->push_back(candMuonLength_uncontained);
+      m_stagex->push_back(candMuonTheta_uncontained);
+      m_stagex->push_back(candMuonCosTheta_uncontained);
+      m_stagex->push_back(candMuonPhi_uncontained);
+      m_stagex->push_back(candMuonMCSFwd_uncontained);
+      m_stagex->push_back(candMuonMCSBwd_uncontained);
+      m_stagex->push_back(candMuonMCSFwdEnergy_uncontained);
+      m_stagex->push_back(candMuonMCSBwdEnergy_uncontained);
+      m_stagex->push_back(candMuonRangeMomentumMuassmp_uncontained);
+      m_stagex->push_back(candMuonRangeEnergyMuassmp_uncontained);
       m_stagex->push_back(candProtonLength);
       m_stagex->push_back(candProtonTheta);
       m_stagex->push_back(candProtonCosTheta);
       m_stagex->push_back(candProtonPhi);
       m_stagex->push_back(candProtonMCSFwd);
       m_stagex->push_back(candProtonMCSBwd);
+      m_stagex->push_back(candProtonRangeMomentumPassmp);
+      m_stagex->push_back(candProtonRangeEnergyPassmp);
+      m_stagex->push_back(candLeadingProtonLength);
+      m_stagex->push_back(candLeadingProtonTheta);
+      m_stagex->push_back(candLeadingProtonCosTheta);
+      m_stagex->push_back(candLeadingProtonPhi);
+      m_stagex->push_back(candLeadingProtonMCSFwd);
+      m_stagex->push_back(candLeadingProtonMCSBwd);
+      m_stagex->push_back(candLeadingProtonRangeMomentumPassmp);
+      m_stagex->push_back(candLeadingProtonRangeEnergyPassmp);
+      m_stagex->push_back(candNonLeadingProtonLength);
+      m_stagex->push_back(candNonLeadingProtonTheta);
+      m_stagex->push_back(candNonLeadingProtonCosTheta);
+      m_stagex->push_back(candNonLeadingProtonPhi);
+      m_stagex->push_back(candNonLeadingProtonMCSFwd);
+      m_stagex->push_back(candNonLeadingProtonMCSBwd);
+      m_stagex->push_back(candNonLeadingProtonRangeMomentumPassmp);
+      m_stagex->push_back(candNonLeadingProtonRangeEnergyPassmp);
 
     }
 
