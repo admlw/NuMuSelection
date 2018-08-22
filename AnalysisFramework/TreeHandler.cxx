@@ -38,7 +38,8 @@ namespace numusel{
     tree->SetBranchStatus("track_range_mom_passumption", 1);
     tree->SetBranchStatus("track_range_energy_muassumption", 1);
     tree->SetBranchStatus("track_range_energy_passumption", 1);
-
+    tree->SetBranchStatus("track_dedxperhit_smeared", 1);
+    tree->SetBranchStatus("track_resrangeperhit", 1);
 
     tree->SetBranchAddress("isUBXSecSelected"     , &(varstoset->isUBXSecSelected));
     tree->SetBranchAddress("isSimulation"         , &(varstoset->isSimulation));
@@ -72,6 +73,8 @@ namespace numusel{
     tree->SetBranchAddress("track_range_mom_passumption", &(varstoset->track_range_mom_passumption));
     tree->SetBranchAddress("track_range_energy_muassumption", &(varstoset->track_range_energy_muassumption));
     tree->SetBranchAddress("track_range_energy_passumption", &(varstoset->track_range_energy_passumption));
+    tree->SetBranchAddress("track_dedxperhit_smeared", &(varstoset->track_dedxperhit_smeared));
+    tree->SetBranchAddress("track_resrangeperhit", &(varstoset->track_resrangeperhit));
 
     if (b_isSimulation){
 

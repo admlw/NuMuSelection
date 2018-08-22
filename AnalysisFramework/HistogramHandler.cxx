@@ -2,15 +2,36 @@
 
 namespace numusel{
 
-  void HistogramHandler::Fill2DHist(TH2D* h2d, std::vector<double> variable_x, std::vector<double> variable_y){
+  void HistogramHandler::Fill2DHistMC(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
 
-    for (int i = 0; i < variable_x.size(); i++){
+    for (int i = 0; i < variable.size(); i++){
 
-      h2d->Fill(variable_x.at(i), variable_y.at(i));
+      h2d->h_mc->Fill(variable.at(i).first, variable.at(i).second);
 
     }
 
   }
+
+  void HistogramHandler::Fill2DHistOnbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
+
+    for (int i = 0; i < variable.size(); i++){
+
+      h2d->h_onbeam->Fill(variable.at(i).first, variable.at(i).second);
+
+    }
+
+  }
+
+  void HistogramHandler::Fill2DHistOffbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
+
+    for (int i = 0; i < variable.size(); i++){
+
+      h2d->h_offbeam->Fill(variable.at(i).first, variable.at(i).second);
+
+    }
+
+  }
+
 
   void HistogramHandler::FillHistMC(hists_1d* h1d, std::vector<double> variable, std::bitset<8> eventCat){
 
@@ -68,7 +89,7 @@ namespace numusel{
   };
 
   void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<hists_1d*> > *plots_to_make, int n_plots){
-    
+
     numusel::HistogramHandler _histohandler;
 
     for (int i_st = 0; i_st < _config.n_stages; i_st++){
@@ -86,7 +107,7 @@ namespace numusel{
   };
 
   void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<eff_1d*> > *plots_to_make, int n_plots){
-    
+
     numusel::HistogramHandler _histohandler;
 
     for (int i_st = 0; i_st < _config.n_stages; i_st++){
@@ -103,28 +124,26 @@ namespace numusel{
     }
   };
 
-  void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<TH2D*> > *plots_to_make, int n_plots){
-    
+  void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<hists_2d*> > *plots_to_make, int n_plots){
+
     numusel::HistogramHandler _histohandler;
 
     for (int i_st = 0; i_st < _config.n_stages; i_st++){
       for (int i_pl = 0; i_pl < n_plots; i_pl++){
 
-        plots_to_make->at(i_st).at(i_pl) = new TH2D(
-            std::string("h_"+_histohandler.histoNames_2D.at(i_pl)+"_stage"+std::to_string(i_st)).c_str(),
-            _histohandler.histoLabels_2D.at(i_pl).c_str(),
-            (int)_histohandler.histoBins_2D.at(i_pl).at(0),
-            (double)_histohandler.histoBins_2D.at(i_pl).at(1),
-            (double)_histohandler.histoBins_2D.at(i_pl).at(2),
-            (int)_histohandler.histoBins_2D.at(i_pl).at(3),
-            (double)_histohandler.histoBins_2D.at(i_pl).at(4),
-            (double)_histohandler.histoBins_2D.at(i_pl).at(5)
+        plots_to_make->at(i_st).at(i_pl) = new hists_2d(
+            std::string("h_"+_histohandler.histoNames_2D.at(i_pl)+"_stage"+std::to_string(i_st)),
+            _histohandler.histoLabels_2D.at(i_pl),
+            _histohandler.histoBins_2D.at(i_pl).at(0),
+            _histohandler.histoBins_2D.at(i_pl).at(1),
+            _histohandler.histoBins_2D.at(i_pl).at(2),
+            _histohandler.histoBins_2D.at(i_pl).at(3),
+            _histohandler.histoBins_2D.at(i_pl).at(4),
+            _histohandler.histoBins_2D.at(i_pl).at(5)
             );
       }
     }
   };
-
-
 
   void HistogramHandler::StyleHistograms(hists_1d* hists){
 
@@ -192,7 +211,7 @@ namespace numusel{
         thisHistSet->h_offbeam->Scale(_config.offbeamscaling);
       }
     }
-  
+
   };
 
   void HistogramHandler::MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
@@ -392,6 +411,46 @@ namespace numusel{
 
     }
 
+  };
+
+  void HistogramHandler::Make2DHistogramsAndSave(std::vector< std::vector<hists_2d*> > hists){
+
+    numusel::HistogramHandler _histohandler;
+
+    for (int i_st = 0; i_st < hists.size(); i_st++){
+      for (int i_pl = 0; i_pl < hists.at(i_st).size(); i_pl++){
+
+        TCanvas *c_mc = new TCanvas();
+        hists.at(i_st).at(i_pl)->h_mc->Draw("colz");
+
+        c_mc->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_simulation.png")).c_str());
+
+        TCanvas *c_onbeam = new TCanvas();
+        hists.at(i_st).at(i_pl)->h_onbeam->Draw("colz");
+
+        c_onbeam->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_onbeam.png")).c_str());
+
+        TCanvas *c_offbeam = new TCanvas();
+        hists.at(i_st).at(i_pl)->h_offbeam->Draw("colz");
+
+        c_offbeam->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_offbeam.png")).c_str());
+      }
+    }
   };
 
   void HistogramHandler::MakeEfficiencyHistogramsAndSave(std::vector<std::vector<eff_1d*>> effplots){

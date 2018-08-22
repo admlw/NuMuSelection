@@ -2,7 +2,82 @@
 
 namespace numusel{
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, float cutval, TTree* infile, TTree* outfile, int entry){
+  std::vector<std::vector<std::vector<std::pair<double, double>>>> SelectionMaker::Get2DPlottingVariables(var_list* vars, kVarType var_type, float cutval, TTree* infile, TTree* outfile, int entry){
+
+    thisMatrix_2d.clear();
+    m_stage0_2d.resize(0);
+    m_stage1_2d.resize(0);
+    m_stage2_2d.resize(0);
+    m_stage3_2d.resize(0);
+    m_stage4_2d.resize(0);
+
+    numusel::AnalysisCuts _anacuts; 
+    numusel::SelectionMaker selmaker;
+
+    switch(var_type){
+      case HISTOGRAM_2D:
+        selmaker.PushBack2DVectors(s_stage0_2d, vars, false);
+        break;
+    }
+    // passes first cut
+    if (_anacuts.isPassNPfparticleSelection(vars)){
+
+      switch(var_type){
+        case HISTOGRAM_2D:
+          selmaker.PushBack2DVectors(s_stage1_2d, vars, false);
+          break;
+      }
+      // passes second cut
+      if (_anacuts.isPassNTrackSelection(vars)){
+
+        switch(var_type){
+          case HISTOGRAM_2D:
+            selmaker.PushBack2DVectors(s_stage2_2d, vars, false);
+            break;
+        }
+
+        // passes third cut
+        if (_anacuts.isPassNShowerSelection(vars)){
+          switch(var_type){
+            case HISTOGRAM_2D:
+              selmaker.PushBack2DVectors(s_stage3_2d, vars, false);
+              break;
+          }
+
+          // passes fourth cut
+          if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
+            switch(var_type){
+              case HISTOGRAM_2D:
+                selmaker.PushBack2DVectors(s_stage4_2d, vars, true);
+                break;
+            }
+          }
+
+        }
+
+      }
+
+    }
+
+    thisMatrix_2d.push_back(m_stage0_2d);
+    thisMatrix_2d.push_back(m_stage1_2d);
+    thisMatrix_2d.push_back(m_stage2_2d);
+    thisMatrix_2d.push_back(m_stage3_2d); 
+    thisMatrix_2d.push_back(m_stage4_2d); 
+
+    return thisMatrix_2d;
+  };
+
+  std::vector<std::vector<std::vector<std::pair<double,double>>>> SelectionMaker::Get2DPlottingVariables(var_list* vars, kVarType var_type, TTree* infile,  TTree* outfile, int entry){
+
+    numusel::AnalysisCuts _anacuts; 
+    thisMatrix_2d = Get2DPlottingVariables(vars, var_type, _anacuts.pid_cutvalue, infile, outfile, entry);
+
+    return thisMatrix_2d;
+
+  }
+
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, float cutval, TTree* infile, TTree* outfile, int entry){
 
     thisMatrix.clear();
     m_stage0.resize(0);
@@ -14,43 +89,58 @@ namespace numusel{
     numusel::AnalysisCuts _anacuts; 
     numusel::SelectionMaker selmaker;
 
-    if (isEffPur == false)
-      selmaker.PushBackVVectors(s_stage0, vars, false);
-    if (isEffPur == true)
-      selmaker.PushBackEPVectors(s_stage0, vars);
-
+    switch(var_type){
+      case HISTOGRAM_1D:
+        selmaker.PushBack1DVectors(s_stage0, vars, false);
+        break;
+      case EFFICIENCY:
+        selmaker.PushBackEPVectors(s_stage0, vars);
+        break;
+    }
     // passes first cut
     if (_anacuts.isPassNPfparticleSelection(vars)){
 
-      if (isEffPur == false)
-        selmaker.PushBackVVectors(s_stage1, vars, false);
-      if (isEffPur == true)
-        selmaker.PushBackEPVectors(s_stage1, vars);
-
+      switch(var_type){
+        case HISTOGRAM_1D:
+          selmaker.PushBack1DVectors(s_stage1, vars, false);
+          break;
+        case EFFICIENCY:
+          selmaker.PushBackEPVectors(s_stage1, vars);
+          break;
+      }
       // passes second cut
       if (_anacuts.isPassNTrackSelection(vars)){
 
-        if (isEffPur == false)
-          selmaker.PushBackVVectors(s_stage2, vars, false);
-        if (isEffPur == true)
-          selmaker.PushBackEPVectors(s_stage2, vars);
+        switch(var_type){
+          case HISTOGRAM_1D:
+            selmaker.PushBack1DVectors(s_stage2, vars, false);
+            break;
+          case EFFICIENCY:
+            selmaker.PushBackEPVectors(s_stage2, vars);
+            break;
+        }
 
         // passes third cut
         if (_anacuts.isPassNShowerSelection(vars)){
-
-          if (isEffPur == false)
-            selmaker.PushBackVVectors(s_stage3, vars, false);
-          if (isEffPur == true)
-            selmaker.PushBackEPVectors(s_stage3, vars);
+          switch(var_type){
+            case HISTOGRAM_1D:
+              selmaker.PushBack1DVectors(s_stage3, vars, false);
+              break;
+            case EFFICIENCY:
+              selmaker.PushBackEPVectors(s_stage3, vars);
+              break;
+          }
 
           // passes fourth cut
           if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
-
-            if (isEffPur == false)
-              selmaker.PushBackVVectors(s_stage4, vars, true);
-            if (isEffPur == true)
-              selmaker.PushBackEPVectors(s_stage4, vars); 
-
+            switch(var_type){
+              case HISTOGRAM_1D:
+                selmaker.PushBack1DVectors(s_stage4, vars, true);
+                break;
+              case EFFICIENCY:
+                selmaker.PushBackEPVectors(s_stage4, vars); 
+                break;
+            }
             if (entry != -1){
               infile->GetEntry(entry);
               outfile->Fill();
@@ -72,10 +162,10 @@ namespace numusel{
     return thisMatrix;
   };
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, TTree* infile,  TTree* outfile, int entry){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile,  TTree* outfile, int entry){
 
     numusel::AnalysisCuts _anacuts; 
-    thisMatrix = GetPlottingVariables(vars, isEffPur, _anacuts.pid_cutvalue, infile, outfile, entry);
+    thisMatrix = GetPlottingVariables(vars, var_type, _anacuts.pid_cutvalue, infile, outfile, entry);
 
     return thisMatrix;
 
@@ -92,7 +182,7 @@ namespace numusel{
 
   }
 
-  void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
+  void SelectionMaker::PushBack1DVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
 
     // n.b. every time you add a variable here you need to
@@ -101,7 +191,7 @@ namespace numusel{
 
     numusel::HistogramHandler _histohandler;
     numusel::AnalysisCuts _anacuts;
-    
+
     m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
@@ -136,6 +226,7 @@ namespace numusel{
     m_stagex->push_back(*vars->track_range_mom_passumption);
     m_stagex->push_back(*vars->track_range_energy_muassumption);
     m_stagex->push_back(*vars->track_range_energy_passumption);
+
 
     if (isHasPID == true){
 
@@ -279,11 +370,11 @@ namespace numusel{
       candLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(0).first));
       candLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(0).first));
 
-      
+
 
       //and non-leading proton information
       for (int i = 1; i <leadingProtonFinder.size(); i++){
-      
+
         candNonLeadingProtonLength.push_back(vars->track_length->at(leadingProtonFinder.at(i).first));
         candNonLeadingProtonTheta.push_back(vars->track_theta->at(leadingProtonFinder.at(i).first));
         candNonLeadingProtonCosTheta.push_back(vars->track_costheta->at(leadingProtonFinder.at(i).first));
@@ -350,6 +441,120 @@ namespace numusel{
       m_stagex->push_back(candNonLeadingProtonRangeEnergyPassmp);
 
     }
+
+  }
+
+  void SelectionMaker::PushBack2DVectors(std::vector<std::vector<std::pair<double, double>>>* m_stagex, var_list* vars, bool isHasPID){
+
+
+    // n.b. every time you add a variable here you need to
+    // add the histogram name, title, and bin ranges in HistogramHandler.h
+    // vectors
+
+    numusel::HistogramHandler _histohandler;
+    numusel::AnalysisCuts _anacuts;
+
+    std::vector<std::pair<double, double>> track_thetaphi;
+    for (int i = 0; i < vars->track_theta->size(); i++){ 
+      std::pair<double, double> track_thetaphipair(vars->track_theta->at(i), vars->track_phi->at(i));
+      track_thetaphi.push_back(track_thetaphipair);
+    }
+
+    std::vector<std::pair<double, double>> candMuondEdxResRange;
+    std::vector<std::pair<double, double>> candMuondEdxResRange_contained;
+    std::vector<std::pair<double, double>> candMuondEdxResRange_uncontained;
+    std::vector<std::pair<double, double>> candProtondEdxResRange;
+    std::vector<std::pair<double, double>> candProtondEdxResRange_leading;
+    std::vector<std::pair<double, double>> candProtondEdxResRange_nonleading;
+
+    std::vector<double> pid;
+    for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
+      double lmip = vars->noBragg_fwd_mip->at(i);
+      double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
+      pid.push_back(std::log(lmip/lp));
+    }
+
+    std::vector<std::pair<int, float>> leadingProtonFinder;
+
+    for (int i = 0; i < pid.size(); i++){
+
+      // get muon candidate
+      if (pid.at(i) > _anacuts.pid_cutvalue){
+
+        for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+          candMuondEdxResRange.push_back(thisPair);
+        }
+
+        if (vars->track_isContained->at(i) == true){
+
+          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+            candMuondEdxResRange_contained.push_back(thisPair);
+          }
+
+        }
+        else{
+          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+            candMuondEdxResRange_uncontained.push_back(thisPair);
+          }
+
+        }
+
+      }
+      // else they're proton candidates
+      else {
+
+        for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+          candProtondEdxResRange.push_back(thisPair);
+        }
+
+
+        std::pair<int, float> thisProtonInformation;
+        thisProtonInformation.first = i;
+        thisProtonInformation.second = vars->track_length->at(i);
+        leadingProtonFinder.push_back(thisProtonInformation);
+
+      }
+
+    }
+
+    // sort thisProtonInformation based on length
+    std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
+        return left.second > right.second;
+        });
+
+    // get leading proton information
+    for (int j = 0; j < vars->track_dedxperhit_smeared->at(0).size(); j++){
+      std::pair<float, float> thisPair(vars->track_resrangeperhit->at(0).at(j), vars->track_dedxperhit_smeared->at(0).at(j));
+
+      candProtondEdxResRange.push_back(thisPair);
+    }
+
+
+    //and non-leading proton information
+    for (int i = 1; i < leadingProtonFinder.size(); i++){
+      for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+        candProtondEdxResRange.push_back(thisPair);
+      }
+
+    }
+
+    m_stagex->push_back(track_thetaphi);
+    m_stagex->push_back(candMuondEdxResRange);
+    m_stagex->push_back(candMuondEdxResRange_contained);
+    m_stagex->push_back(candMuondEdxResRange_uncontained);
+    m_stagex->push_back(candProtondEdxResRange);
+    m_stagex->push_back(candProtondEdxResRange_leading);
+    m_stagex->push_back(candProtondEdxResRange_nonleading);
 
   }
 

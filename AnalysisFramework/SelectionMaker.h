@@ -32,20 +32,46 @@ namespace numusel{
       std::vector<std::vector<double>>* s_stage2 = &m_stage2;
       std::vector<std::vector<double>>* s_stage3 = &m_stage3;
       std::vector<std::vector<double>>* s_stage4 = &m_stage4;
-      
+ 
+      std::vector<std::vector<std::vector<std::pair<double,double>>>> thisMatrix_2d;
+
+      std::vector<std::vector<std::pair<double,double>>> m_stage0_2d;
+      std::vector<std::vector<std::pair<double,double>>> m_stage1_2d;
+      std::vector<std::vector<std::pair<double,double>>> m_stage2_2d;
+      std::vector<std::vector<std::pair<double,double>>> m_stage3_2d;
+      std::vector<std::vector<std::pair<double,double>>> m_stage4_2d;
+
+      std::vector<std::vector<std::pair<double,double>>>* s_stage0_2d = &m_stage0_2d;
+      std::vector<std::vector<std::pair<double,double>>>* s_stage1_2d = &m_stage1_2d;
+      std::vector<std::vector<std::pair<double,double>>>* s_stage2_2d = &m_stage2_2d;
+      std::vector<std::vector<std::pair<double,double>>>* s_stage3_2d = &m_stage3_2d;
+      std::vector<std::vector<std::pair<double,double>>>* s_stage4_2d = &m_stage4_2d;
+     
       /**
        * gets variables to plot for each stage of the selection with input cut value
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, float cutvalue, TTree* infile=nullptr, TTree* outfile=nullptr, int entry=-1);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, float cutvalue, TTree* infile=nullptr, TTree* outfile=nullptr, int entry=-1);
  
       /**
        * gets variables to plot for each stage of the selection
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, bool isEffPur, TTree* infile = nullptr, TTree* outfile = nullptr, int entry=-1);
-      
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile = nullptr, TTree* outfile = nullptr, int entry=-1);
+ 
+      /**
+       * gets variables to plot in 2d
+       */
+      std::vector<std::vector<std::vector<std::pair<double, double>>>> Get2DPlottingVariables(var_list* vars, kVarType var_type, float cutval, TTree* infile, TTree* outfile, int entry=-1);
+ 
+      /**
+       * gets variables to plot in 2d
+       */
+      std::vector<std::vector<std::vector<std::pair<double, double>>>> Get2DPlottingVariables(var_list* vars, kVarType var_type, TTree* infile, TTree* outfile, int entry=-1);
+    
       void PushBackEPVectors(std::vector<std::vector<double>>* vec, var_list* vars);
 
-      void PushBackVVectors(std::vector<std::vector<double>>* vec, var_list* vars, bool isHasPID);
+      void PushBack1DVectors(std::vector<std::vector<double>>* vec, var_list* vars, bool isHasPID);
+
+      void PushBack2DVectors(std::vector<std::vector<std::pair<double, double>>>* vec, var_list* vars, bool isHasPID);
 
   };
 

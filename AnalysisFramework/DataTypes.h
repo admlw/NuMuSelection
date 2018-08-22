@@ -7,6 +7,16 @@
 
 // ROOT
 #include "TH1.h"
+#include "TH2D.h"
+
+/**
+ * enum for variable type
+ */
+enum kVarType {
+  HISTOGRAM_1D,
+  HISTOGRAM_2D,
+  EFFICIENCY
+};
 
 /**
  * holds all variables to be pulled from the root file for each event
@@ -45,6 +55,8 @@ struct var_list {
   std::vector<double>* track_range_energy_muassumption = nullptr;
   std::vector<double>* track_range_energy_passumption = nullptr;
   std::vector<bool>* track_isContained = nullptr;
+  std::vector<std::vector<double>>* track_dedxperhit_smeared = nullptr;
+  std::vector<std::vector<double>>* track_resrangeperhit = nullptr;
 
   bool isBeamNeutrino = false;
   bool isCosmic = false;
@@ -61,6 +73,18 @@ struct var_list {
   std::vector<double>* true_mcp_starte = nullptr;
   std::vector<double>* true_mcp_startp = nullptr;
 
+};
+
+struct hists_2d {
+  TH2D* h_mc;
+  TH2D* h_onbeam;
+  TH2D* h_offbeam;
+
+  hists_2d(std::string name, std::string title, double nbinsx, double binlowx, double binhighx, double nbinsy, double binlowy, double binhighy){
+    h_mc = new TH2D(std::string(name+"").c_str(), title.c_str(), nbinsx, binlowx, binhighx, nbinsy, binlowy, binhighy);
+    h_onbeam = new TH2D(std::string(name+"onbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx, nbinsy, binlowy, binhighy);
+    h_offbeam = new TH2D(std::string(name+"offbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx, nbinsy, binlowy, binhighy);
+  }
 };
 
 /**

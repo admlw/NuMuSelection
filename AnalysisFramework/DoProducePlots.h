@@ -36,5 +36,5 @@ numusel::TreeHandler      _treeHandler;
 
 std::vector<std::vector<hists_1d*>> plots_to_make;
 std::vector<std::vector<eff_1d*>> eff_to_make;
-std::vector<std::vector<TH2D*>> plots_to_make_2D;
+std::vector<std::vector<hists_2d*>> plots_to_make_2D;
 

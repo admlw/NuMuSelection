@@ -32,18 +32,30 @@ namespace numusel{
     public:
 
       std::vector<std::string> histoNames_2D = {
+        "h_track_theta_phi",
         "h_dedx_resrg_mucand",
+        "h_dedx_resrg_mucand_contained",
+        "h_dedx_resrg_mucand_uncontained",
+        "h_dedx_resrg_pcand",
         "h_dedx_resrg_leadingpcand",
         "h_dedx_resrg_nonleadingpcand"
       };
 
       std::vector<std::string> histoLabels_2D = {
+        ";Track Theta; Track Phi",
         ";Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";Contained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";Uncontained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
         ";Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
         ";Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)"
       };
      
       std::vector<std::vector<double>> histoBins_2D = {
+        {50, 0, 3.15, 50, -3.15, 3.15},
+        {50, 0, 20, 50, 0, 20},
+        {50, 0, 20, 50, 0, 20},
+        {50, 0, 20, 50, 0, 20},
         {50, 0, 20, 50, 0, 20},
         {50, 0, 20, 50, 0, 20},
         {50, 0, 20, 50, 0, 20}
@@ -322,7 +334,17 @@ namespace numusel{
       /**
        * Fill 2D histograms
        */
-      void Fill2DHist(TH2D* h2d, std::vector<double> variable_x, std::vector<double> variable_y);
+      void Fill2DHistMC(hists_2d* h2d, std::vector<std::pair<double, double>> variable);
+
+      /**
+       * Fill 2D histograms
+       */
+      void Fill2DHistOnbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable);
+
+      /**
+       * Fill 2D histograms
+       */
+      void Fill2DHistOffbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable);
 
       /**
        * Fill MC histograms
@@ -347,7 +369,7 @@ namespace numusel{
       /**
        * Initialise vector of TH2s
        */
-      void InitialiseHistoVec(std::vector< std::vector<TH2D*> >* plots_to_make, int n_plots);
+      void InitialiseHistoVec(std::vector< std::vector<hists_2d*> >* plots_to_make, int n_plots);
 
       /**
        * Initialise vector of eff_1ds
@@ -368,6 +390,11 @@ namespace numusel{
        * Make stacked data/mc histograms and save to png/pdf file
        */
       void MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists);
+
+      /**
+       * Make 2d histograms and save to png/pdf file
+       */
+      void Make2DHistogramsAndSave(std::vector< std::vector<hists_2d*> > hists);
 
       /**
        * Make efficiency histograms and save to png/pdf files

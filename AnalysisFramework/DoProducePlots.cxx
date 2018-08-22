@@ -56,13 +56,22 @@ int main(){
   t_offbeam_out->SetName("offbeam");
   t_simulation_out->SetName("simulation");
 
+  // debugging
+  std::cout << "histoNames size: " << _histoHandler.histoNames.size() << std::endl;
+  std::cout << "histoLabels size: " << _histoHandler.histoLabels.size() << std::endl;
+  std::cout << "histoBins size: " << _histoHandler.histoBins.size() << std::endl;
+  std::cout << "histoNames_2D size: " << _histoHandler.histoNames_2D.size() << std::endl;
+  std::cout << "histoLabels_2D size: " << _histoHandler.histoLabels_2D.size() << std::endl;
+  std::cout << "histoBins_2D size: " << _histoHandler.histoBins_2D.size() << std::endl;
+
   // initialise data/mc comparison plots to make
   int n_plots = (int)_histoHandler.histoNames.size();
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
   _histoHandler.InitialiseHistoVec(&plots_to_make, n_plots);
 
+  // 2d plots 
   int n_plots2D = (int)_histoHandler.histoNames_2D.size();
-  plots_to_make_2D = std::vector<std::vector<TH2D*> >(_config.n_stages, std::vector<TH2D*>(n_plots)); 
+  plots_to_make_2D = std::vector<std::vector<hists_2d*> >(_config.n_stages, std::vector<hists_2d*>(n_plots2D)); 
   _histoHandler.InitialiseHistoVec(&plots_to_make_2D, n_plots2D);
 
   // initialise efficiency plots to make
@@ -85,7 +94,7 @@ int main(){
     // protect against tracks which don't have PID in the collection plane
     if ( (simulation_vars->nSelectedTracks != simulation_vars->bragg_fwd_p->size()) && simulation_vars->isUBXSecSelected) continue;
 
-    std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, true); 
+    std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY); 
 
 
     for (size_t i_st = 0; i_st < effVariables.size(); i_st++){
@@ -100,17 +109,32 @@ int main(){
       }
     }
 
-    // get plots for data/MC comparisons
     if (simulation_vars->isUBXSecSelected){
-      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, false, t_simulation, t_simulation_out, i);
+
+      // get plots for data/MC comparisons
+      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, HISTOGRAM_1D, t_simulation, t_simulation_out, i);
 
       for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
+
         for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
 
           _histoHandler.FillHistMC(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), eventCat);
 
         }
       }
+
+      // get plots for 2d histograms
+      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(simulation_vars, HISTOGRAM_2D, t_simulation, t_simulation_out, i);
+
+
+      for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
+        for (size_t i_pl = 0; i_pl < plottingVariables_2d.at(i_st).size(); i_pl++){
+
+          _histoHandler.Fill2DHistMC(plots_to_make_2D.at(i_st).at(i_pl), plottingVariables_2d.at(i_st).at(i_pl));
+
+        }
+      }
+
     }
   }
 
@@ -127,7 +151,7 @@ int main(){
 
       if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, false, t_onbeam, t_onbeam_out, i);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, HISTOGRAM_1D, t_onbeam, t_onbeam_out, i);
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
@@ -135,6 +159,19 @@ int main(){
           _histoHandler.FillHistOnBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
         }
       }
+
+      // get plots for 2d histograms
+      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(onbeam_vars, HISTOGRAM_2D, t_onbeam, t_onbeam_out, i);
+
+      for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
+        for (size_t i_pl = 0; i_pl < plottingVariables_2d.at(i_st).size(); i_pl++){
+
+          _histoHandler.Fill2DHistOnbeam(plots_to_make_2D.at(i_st).at(i_pl), plottingVariables_2d.at(i_st).at(i_pl));
+
+        }
+      }
+
+
     }
   }
 
@@ -151,7 +188,7 @@ int main(){
 
       if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, false, t_offbeam, t_offbeam_out, i);
+      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, HISTOGRAM_1D, t_offbeam, t_offbeam_out, i);
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
@@ -159,6 +196,19 @@ int main(){
 
         }
       }
+
+      // get plots for 2d histograms
+      std::vector<std::vector<std::vector<std::pair<double, double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(offbeam_vars, HISTOGRAM_2D, t_offbeam, t_offbeam_out, i);
+
+      for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
+        for (size_t i_pl = 0; i_pl < plottingVariables_2d.at(i_st).size(); i_pl++){
+
+          _histoHandler.Fill2DHistOffbeam(plots_to_make_2D.at(i_st).at(i_pl), plottingVariables_2d.at(i_st).at(i_pl));
+
+        }
+      }
+
+
     }
   }
 
@@ -168,6 +218,7 @@ int main(){
 
   _histoHandler.ScaleHistograms(plots_to_make);
   _histoHandler.MakeStackedHistogramsAndSave(plots_to_make);
+  _histoHandler.Make2DHistogramsAndSave(plots_to_make_2D);
   _histoHandler.MakeEfficiencyHistogramsAndSave(eff_to_make);
 
   //------------------------------------
