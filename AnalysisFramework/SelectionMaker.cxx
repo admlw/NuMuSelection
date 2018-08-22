@@ -507,7 +507,7 @@ namespace numusel{
 
       }
       // else they're proton candidates
-      else {
+      else if (pid.at(i) < _anacuts.pid_cutvalue){
 
         for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
           std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
@@ -525,29 +525,30 @@ namespace numusel{
 
     }
 
+    if (leadingProtonFinder.size() > 0){
+
     // sort thisProtonInformation based on length
     std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
         return left.second > right.second;
         });
 
     // get leading proton information
-    for (int j = 0; j < vars->track_dedxperhit_smeared->at(0).size(); j++){
-      std::pair<float, float> thisPair(vars->track_resrangeperhit->at(0).at(j), vars->track_dedxperhit_smeared->at(0).at(j));
+    for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
+      std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
 
-      candProtondEdxResRange.push_back(thisPair);
+      candProtondEdxResRange_leading.push_back(thisPair);
     }
-
 
     //and non-leading proton information
     for (int i = 1; i < leadingProtonFinder.size(); i++){
-      for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+      for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
+        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
 
-        candProtondEdxResRange.push_back(thisPair);
+        candProtondEdxResRange_nonleading.push_back(thisPair);
       }
 
     }
-
+    }
     m_stagex->push_back(track_thetaphi);
     m_stagex->push_back(candMuondEdxResRange);
     m_stagex->push_back(candMuondEdxResRange_contained);
@@ -555,6 +556,7 @@ namespace numusel{
     m_stagex->push_back(candProtondEdxResRange);
     m_stagex->push_back(candProtondEdxResRange_leading);
     m_stagex->push_back(candProtondEdxResRange_nonleading);
+
 
   }
 

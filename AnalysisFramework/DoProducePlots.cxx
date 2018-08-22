@@ -93,6 +93,12 @@ int main(){
 
     // protect against tracks which don't have PID in the collection plane
     if ( (simulation_vars->nSelectedTracks != simulation_vars->bragg_fwd_p->size()) && simulation_vars->isUBXSecSelected) continue;
+      if (simulation_vars->track_dedxperhit_smeared->size() == 0) continue;
+      int n_nohits = 0;
+      for (int j = 0; j < simulation_vars->track_dedxperhit_smeared->size(); j++){
+        if (simulation_vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
+      }
+      if (n_nohits !=0) continue;
 
     std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY); 
 
@@ -150,6 +156,12 @@ int main(){
     if (onbeam_vars->isUBXSecSelected){
 
       if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
+      if (onbeam_vars->track_dedxperhit_smeared->size() == 0) continue;
+      int n_nohits = 0;
+      for (int j = 0; j < onbeam_vars->track_dedxperhit_smeared->size(); j++){
+        if (onbeam_vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
+      }
+      if (n_nohits !=0) continue;
 
       std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, HISTOGRAM_1D, t_onbeam, t_onbeam_out, i);
 
@@ -164,6 +176,7 @@ int main(){
       std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(onbeam_vars, HISTOGRAM_2D, t_onbeam, t_onbeam_out, i);
 
       for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
+
         for (size_t i_pl = 0; i_pl < plottingVariables_2d.at(i_st).size(); i_pl++){
 
           _histoHandler.Fill2DHistOnbeam(plots_to_make_2D.at(i_st).at(i_pl), plottingVariables_2d.at(i_st).at(i_pl));
@@ -187,6 +200,13 @@ int main(){
     if (offbeam_vars->isUBXSecSelected){
 
       if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
+      if (offbeam_vars->track_dedxperhit_smeared->size() == 0) continue;
+      int n_nohits = 0;
+      for (int j = 0; j < offbeam_vars->track_dedxperhit_smeared->size(); j++){
+        if (offbeam_vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
+      }
+      if (n_nohits !=0) continue;
+
 
       std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, HISTOGRAM_1D, t_offbeam, t_offbeam_out, i);
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
