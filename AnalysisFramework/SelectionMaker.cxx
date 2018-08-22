@@ -11,7 +11,7 @@ namespace numusel{
     m_stage3.resize(0);
     m_stage4.resize(0);
 
-    numusel::AnalysisCuts anacuts; 
+    numusel::AnalysisCuts _anacuts; 
     numusel::SelectionMaker selmaker;
 
     if (isEffPur == false)
@@ -20,7 +20,7 @@ namespace numusel{
       selmaker.PushBackEPVectors(s_stage0, vars);
 
     // passes first cut
-    if (anacuts.isPassNPfparticleSelection(vars)){
+    if (_anacuts.isPassNPfparticleSelection(vars)){
 
       if (isEffPur == false)
         selmaker.PushBackVVectors(s_stage1, vars, false);
@@ -28,7 +28,7 @@ namespace numusel{
         selmaker.PushBackEPVectors(s_stage1, vars);
 
       // passes second cut
-      if (anacuts.isPassNTrackSelection(vars)){
+      if (_anacuts.isPassNTrackSelection(vars)){
 
         if (isEffPur == false)
           selmaker.PushBackVVectors(s_stage2, vars, false);
@@ -36,7 +36,7 @@ namespace numusel{
           selmaker.PushBackEPVectors(s_stage2, vars);
 
         // passes third cut
-        if (anacuts.isPassNShowerSelection(vars)){
+        if (_anacuts.isPassNShowerSelection(vars)){
 
           if (isEffPur == false)
             selmaker.PushBackVVectors(s_stage3, vars, false);
@@ -44,7 +44,7 @@ namespace numusel{
             selmaker.PushBackEPVectors(s_stage3, vars);
 
           // passes fourth cut
-          if (anacuts.isPassParticleIDSelection(vars, cutval).first){
+          if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
 
             if (isEffPur == false)
               selmaker.PushBackVVectors(s_stage4, vars, true);
@@ -74,8 +74,8 @@ namespace numusel{
 
   std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, bool isEffPur, TTree* infile,  TTree* outfile, int entry){
 
-    numusel::AnalysisCuts anacuts; 
-    thisMatrix = GetPlottingVariables(vars, isEffPur, anacuts.pid_cutvalue, infile, outfile, entry);
+    numusel::AnalysisCuts _anacuts; 
+    thisMatrix = GetPlottingVariables(vars, isEffPur, _anacuts.pid_cutvalue, infile, outfile, entry);
 
     return thisMatrix;
 
@@ -94,11 +94,14 @@ namespace numusel{
 
   void SelectionMaker::PushBackVVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
+
     // n.b. every time you add a variable here you need to
     // add the histogram name, title, and bin ranges in HistogramHandler.h
     // vectors
 
-    numusel::AnalysisCuts anacuts;
+    numusel::HistogramHandler _histohandler;
+    numusel::AnalysisCuts _anacuts;
+    
     m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
@@ -199,7 +202,7 @@ namespace numusel{
       for (int i = 0; i < pid.size(); i++){
 
         // get muon candidate
-        if (pid.at(i) > anacuts.pid_cutvalue){
+        if (pid.at(i) > _anacuts.pid_cutvalue){
 
           candMuonLength.push_back(vars->track_length->at(i));
           candMuonTheta.push_back(vars->track_theta->at(i));

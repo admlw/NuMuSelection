@@ -4,6 +4,7 @@
 // local
 #include "AnalysisCuts.h"
 #include "DataTypes.h"
+#include "HistogramHandler.h"
 
 // cpp
 #include <vector>

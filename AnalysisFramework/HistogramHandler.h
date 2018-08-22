@@ -11,6 +11,7 @@
 #include "TF1.h"
 #include "THStack.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TColor.h"
@@ -29,6 +30,24 @@ namespace numusel{
       numusel::Configuration _config;
 
     public:
+
+      std::vector<std::string> histoNames_2D = {
+        "h_dedx_resrg_mucand",
+        "h_dedx_resrg_leadingpcand",
+        "h_dedx_resrg_nonleadingpcand"
+      };
+
+      std::vector<std::string> histoLabels_2D = {
+        ";Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)"
+      };
+     
+      std::vector<std::vector<double>> histoBins_2D = {
+        {50, 0, 20, 50, 0, 20},
+        {50, 0, 20, 50, 0, 20},
+        {50, 0, 20, 50, 0, 20}
+      };
 
       std::vector<std::string> histoNames = {
         "total_purity",
@@ -300,6 +319,10 @@ namespace numusel{
         {25, 0, 2.5}
       };
 
+      /**
+       * Fill 2D histograms
+       */
+      void Fill2DHist(TH2D* h2d, std::vector<double> variable_x, std::vector<double> variable_y);
 
       /**
        * Fill MC histograms
@@ -320,6 +343,11 @@ namespace numusel{
        * Initialise vector of hists_1ds
        */
       void InitialiseHistoVec(std::vector< std::vector<hists_1d*> >* plots_to_make, int n_plots);
+
+      /**
+       * Initialise vector of TH2s
+       */
+      void InitialiseHistoVec(std::vector< std::vector<TH2D*> >* plots_to_make, int n_plots);
 
       /**
        * Initialise vector of eff_1ds

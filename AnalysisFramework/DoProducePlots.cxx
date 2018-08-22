@@ -61,6 +61,10 @@ int main(){
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
   _histoHandler.InitialiseHistoVec(&plots_to_make, n_plots);
 
+  int n_plots2D = (int)_histoHandler.histoNames_2D.size();
+  plots_to_make_2D = std::vector<std::vector<TH2D*> >(_config.n_stages, std::vector<TH2D*>(n_plots)); 
+  _histoHandler.InitialiseHistoVec(&plots_to_make_2D, n_plots2D);
+
   // initialise efficiency plots to make
   int n_effpur = (int)_histoHandler.effpurNames.size();
   eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_effpur));

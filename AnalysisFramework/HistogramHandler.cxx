@@ -2,6 +2,16 @@
 
 namespace numusel{
 
+  void HistogramHandler::Fill2DHist(TH2D* h2d, std::vector<double> variable_x, std::vector<double> variable_y){
+
+    for (int i = 0; i < variable_x.size(); i++){
+
+      h2d->Fill(variable_x.at(i), variable_y.at(i));
+
+    }
+
+  }
+
   void HistogramHandler::FillHistMC(hists_1d* h1d, std::vector<double> variable, std::bitset<8> eventCat){
 
     for (int i = 0; i < variable.size(); i++){
@@ -92,6 +102,28 @@ namespace numusel{
       }
     }
   };
+
+  void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<TH2D*> > *plots_to_make, int n_plots){
+    
+    numusel::HistogramHandler _histohandler;
+
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
+      for (int i_pl = 0; i_pl < n_plots; i_pl++){
+
+        plots_to_make->at(i_st).at(i_pl) = new TH2D(
+            std::string("h_"+_histohandler.histoNames_2D.at(i_pl)+"_stage"+std::to_string(i_st)).c_str(),
+            _histohandler.histoLabels_2D.at(i_pl).c_str(),
+            (int)_histohandler.histoBins_2D.at(i_pl).at(0),
+            (double)_histohandler.histoBins_2D.at(i_pl).at(1),
+            (double)_histohandler.histoBins_2D.at(i_pl).at(2),
+            (int)_histohandler.histoBins_2D.at(i_pl).at(3),
+            (double)_histohandler.histoBins_2D.at(i_pl).at(4),
+            (double)_histohandler.histoBins_2D.at(i_pl).at(5)
+            );
+      }
+    }
+  };
+
 
 
   void HistogramHandler::StyleHistograms(hists_1d* hists){
