@@ -34,7 +34,7 @@
 numusel::Configuration    _config;
 numusel::TreeHandler      _treeHandler;
 
-std::vector<std::vector<double>> binVals {
+std::vector<std::vector<double>> proton_binVals {
     {0.00, 0.05},
     {0.05, 0.10},
     {0.10, 0.15},
@@ -44,4 +44,12 @@ std::vector<std::vector<double>> binVals {
     {0.40, 1.00}
 };
 
+std::vector<std::vector<double>> muon_binVals {
+    {0.00, 0.20},
+    {0.20, 0.30},
+    {0.30, 0.40},
+    {0.40, 0.60},
+    {0.60, 0.80},
+    {0.80, 1.20}
+};
 

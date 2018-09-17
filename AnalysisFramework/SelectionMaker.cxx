@@ -99,7 +99,6 @@ namespace numusel{
     }
     // passes first cut
     if (_anacuts.isPassNPfparticleSelection(vars)){
-
       switch(var_type){
         case HISTOGRAM_1D:
           selmaker.PushBack1DVectors(s_stage1, vars, false);
@@ -110,7 +109,6 @@ namespace numusel{
       }
       // passes second cut
       if (_anacuts.isPassNTrackSelection(vars)){
-
         switch(var_type){
           case HISTOGRAM_1D:
             selmaker.PushBack1DVectors(s_stage2, vars, false);
@@ -190,7 +188,16 @@ namespace numusel{
     // vectors
 
     numusel::HistogramHandler _histohandler;
-    numusel::AnalysisCuts _anacuts;
+    numusel::AnalysisCuts     _anacuts;
+    numusel::Configuration    _config;
+
+    TF1* proton_range_energy_func = new TF1("proton_range_energy_func", "[0]*x+[1]", 0, 10);
+    TF1* muon_range_energy_func = new TF1("muon_range_energy_func", "[0]*x+[1]", 0, 10);
+    TF1* muon_mcs_energy_func = new TF1("muon_mcs_energy_func", "[0]*x+[1]", 0, 10);
+
+    proton_range_energy_func->SetParameters(_config.proton_range_m, _config.proton_range_c);
+    muon_range_energy_func->SetParameters(_config.muon_range_contained_m, _config.muon_range_contained_c);
+    muon_mcs_energy_func->SetParameters(_config.muon_mcs_uncontained_m, _config.muon_mcs_uncontained_c);
 
     m_stagex->push_back(std::vector<double>({(double)0.}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
@@ -287,8 +294,12 @@ namespace numusel{
       std::vector<double> candNonLeadingProtonMCSBwd;
       std::vector<double> candNonLeadingProtonRangeMomentumPassmp;
       std::vector<double> candNonLeadingProtonRangeEnergyPassmp;
+      std::vector<double> neutrinoReconstructedEnergyUncalib = {0.};
+      std::vector<double> neutrinoReconstructedEnergyCalib = {0.};
 
       std::vector<std::pair<int, float>> leadingProtonFinder;
+
+      // get calibration slopes from TF1s
 
       for (int i = 0; i < pid.size(); i++){
 
@@ -319,6 +330,9 @@ namespace numusel{
             candMuonRangeMomentumMuassmp_contained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_contained.push_back(vars->track_range_energy_muassumption->at(i));
 
+            neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_muassumption->at(i);
+            neutrinoReconstructedEnergyCalib.at(0)+=muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
+
           }
           else{
             candMuonLength_uncontained.push_back(vars->track_length->at(i));
@@ -331,6 +345,18 @@ namespace numusel{
             candMuonMCSBwdEnergy_uncontained.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
             candMuonRangeMomentumMuassmp_uncontained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_uncontained.push_back(vars->track_range_energy_muassumption->at(i));
+
+            float mcs_energy = 0;
+
+            if (vars->track_mcs_muassmp_fwd_loglikelihood->at(i) < vars->track_mcs_muassmp_bwd_loglikelihood->at(i)){
+              mcs_energy = vars->track_mcs_muassmp_energy_fwd->at(i);
+            }
+            else {
+              mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
+            }
+
+            neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
+            neutrinoReconstructedEnergyCalib.at(0)+=muon_mcs_energy_func->Eval(mcs_energy);
           }
 
         }
@@ -351,6 +377,9 @@ namespace numusel{
           thisProtonInformation.second = vars->track_length->at(i);
           leadingProtonFinder.push_back(thisProtonInformation);
 
+          neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_passumption->at(i);
+          neutrinoReconstructedEnergyCalib.at(0)+=proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i));
+
         }
 
       }
@@ -360,17 +389,17 @@ namespace numusel{
           return left.second > right.second;
           });
 
-      // get leading proton information
-      candLeadingProtonLength.push_back(vars->track_length->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonTheta.push_back(vars->track_theta->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonCosTheta.push_back(vars->track_costheta->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonPhi.push_back(vars->track_phi->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(0).first));
-      candLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(0).first));
-
-
+      if (leadingProtonFinder.size() > 0){
+        // get leading proton information
+        candLeadingProtonLength.push_back(vars->track_length->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonTheta.push_back(vars->track_theta->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonCosTheta.push_back(vars->track_costheta->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonPhi.push_back(vars->track_phi->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonMCSFwd.push_back(vars->track_mcs_muassmp_fwd->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(0).first));
+      }
 
       //and non-leading proton information
       for (int i = 1; i <leadingProtonFinder.size(); i++){
@@ -439,13 +468,14 @@ namespace numusel{
       m_stagex->push_back(candNonLeadingProtonMCSBwd);
       m_stagex->push_back(candNonLeadingProtonRangeMomentumPassmp);
       m_stagex->push_back(candNonLeadingProtonRangeEnergyPassmp);
+      m_stagex->push_back(neutrinoReconstructedEnergyUncalib);
+      m_stagex->push_back(neutrinoReconstructedEnergyCalib);
 
     }
 
   }
 
   void SelectionMaker::PushBack2DVectors(std::vector<std::vector<std::pair<double, double>>>* m_stagex, var_list* vars, bool isHasPID){
-
 
     // n.b. every time you add a variable here you need to
     // add the histogram name, title, and bin ranges in HistogramHandler.h
@@ -475,6 +505,8 @@ namespace numusel{
     }
 
     std::vector<std::pair<int, float>> leadingProtonFinder;
+    leadingProtonFinder.resize(0);
+
 
     for (int i = 0; i < pid.size(); i++){
 
@@ -527,28 +559,29 @@ namespace numusel{
 
     if (leadingProtonFinder.size() > 0){
 
-    // sort thisProtonInformation based on length
-    std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
-        return left.second > right.second;
-        });
+      // sort thisProtonInformation based on length
+      std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
+          return left.second > right.second;
+          });
 
-    // get leading proton information
-    for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
-      std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
+      // get leading proton information
+      for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
+        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
 
-      candProtondEdxResRange_leading.push_back(thisPair);
-    }
-
-    //and non-leading proton information
-    for (int i = 1; i < leadingProtonFinder.size(); i++){
-      for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
-        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
-
-        candProtondEdxResRange_nonleading.push_back(thisPair);
+        candProtondEdxResRange_leading.push_back(thisPair);
       }
 
+      //and non-leading proton information
+      for (int i = 1; i < leadingProtonFinder.size(); i++){
+        for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
+          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
+
+          candProtondEdxResRange_nonleading.push_back(thisPair);
+        }
+
+      }
     }
-    }
+
     m_stagex->push_back(track_thetaphi);
     m_stagex->push_back(candMuondEdxResRange);
     m_stagex->push_back(candMuondEdxResRange_contained);
@@ -556,6 +589,7 @@ namespace numusel{
     m_stagex->push_back(candProtondEdxResRange);
     m_stagex->push_back(candProtondEdxResRange_leading);
     m_stagex->push_back(candProtondEdxResRange_nonleading);
+
 
 
   }

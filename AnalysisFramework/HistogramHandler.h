@@ -42,23 +42,23 @@ namespace numusel{
       };
 
       std::vector<std::string> histoLabels_2D = {
-        ";Track Theta; Track Phi",
-        ";Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        ";Contained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        ";Uncontained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        ";Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        ";Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        ";Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)"
+        "Track Theta; Track Phi",
+        "Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        "Contained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        "Uncontained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        "Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        "Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        "Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)"
       };
      
       std::vector<std::vector<double>> histoBins_2D = {
         {50, 0, 3.15, 50, -3.15, 3.15},
-        {50, 0, 20, 50, 0, 20},
-        {50, 0, 20, 50, 0, 20},
-        {50, 0, 20, 50, 0, 20},
-        {50, 0, 20, 50, 0, 20},
-        {50, 0, 20, 50, 0, 20},
-        {50, 0, 20, 50, 0, 20}
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 30, 50, 0, 20}
       };
 
       std::vector<std::string> histoNames = {
@@ -141,7 +141,9 @@ namespace numusel{
         "protoncand_nonleading_track_mcs_fwd",
         "protoncand_nonleading_track_mcs_bwd",
         "protoncand_nonleading_track_range_mom",
-        "protoncand_nonleading_track_range_energy"
+        "protoncand_nonleading_track_range_energy",
+        "reconstructed_neutrino_energy_uncalib",
+        "reconstructed_neutrino_energy_calib"
       };
 
       std::vector<std::string> histoLabels = {
@@ -224,7 +226,9 @@ namespace numusel{
         ";Non-Leading Proton candidate track MCS (forward);",
         ";Non-Leading Proton candidate track MCS (backward);",
         ";Non-Leading Proton candidate track momentum (range);",
-        ";Non-Leading Proton candidate track energy (range);"
+        ";Non-Leading Proton candidate track energy (range);",
+        ";Reconstructed Neutrino Energy (GeV);",
+        ";Reconstructed Neutrino Energy (GeV);"
       };
 
       std::vector<std::vector<double>> histoBins = {
@@ -307,7 +311,9 @@ namespace numusel{
         {25, 0, 3},           // non-leading proton candidate mcs fwd
         {25, 0, 3},           // non-leading proton candidate mcs bwd
         {25, 0, 3.0},         // non-leading proton candidate range momentum
-        {25, 0, 0.7}          // non-leading proton candidate range energy
+        {25, 0, 0.7},         // non-leading proton candidate range energy
+        {25, 0, 3},           // reconstructed neutrino energy
+        {25, 0, 3}            // calibrated reconstructed neutrino energy
       };
 
       /*

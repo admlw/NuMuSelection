@@ -116,7 +116,7 @@ void leastSquaresFitToMedian(TH2D* input_histogram, float min_fit, float max_fit
 
 }
 
-void doFit(std::vector<TH1D*> input_histograms){
+void doFit(std::vector<TH1D*> input_histograms, int pdg){
 
   float resolutions[input_histograms.size()];
   float resolutions_x[input_histograms.size()];
@@ -161,8 +161,15 @@ void doFit(std::vector<TH1D*> input_histograms){
 
     float resolution = std::abs(fittingFunction->GetParameter(2));
     float resolution_err = std::abs(fittingFunction->GetParError(2));
-    resolutions_x[i] = binVals.at(i).at(0) + (binVals.at(i).at(1) - binVals.at(i).at(0))/2.0;
-    err_x[i] = (binVals.at(i).at(1)-binVals.at(i).at(0))/2.0;
+    if (pdg == 2212){
+      resolutions_x[i] = proton_binVals.at(i).at(0) + (proton_binVals.at(i).at(1) - proton_binVals.at(i).at(0))/2.0;
+      err_x[i] = (proton_binVals.at(i).at(1)-proton_binVals.at(i).at(0))/2.0;
+    }
+    if (pdg == 13){
+      resolutions_x[i] = muon_binVals.at(i).at(0) + (muon_binVals.at(i).at(1) - muon_binVals.at(i).at(0))/2.0;
+      err_x[i] = (muon_binVals.at(i).at(1)-muon_binVals.at(i).at(0))/2.0;
+    }
+
     resolutions[i] = (resolution*100);
     err_y[i] = resolution_err*100;
 
@@ -218,17 +225,22 @@ int main(){
   std::vector<TH1D*> muon_mcs_contained_resolution_histograms;
   std::vector<TH1D*> muon_mcs_uncontained_resolution_histograms;
 
-  for (int i = 0; i < binVals.size(); i++){
+  for (int i = 0; i < proton_binVals.size(); i++){
 
-    TString binRange = Form("%fto%f", binVals.at(i).at(0), binVals.at(i).at(1));
+    TString binRange = Form("%fto%f", proton_binVals.at(i).at(0), proton_binVals.at(i).at(1));
+    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.5, 0.5));
 
-    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.2, 0.2));
-    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
-    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
-    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
-    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
-    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
-    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 25, -0.4, 0.4));
+  }
+
+  for (int i = 0; i < muon_binVals.size(); i++){
+
+    TString binRange = Form("%fto%f", muon_binVals.at(i).at(0), muon_binVals.at(i).at(1));
+    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
 
   }
 
@@ -248,9 +260,9 @@ int main(){
         float range_energy = simulation_vars->track_range_energy_passumption->at(j);
         float resolution = (range_energy - true_energy)/true_energy;
 
-        for (int k = 0 ; k < binVals.size(); k++){
+        for (int k = 0 ; k < proton_binVals.size(); k++){
 
-          if (true_energy >= binVals.at(k).at(0) && true_energy < binVals.at(k).at(1))
+          if (true_energy >= proton_binVals.at(k).at(0) && true_energy < proton_binVals.at(k).at(1))
             proton_resolution_histograms.at(k)->Fill(resolution);
 
         }
@@ -282,9 +294,9 @@ int main(){
         float range_resolution = (range_energy - true_energy)/true_energy;
         float mcs_resolution = (mcs_energy - true_energy)/true_energy;
 
-        for (int k = 0 ; k < binVals.size(); k++){
+        for (int k = 0 ; k < muon_binVals.size(); k++){
 
-          if (true_energy >= binVals.at(k).at(0) && true_energy < binVals.at(k).at(1)){
+          if (true_energy >= muon_binVals.at(k).at(0) && true_energy < muon_binVals.at(k).at(1)){
             muon_range_resolution_histograms.at(k)->Fill(range_resolution);
             muon_mcs_resolution_histograms.at(k)->Fill(mcs_resolution);
           }
@@ -296,9 +308,9 @@ int main(){
           true_energy_mcs_energy_muon_contained->Fill(true_energy, mcs_energy);
           range_mom_mcs_mom_contained->Fill(range_mom, mcs_mom);
 
-          for (int k = 0 ; k < binVals.size(); k++){
+          for (int k = 0 ; k < muon_binVals.size(); k++){
 
-            if (true_energy >= binVals.at(k).at(0) && true_energy < binVals.at(k).at(1)){
+            if (true_energy >= muon_binVals.at(k).at(0) && true_energy < muon_binVals.at(k).at(1)){
               muon_range_contained_resolution_histograms.at(k)->Fill(range_resolution);
               muon_mcs_contained_resolution_histograms.at(k)->Fill(mcs_resolution);
             }
@@ -312,9 +324,9 @@ int main(){
           true_energy_range_energy_muon_uncontained->Fill(true_energy, range_energy);
           true_energy_mcs_energy_muon_uncontained->Fill(true_energy, mcs_energy);
 
-          for (int k = 0 ; k < binVals.size(); k++){
+          for (int k = 0 ; k < muon_binVals.size(); k++){
 
-            if (true_energy >= binVals.at(k).at(0) && true_energy < binVals.at(k).at(1)){
+            if (true_energy >= muon_binVals.at(k).at(0) && true_energy < muon_binVals.at(k).at(1)){
               muon_range_uncontained_resolution_histograms.at(k)->Fill(range_resolution);
               muon_mcs_uncontained_resolution_histograms.at(k)->Fill(mcs_resolution);
             }
@@ -334,13 +346,13 @@ int main(){
   gStyle->SetPalette(kLightTemperature);
   gStyle->SetOptStat(0);
 
-  doFit(proton_resolution_histograms);
-  doFit(muon_range_resolution_histograms);
-  doFit(muon_range_contained_resolution_histograms);
-  doFit(muon_range_uncontained_resolution_histograms);
-  doFit(muon_mcs_resolution_histograms);
-  doFit(muon_mcs_contained_resolution_histograms);
-  doFit(muon_mcs_uncontained_resolution_histograms);
+  doFit(proton_resolution_histograms, 2212);
+  doFit(muon_range_resolution_histograms, 13);
+  doFit(muon_range_contained_resolution_histograms, 13);
+  doFit(muon_range_uncontained_resolution_histograms, 13);
+  doFit(muon_mcs_resolution_histograms, 13);
+  doFit(muon_mcs_contained_resolution_histograms, 13);
+  doFit(muon_mcs_uncontained_resolution_histograms, 13);
 
   TCanvas *c1 = new TCanvas();
   true_energy_range_energy_proton->Draw("colz");
@@ -380,7 +392,7 @@ int main(){
 
   TCanvas *c7 = new TCanvas();
   true_energy_mcs_energy_muon_uncontained->Draw("colz");
-  leastSquaresFitToMedian(true_energy_mcs_energy_muon_uncontained, 0.05, 0.6);
+  leastSquaresFitToMedian(true_energy_mcs_energy_muon_uncontained, 0.1, 1.2);
 
   c7->SaveAs("plots/true_energy_mcs_energy_muon_uncontained.png");
 

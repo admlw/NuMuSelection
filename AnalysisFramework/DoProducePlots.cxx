@@ -116,7 +116,7 @@ int main(){
     }
 
     if (simulation_vars->isUBXSecSelected){
-
+      
       // get plots for data/MC comparisons
       std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, HISTOGRAM_1D, t_simulation, t_simulation_out, i);
 

@@ -268,6 +268,8 @@ namespace numusel{
         h_tot->GetYaxis()->SetTitleSize(0.045);
         h_tot->GetYaxis()->SetTitleOffset(1.1);
 
+        h_tot->GetYaxis()->SetRangeUser(0, std::max(h_tot->GetMaximum(),thisHistSet->h_onbeam->GetMaximum())*1.25);
+
         h_tot->Draw();
         hs->Draw("histsame");
         h_tot->Draw("sameE2");

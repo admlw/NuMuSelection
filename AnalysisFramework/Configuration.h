@@ -37,7 +37,7 @@ namespace numusel{
       // ./DoEnergyRecoStudies
       // and then filling in these variables.
       // I know it's not clean.
-      
+
       float proton_range_m = 1.01336;
       float proton_range_c = -0.00499997;
       float muon_range_contained_m = 0.999954;
