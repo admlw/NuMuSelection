@@ -11,10 +11,11 @@ namespace numusel{
     tree->SetBranchStatus("nSelectedTracks"      , 1);
     tree->SetBranchStatus("nSelectedShowers"     , 1);
     tree->SetBranchStatus("nSelectedPfparticles" , 1);
-    tree->SetBranchStatus("track_length"         , 1);
     tree->SetBranchStatus("vertex_x"             , 1);
     tree->SetBranchStatus("vertex_y"             , 1);
     tree->SetBranchStatus("vertex_z"             , 1);
+    tree->SetBranchStatus("pfp_pdgCode"          , 1);
+    tree->SetBranchStatus("track_length"         , 1);
     tree->SetBranchStatus("track_startx"         , 1);
     tree->SetBranchStatus("track_endx"           , 1);
     tree->SetBranchStatus("track_starty"         , 1);
@@ -40,16 +41,18 @@ namespace numusel{
     tree->SetBranchStatus("track_range_energy_passumption", 1);
     tree->SetBranchStatus("track_dedxperhit_smeared", 1);
     tree->SetBranchStatus("track_resrangeperhit", 1);
+    tree->SetBranchStatus("track_residualrms", 1);
 
     tree->SetBranchAddress("isUBXSecSelected"     , &(varstoset->isUBXSecSelected));
     tree->SetBranchAddress("isSimulation"         , &(varstoset->isSimulation));
     tree->SetBranchAddress("nSelectedTracks"      , &(varstoset->nSelectedTracks));
     tree->SetBranchAddress("nSelectedShowers"     , &(varstoset->nSelectedShowers));
     tree->SetBranchAddress("nSelectedPfparticles" , &(varstoset->nSelectedPfparticles));
-    tree->SetBranchAddress("track_length"         , &(varstoset->track_length));
     tree->SetBranchAddress("vertex_x"             , &(varstoset->vertex_x));
     tree->SetBranchAddress("vertex_y"             , &(varstoset->vertex_y));
     tree->SetBranchAddress("vertex_z"             , &(varstoset->vertex_z));
+    tree->SetBranchAddress("pfp_pdgCode"          , &(varstoset->pfp_pdgCode));
+    tree->SetBranchAddress("track_length"         , &(varstoset->track_length));
     tree->SetBranchAddress("track_startx"         , &(varstoset->track_startx));
     tree->SetBranchAddress("track_endx"           , &(varstoset->track_endx));
     tree->SetBranchAddress("track_starty"         , &(varstoset->track_starty));
@@ -75,6 +78,7 @@ namespace numusel{
     tree->SetBranchAddress("track_range_energy_passumption", &(varstoset->track_range_energy_passumption));
     tree->SetBranchAddress("track_dedxperhit_smeared", &(varstoset->track_dedxperhit_smeared));
     tree->SetBranchAddress("track_resrangeperhit", &(varstoset->track_resrangeperhit));
+    tree->SetBranchAddress("track_residualrms", &(varstoset->track_residualrms));
 
     if (b_isSimulation){
 

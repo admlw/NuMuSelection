@@ -6,6 +6,8 @@
 #include <bitset>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 // ROOT
 #include "TF1.h"
@@ -17,6 +19,7 @@
 #include "TColor.h"
 #include "TLegend.h"
 #include "TStyle.h"
+#include "TPaveText.h"
 
 // local
 #include "DataTypes.h"
@@ -66,10 +69,10 @@ namespace numusel{
         "nTracks",
         "nShowers",
         "nSelectedPfParticles",
-        "trackLength",
         "vertex_x",
         "vertex_y",
         "vertex_z",
+        "trackLength",
         "track_startx",
         "track_endx",
         "track_starty",
@@ -88,6 +91,7 @@ namespace numusel{
         "track_range_mom_passumption",
         "track_range_energy_muassumption",
         "track_range_energy_passumption",
+        "track_residualrms",
         "muoncand_track_length",
         "muoncand_track_theta",
         "muoncand_track_costheta",
@@ -151,10 +155,10 @@ namespace numusel{
         ";Number of tracks;",
         ";Number of showers;",
         ";Number of PFParticles;",
-        ";Track length (cm);",
         ";Vertex x position (cm);",
         ";Vertex y position (cm);",
         ";Vertex z position (cm);",
+        ";Track length (cm);",
         ";Track start x (cm);",
         ";Track end x (cm);",
         ";Track start y (cm);",
@@ -173,6 +177,7 @@ namespace numusel{
         ";Track Range Momentum (proton assumption);",
         ";Track Range Energy (muon assumption);",
         ";Track Range Energy (proton assumption);",
+        ";Track Residual;",
         ";Muon candidate track length (cm);",
         ";Muon candidate track theta (rad);",
         ";Muon candidate track cos(theta);",
@@ -227,8 +232,8 @@ namespace numusel{
         ";Non-Leading Proton candidate track MCS (backward);",
         ";Non-Leading Proton candidate track momentum (range);",
         ";Non-Leading Proton candidate track energy (range);",
-        ";Reconstructed Neutrino Energy (GeV);",
-        ";Reconstructed Neutrino Energy (GeV);"
+        ";Total Deposited Energy (GeV);",
+        ";Total Deposited Energy (GeV);"
       };
 
       std::vector<std::vector<double>> histoBins = {
@@ -236,19 +241,19 @@ namespace numusel{
         {10, 0, 10},          // number of tracks
         {10, 0, 10},          // number of showers
         {10, 0, 10},          // number of pfparticles
+        {40, 0, 256},         // vertex x
+        {40, -116.5, 116.5},  // vertex y
+        {40, 0, 1040},        // vertex z
         {50, 0, 700},         // track length
-        {50, 0, 256},         // vertex x
-        {50, -116.5, 116.5},  // vertex y
-        {50, 0, 1040},        // vertex z
-        {50, 0, 256},         // track start x
-        {50, 0, 256},         // track end x
-        {50, -116.5, 116.5},  // track start y
-        {50, -116.5, 116.5},  // track end y
-        {50, 0, 1040},        // track start z
-        {50, 0, 1040},        // track end z
-        {25, 0, 3.15},        // track theta
-        {25, -1, 1},          // track cos(theta)
-        {50, -3.15, 3.15},    // track phi
+        {40, 0, 256},         // track start x
+        {40, 0, 256},         // track end x
+        {40, -116.5, 116.5},  // track start y
+        {40, -116.5, 116.5},  // track end y
+        {40, 0, 1040},        // track start z
+        {40, 0, 1040},        // track end z
+        {20, 0, 3.15},        // track theta
+        {20, -1, 1},          // track cos(theta)
+        {20, -3.15, 3.15},    // track phi
         {50, -10, 10},        // log(lmip/lp)
         {50, 0, 3},           // track mcs fwd
         {50, 0, 3},           // track mcs bwd
@@ -258,10 +263,11 @@ namespace numusel{
         {50, 0, 3},           // track range momentum proton
         {50, 0, 3},           // track range energy muon
         {50, 0, 3},           // track range energy proton
+        {50, 0, 5},           // track_residualrms
         {25, 0, 700},         // muon cand length
-        {25, 0, 3.15},        // muon cand theta
-        {25, -1, 1},          // muon cand cos(theta)
-        {25, -3.15, 3.15},    // muon cand phi
+        {20, 0, 3.15},        // muon cand theta
+        {20, -1, 1},          // muon cand cos(theta)
+        {20, -3.15, 3.15},    // muon cand phi
         {25, 0, 3},           // muon candidate mcs fwd
         {25, 0, 3},           // muon candidate mcs bwd
         {25, 0, 2},           // muon candidate mc energy forward
@@ -269,9 +275,9 @@ namespace numusel{
         {25, 0, 3},           // muon candidate momentum from range
         {25, 0, 2},           // muon candidate energy from range
         {25, 0, 700},         // contained muon cand length
-        {25, 0, 3.15},        // contained muon cand theta
-        {25, -1, 1},          // contained muon cand cos(theta)
-        {25, -3.15, 3.15},    // contained muon cand phi
+        {20, 0, 3.15},        // contained muon cand theta
+        {20, -1, 1},          // contained muon cand cos(theta)
+        {20, -3.15, 3.15},    // contained muon cand phi
         {25, 0, 3},           // contained muon candidate mcs fwd
         {25, 0, 3},           // contained muon candidate mcs bwd
         {25, 0, 2},           // contained muon candidate mc energy forward
@@ -279,9 +285,9 @@ namespace numusel{
         {25, 0, 3},           // contained muon candidate momentum from range
         {25, 0, 2},           // contained muon candidate energy from range
         {25, 0, 700},         // uncontained muon cand length
-        {25, 0, 3.15},        // uncontained muon cand theta
-        {25, -1, 1},          // uncontained muon cand cos(theta)
-        {25, -3.15, 3.15},    // uncontained muon cand phi
+        {20, 0, 3.15},        // uncontained muon cand theta
+        {20, -1, 1},          // uncontained muon cand cos(theta)
+        {20, -3.15, 3.15},    // uncontained muon cand phi
         {25, 0, 3},           // uncontained muon candidate mcs fwd
         {25, 0, 3},           // uncontained muon candidate mcs bwd
         {25, 0, 2},           // uncontained muon candidate mc energy forward
@@ -289,31 +295,117 @@ namespace numusel{
         {25, 0, 3},           // uncontained muon candidate momentum from range
         {25, 0, 2},           // uncontained muon candidate energy from range
         {25, 0, 300},         // proton cand length
-        {25, 0, 3.15},        // proton cand theta
-        {25, -1, 1},          // proton cand cos(theta)
-        {25, -3.15, 3.15},    // proton cand phi
+        {20, 0, 3.15},        // proton cand theta
+        {20, -1, 1},          // proton cand cos(theta)
+        {20, -3.15, 3.15},    // proton cand phi
         {25, 0, 3},           // proton candidate mcs fwd
         {25, 0, 3},           // proton candidate mcs bwd
         {25, 0, 3.0},         // proton candidate range momentum
         {25, 0, 0.7},         // proton candidate range energy
         {25, 0, 300},         // leading proton cand length
-        {25, 0, 3.15},        // leading proton cand theta
-        {25, -1, 1},          // leading proton cand cos(theta)
-        {25, -3.15, 3.15},    // leading proton cand phi
+        {20, 0, 3.15},        // leading proton cand theta
+        {20, -1, 1},          // leading proton cand cos(theta)
+        {20, -3.15, 3.15},    // leading proton cand phi
         {25, 0, 3},           // leading proton candidate mcs fwd
         {25, 0, 3},           // leading proton candidate mcs bwd
         {25, 0, 3.0},         // leading proton candidate range momentum
         {25, 0, 0.7},         // leading proton candidate range energy
         {25, 0, 300},         // non-leading proton cand length
-        {25, 0, 3.15},        // non-leading proton cand theta
-        {25, -1, 1},          // non-leading proton cand cos(theta)
-        {25, -3.15, 3.15},    // non-leading proton cand phi
+        {20, 0, 3.15},        // non-leading proton cand theta
+        {20, -1, 1},          // non-leading proton cand cos(theta)
+        {20, -3.15, 3.15},    // non-leading proton cand phi
         {25, 0, 3},           // non-leading proton candidate mcs fwd
         {25, 0, 3},           // non-leading proton candidate mcs bwd
         {25, 0, 3.0},         // non-leading proton candidate range momentum
         {25, 0, 0.7},         // non-leading proton candidate range energy
         {25, 0, 3},           // reconstructed neutrino energy
-        {25, 0, 3}            // calibrated reconstructed neutrino energy
+        {25, 0, 3}            // calibrated reconstructed neutrino energy                  
+      };
+
+      std::vector<bool> histoMakeTrackPlot = {
+        false,                // total purity 
+        false,                // number of tracks
+        false,                // number of showers
+        false,                // number of pfparticles
+        false,                // vertex x
+        false,                // vertex y
+        false,                // vertex z
+        true,                 // track length
+        true,                 // track start x
+        true,                 // track end x
+        true,                 // track start y
+        true,                 // track end y
+        true,                 // track start z
+        true,                 // track end z
+        true,                 // track theta
+        true,                 // track cos(theta)
+        true,                 // track phi
+        true,                 // log(lmip/lp)
+        true,                 // track mcs fwd
+        true,                 // track mcs bwd
+        true,                 // track mcs energy fwd
+        true,                 // track mcs energy bwd
+        true,                 // track range momentum muon
+        true,                 // track range momentum proton
+        true,                 // track range energy muon
+        true,                 // track range energy proton
+        true,                 // track residualrms
+        false,                // muon cand length
+        false,                // muon cand theta
+        false,                // muon cand cos(theta)
+        false,                // muon cand phi
+        false,                // muon candidate mcs fwd
+        false,                // muon candidate mcs bwd
+        false,                // muon candidate mc energy forward
+        false,                // muon candidate mc energy backward
+        false,                // muon candidate momentum from range
+        false,                // muon candidate energy from range
+        false,                // contained muon cand length
+        false,                // contained muon cand theta
+        false,                // contained muon cand cos(theta)
+        false,                // contained muon cand phi
+        false,                // contained muon candidate mcs fwd
+        false,                // contained muon candidate mcs bwd
+        false,                // contained muon candidate mc energy forward
+        false,                // contained muon candidate mc energy backward
+        false,                // contained muon candidate momentum from range
+        false,                // contained muon candidate energy from range
+        false,                // uncontained muon cand length
+        false,                // uncontained muon cand theta
+        false,                // uncontained muon cand cos(theta)
+        false,                // uncontained muon cand phi
+        false,                // uncontained muon candidate mcs fwd
+        false,                // uncontained muon candidate mcs bwd
+        false,                // uncontained muon candidate mc energy forward
+        false,                // uncontained muon candidate mc energy backward
+        false,                // uncontained muon candidate momentum from range
+        false,                // uncontained muon candidate energy from range
+        false,                // proton cand length
+        false,                // proton cand theta
+        false,                // proton cand cos(theta)
+        false,                // proton cand phi
+        false,                // proton candidate mcs fwd
+        false,                // proton candidate mcs bwd
+        false,                // proton candidate range momentum
+        false,                // proton candidate range energy
+        false,                // leading proton cand length
+        false,                // leading proton cand theta
+        false,                // leading proton cand cos(theta)
+        false,                // leading proton cand phi
+        false,                // leading proton candidate mcs fwd
+        false,                // leading proton candidate mcs bwd
+        false,                // leading proton candidate range momentum
+        false,                // leading proton candidate range energy
+        false,                // non-leading proton cand length
+        false,                // non-leading proton cand theta
+        false,                // non-leading proton cand cos(theta)
+        false,                // non-leading proton cand phi
+        false,                // non-leading proton candidate mcs fwd
+        false,                // non-leading proton candidate mcs bwd
+        false,                // non-leading proton candidate range momentum
+        false,                // non-leading proton candidate range energy
+        false,                // reconstructed neutrino energy
+        false,                // calibrated reconstructed neutrino energy                  
       };
 
       /*
@@ -336,6 +428,11 @@ namespace numusel{
         {25, 0, 3},
         {25, 0, 2.5}
       };
+
+      /**
+       * Calculate chi2
+       */
+      std::pair<double,int> CalcChi2(TH1D* E, TH1D* O);
 
       /**
        * Fill 2D histograms
@@ -368,9 +465,29 @@ namespace numusel{
       void FillHistOffBeam(hists_1d* h1d, std::vector<double> variable);
 
       /**
+       * Fill MC trackhistos
+       */
+      void FillTrackHistMC(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> pid, std::vector<double> cut);
+
+      /**
+       * Fill On-beam trackhistos
+       */
+      void FillTrackHistOnBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> cut);
+
+      /**
+       * Fill Off-beam trackhistos
+       */
+      void FillTrackHistOffBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> cut);
+
+      /**
        * Initialise vector of hists_1ds
        */
       void InitialiseHistoVec(std::vector< std::vector<hists_1d*> >* plots_to_make, int n_plots);
+
+      /**
+       * Initialise vecotr of trackhists_1ds
+       */
+      void InitialiseTrackHistoVec(std::vector< std::vector<trackhists_1d*> >* trackhists_plots_to_make, int ntrackplots);
 
       /**
        * Initialise vector of TH2s
@@ -388,14 +505,29 @@ namespace numusel{
       void StyleHistograms(hists_1d* hists);
 
       /**
+       * Style track histograms
+       */
+      void StyleTrackHistograms(trackhists_1d* hists);
+
+      /**
        * Scale histograms
        */
       void ScaleHistograms(std::vector< std::vector<hists_1d*> > hists);
 
       /**
+       * Scale track histograms
+       */
+      void ScaleTrackHistograms(std::vector< std::vector<trackhists_1d*> > hists);
+
+      /**
        * Make stacked data/mc histograms and save to png/pdf file
        */
       void MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists);
+
+      /**
+       * Make stacked data/mc track histograms and save to png/pdf file
+       */
+      void MakeStackedTrackHistogramsAndSave(std::vector< std::vector<trackhists_1d*> > hists);
 
       /**
        * Make 2d histograms and save to png/pdf file

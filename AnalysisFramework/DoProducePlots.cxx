@@ -20,6 +20,31 @@
 
 int main(){
 
+  // print configuration information
+  std::cout << "--- POT INFORMATION" << std::endl;
+  std::cout << "----- simulation POT:          " << _config.bnbcosPOT << std::endl;
+  std::cout << "----- onbeam tor860_wcut:      " << _config.onbeam_tor860_wcut << std::endl;
+  std::cout << "----- onbeam E1DCNT_wcut:      " << _config.onbeam_E1DCNT_wcut << std::endl;
+  std::cout << "----- offbeam EXT:             " << _config.offbeam_EXT << std::endl;
+  std::cout << "-----" << std::endl;
+  std::cout << "----- simulation scale factor: " << _config.simscaling << std::endl;
+  std::cout << "----- offbeam scale factor:    " << _config.offbeamscaling << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "--- CONFIGURATION" << std::endl;
+  std::cout << "----- Do PID For Tracks?       " << _config.DoPIDForTracks << std::endl;
+  std::cout << "----- Do PID For Showers?      " << _config.DoPIDForShowers << std::endl;
+  std::cout << "----- Make Track Plots?        " << _config.MakeTrackPlots << std::endl;
+  std::cout << "----- Use Track Cut?           " << _config.UseTrackCut << std::endl;
+  std::cout << " " << std::endl;
+  std::cout << "--- ANALYSIS CUT VALUES" << std::endl;
+  std::cout << "----- nPFParticles LOW:        " << _anacuts.n_pfParticles_min_cut_val << std::endl; 
+  std::cout << "----- nPFParticles HIGH:       " << _anacuts.n_pfParticles_max_cut_val << std::endl; 
+  std::cout << "----- nTracks LOW:             " << _anacuts.n_tracks_min_cut_val << std::endl; 
+  std::cout << "----- nTracks HIGH:            " << _anacuts.n_tracks_max_cut_val << std::endl; 
+  std::cout << "----- nShowers LOW:            " << _anacuts.n_showers_min_cut_val << std::endl; 
+  std::cout << "----- nShowers HIGH:           " << _anacuts.n_showers_max_cut_val << std::endl; 
+  std::cout << "----- PID cut value:           " << _anacuts.pid_cutvalue << std::endl; 
+
   // pull out TTrees from provided TFiles
   // input trees are set in Configuration.h
   TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
@@ -69,6 +94,15 @@ int main(){
   plots_to_make = std::vector<std::vector<hists_1d*> >(_config.n_stages, std::vector<hists_1d*>(n_plots));
   _histoHandler.InitialiseHistoVec(&plots_to_make, n_plots);
 
+  // ntrackplots
+  int n_trackplots = 0;
+  for (int i = 0; i < _histoHandler.histoMakeTrackPlot.size(); i++){
+    if (_histoHandler.histoMakeTrackPlot.at(i) == true)
+      i++;
+  }
+  trackplots_to_make = std::vector< std::vector<trackhists_1d*> >(_config.n_stages, std::vector<trackhists_1d*>(n_plots));
+  _histoHandler.InitialiseTrackHistoVec(&trackplots_to_make, n_plots);
+
   // 2d plots 
   int n_plots2D = (int)_histoHandler.histoNames_2D.size();
   plots_to_make_2D = std::vector<std::vector<hists_2d*> >(_config.n_stages, std::vector<hists_2d*>(n_plots2D)); 
@@ -82,7 +116,7 @@ int main(){
   //------------------------------------
   // loop simulation
   //------------------------------------
- 
+
   std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
   for (int i = 0; i < t_simulation->GetEntries(); i++){
 
@@ -92,13 +126,13 @@ int main(){
     std::bitset<8> eventCat = _evcat.CategoriseEvent(simulation_vars);
 
     // protect against tracks which don't have PID in the collection plane
-    if ( (simulation_vars->nSelectedTracks != simulation_vars->bragg_fwd_p->size()) && simulation_vars->isUBXSecSelected) continue;
-      if (simulation_vars->track_dedxperhit_smeared->size() == 0) continue;
-      int n_nohits = 0;
-      for (int j = 0; j < simulation_vars->track_dedxperhit_smeared->size(); j++){
-        if (simulation_vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
-      }
-      if (n_nohits !=0) continue;
+    if ( (simulation_vars->nSelectedTracks > simulation_vars->bragg_fwd_p->size()) && simulation_vars->isUBXSecSelected) continue;
+    if (simulation_vars->track_dedxperhit_smeared->size() == 0) continue;
+    int n_nohits = 0;
+    for (int j = 0; j < simulation_vars->track_dedxperhit_smeared->size(); j++){
+      if (simulation_vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
+    }
+    if (n_nohits !=0) continue;
 
     std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY); 
 
@@ -116,9 +150,11 @@ int main(){
     }
 
     if (simulation_vars->isUBXSecSelected){
-      
+
       // get plots for data/MC comparisons
       std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, HISTOGRAM_1D, t_simulation, t_simulation_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesPDG = _selmaker.GetPlottingVariables(simulation_vars, PDG, t_simulation, t_simulation_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(simulation_vars, TRACKCUTVAR, t_simulation, t_simulation_out, i);
 
       for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
 
@@ -126,6 +162,11 @@ int main(){
 
           _histoHandler.FillHistMC(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), eventCat);
 
+          if (_histoHandler.histoMakeTrackPlot.at(i_pl) == true) {
+
+            _histoHandler.FillTrackHistMC(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesPDG.at(i_st).at(0), plottingVariablesTrackCut.at(i_st).at(0));
+
+          }
         }
       }
 
@@ -147,7 +188,7 @@ int main(){
   //------------------------------------
   // loop onbeam
   //------------------------------------
- 
+
   std::cout << "[MDSCP] Beginning onbeam loop..." << std::endl;
   for (int i = 0; i < t_onbeam->GetEntries(); i++){
 
@@ -155,7 +196,7 @@ int main(){
 
     if (onbeam_vars->isUBXSecSelected){
 
-      if (onbeam_vars->nSelectedTracks != onbeam_vars->bragg_fwd_p->size()) continue;
+      if (onbeam_vars->nSelectedTracks > onbeam_vars->bragg_fwd_p->size()) continue;
       if (onbeam_vars->track_dedxperhit_smeared->size() == 0) continue;
       int n_nohits = 0;
       for (int j = 0; j < onbeam_vars->track_dedxperhit_smeared->size(); j++){
@@ -164,11 +205,17 @@ int main(){
       if (n_nohits !=0) continue;
 
       std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, HISTOGRAM_1D, t_onbeam, t_onbeam_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(onbeam_vars, TRACKCUTVAR, t_onbeam, t_onbeam_out, i);
+
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
           _histoHandler.FillHistOnBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+
+          if (_histoHandler.histoMakeTrackPlot.at(i_pl) == true){
+            _histoHandler.FillTrackHistOnBeam(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesTrackCut.at(i_st).at(0));
+          }
         }
       }
 
@@ -199,7 +246,7 @@ int main(){
 
     if (offbeam_vars->isUBXSecSelected){
 
-      if (offbeam_vars->nSelectedTracks != offbeam_vars->bragg_fwd_p->size()) continue;
+      if (offbeam_vars->nSelectedTracks > offbeam_vars->bragg_fwd_p->size()) continue;
       if (offbeam_vars->track_dedxperhit_smeared->size() == 0) continue;
       int n_nohits = 0;
       for (int j = 0; j < offbeam_vars->track_dedxperhit_smeared->size(); j++){
@@ -209,11 +256,16 @@ int main(){
 
 
       std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, HISTOGRAM_1D, t_offbeam, t_offbeam_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(offbeam_vars, TRACKCUTVAR, t_offbeam, t_offbeam_out, i);
+
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
 
           _histoHandler.FillHistOffBeam(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
 
+          if (_histoHandler.histoMakeTrackPlot.at(i_pl) == true) {
+            _histoHandler.FillTrackHistOffBeam(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesTrackCut.at(i_st).at(0));
+          }
         }
       }
 
@@ -241,6 +293,9 @@ int main(){
   _histoHandler.Make2DHistogramsAndSave(plots_to_make_2D);
   _histoHandler.MakeEfficiencyHistogramsAndSave(eff_to_make);
 
+  _histoHandler.ScaleTrackHistograms(trackplots_to_make);
+  _histoHandler.MakeStackedTrackHistogramsAndSave(trackplots_to_make);
+
   //------------------------------------
   // print efficiency and purity info
   //------------------------------------
@@ -261,9 +316,9 @@ int main(){
 
   std::cout << "purity:" << plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp->GetBinContent(1)/h_tot->GetBinContent(1) << std::endl;
 
- t_onbeam_out->Write();
- t_offbeam_out->Write();
- t_simulation_out->Write();
+  t_onbeam_out->Write();
+  t_offbeam_out->Write();
+  t_simulation_out->Write();
 
   return 0;
 

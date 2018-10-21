@@ -12,11 +12,11 @@ namespace numusel{
     m_stage4_2d.resize(0);
 
     numusel::AnalysisCuts _anacuts; 
-    numusel::SelectionMaker selmaker;
+    numusel::SelectionMaker _selmaker;
 
     switch(var_type){
       case HISTOGRAM_2D:
-        selmaker.PushBack2DVectors(s_stage0_2d, vars, false);
+        _selmaker.PushBack2DVectors(s_stage0_2d, vars, false);
         break;
     }
     // passes first cut
@@ -24,7 +24,7 @@ namespace numusel{
 
       switch(var_type){
         case HISTOGRAM_2D:
-          selmaker.PushBack2DVectors(s_stage1_2d, vars, false);
+          _selmaker.PushBack2DVectors(s_stage1_2d, vars, false);
           break;
       }
       // passes second cut
@@ -32,7 +32,7 @@ namespace numusel{
 
         switch(var_type){
           case HISTOGRAM_2D:
-            selmaker.PushBack2DVectors(s_stage2_2d, vars, false);
+            _selmaker.PushBack2DVectors(s_stage2_2d, vars, false);
             break;
         }
 
@@ -40,7 +40,7 @@ namespace numusel{
         if (_anacuts.isPassNShowerSelection(vars)){
           switch(var_type){
             case HISTOGRAM_2D:
-              selmaker.PushBack2DVectors(s_stage3_2d, vars, false);
+              _selmaker.PushBack2DVectors(s_stage3_2d, vars, false);
               break;
           }
 
@@ -48,7 +48,7 @@ namespace numusel{
           if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
             switch(var_type){
               case HISTOGRAM_2D:
-                selmaker.PushBack2DVectors(s_stage4_2d, vars, true);
+                _selmaker.PushBack2DVectors(s_stage4_2d, vars, true);
                 break;
             }
           }
@@ -87,34 +87,52 @@ namespace numusel{
     m_stage4.resize(0);
 
     numusel::AnalysisCuts _anacuts; 
-    numusel::SelectionMaker selmaker;
+    numusel::SelectionMaker _selmaker;
 
     switch(var_type){
       case HISTOGRAM_1D:
-        selmaker.PushBack1DVectors(s_stage0, vars, false);
+        _selmaker.PushBack1DVectors(s_stage0, vars, false);
         break;
       case EFFICIENCY:
-        selmaker.PushBackEPVectors(s_stage0, vars);
+        _selmaker.PushBackEPVectors(s_stage0, vars);
+        break;
+      case PDG:
+        _selmaker.PushBackPIDVectors(s_stage0, vars);
+        break;
+      case TRACKCUTVAR:
+        _selmaker.PushBackTrackCutVar(s_stage0, vars);
         break;
     }
     // passes first cut
     if (_anacuts.isPassNPfparticleSelection(vars)){
       switch(var_type){
         case HISTOGRAM_1D:
-          selmaker.PushBack1DVectors(s_stage1, vars, false);
+          _selmaker.PushBack1DVectors(s_stage1, vars, false);
           break;
         case EFFICIENCY:
-          selmaker.PushBackEPVectors(s_stage1, vars);
+          _selmaker.PushBackEPVectors(s_stage1, vars);
+          break;
+        case PDG:
+          _selmaker.PushBackPIDVectors(s_stage1, vars);
+          break;
+        case TRACKCUTVAR:
+          _selmaker.PushBackTrackCutVar(s_stage1, vars);
           break;
       }
       // passes second cut
       if (_anacuts.isPassNTrackSelection(vars)){
         switch(var_type){
           case HISTOGRAM_1D:
-            selmaker.PushBack1DVectors(s_stage2, vars, false);
+            _selmaker.PushBack1DVectors(s_stage2, vars, false);
             break;
           case EFFICIENCY:
-            selmaker.PushBackEPVectors(s_stage2, vars);
+            _selmaker.PushBackEPVectors(s_stage2, vars);
+            break;
+          case PDG:
+            _selmaker.PushBackPIDVectors(s_stage2, vars);
+            break;
+          case TRACKCUTVAR:
+            _selmaker.PushBackTrackCutVar(s_stage2, vars);
             break;
         }
 
@@ -122,22 +140,36 @@ namespace numusel{
         if (_anacuts.isPassNShowerSelection(vars)){
           switch(var_type){
             case HISTOGRAM_1D:
-              selmaker.PushBack1DVectors(s_stage3, vars, false);
+              _selmaker.PushBack1DVectors(s_stage3, vars, false);
               break;
             case EFFICIENCY:
-              selmaker.PushBackEPVectors(s_stage3, vars);
+              _selmaker.PushBackEPVectors(s_stage3, vars);
               break;
+            case PDG:
+              _selmaker.PushBackPIDVectors(s_stage3, vars);
+              break;
+            case TRACKCUTVAR:
+              _selmaker.PushBackTrackCutVar(s_stage3, vars);
+              break;
+
           }
 
           // passes fourth cut
           if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
             switch(var_type){
               case HISTOGRAM_1D:
-                selmaker.PushBack1DVectors(s_stage4, vars, true);
+                _selmaker.PushBack1DVectors(s_stage4, vars, true);
                 break;
               case EFFICIENCY:
-                selmaker.PushBackEPVectors(s_stage4, vars); 
+                _selmaker.PushBackEPVectors(s_stage4, vars); 
                 break;
+              case PDG:
+                _selmaker.PushBackPIDVectors(s_stage4, vars);
+                break;
+              case TRACKCUTVAR:
+                _selmaker.PushBackTrackCutVar(s_stage4, vars);
+                break;
+
             }
             if (entry != -1){
               infile->GetEntry(entry);
@@ -180,6 +212,33 @@ namespace numusel{
 
   }
 
+  void SelectionMaker::PushBackPIDVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars){
+
+    m_stagex->push_back(std::vector<double>(vars->true_match_pdg->begin(),vars->true_match_pdg->end()));
+
+  }
+
+  void SelectionMaker::PushBackTrackCutVar(std::vector<std::vector<double>>* m_stagex, var_list* vars){
+
+    std::vector<double> iscutpassed;
+
+    for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
+
+      double val = -1;
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 11 && vars->track_costheta->at(i) < 0.0){
+        val = 1;
+      }
+      else val = 0;
+
+      iscutpassed.push_back(val);
+
+    }
+
+    m_stagex->push_back(iscutpassed);
+
+  }
+
+
   void SelectionMaker::PushBack1DVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
 
@@ -187,7 +246,6 @@ namespace numusel{
     // add the histogram name, title, and bin ranges in HistogramHandler.h
     // vectors
 
-    numusel::HistogramHandler _histohandler;
     numusel::AnalysisCuts     _anacuts;
     numusel::Configuration    _config;
 
@@ -203,10 +261,10 @@ namespace numusel{
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedTracks}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedShowers}));
     m_stagex->push_back(std::vector<double>({(double)vars->nSelectedPfparticles}));
-    m_stagex->push_back(*vars->track_length);
     m_stagex->push_back(std::vector<double>({(double)vars->vertex_x}));
     m_stagex->push_back(std::vector<double>({(double)vars->vertex_y}));
     m_stagex->push_back(std::vector<double>({(double)vars->vertex_z}));
+    m_stagex->push_back(*vars->track_length);
     m_stagex->push_back(*vars->track_startx);
     m_stagex->push_back(*vars->track_endx);
     m_stagex->push_back(*vars->track_starty);
@@ -233,7 +291,7 @@ namespace numusel{
     m_stagex->push_back(*vars->track_range_mom_passumption);
     m_stagex->push_back(*vars->track_range_energy_muassumption);
     m_stagex->push_back(*vars->track_range_energy_passumption);
-
+    m_stagex->push_back(*vars->track_residualrms);
 
     if (isHasPID == true){
 
@@ -299,8 +357,6 @@ namespace numusel{
 
       std::vector<std::pair<int, float>> leadingProtonFinder;
 
-      // get calibration slopes from TF1s
-
       for (int i = 0; i < pid.size(); i++){
 
         // get muon candidate
@@ -330,8 +386,18 @@ namespace numusel{
             candMuonRangeMomentumMuassmp_contained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_contained.push_back(vars->track_range_energy_muassumption->at(i));
 
+            //double range_mom = std::sqrt(std::pow(vars->track_range_energy_muassumption->at(i) + 0.105,2)-std::pow(0.105,2));
+            //double range_tote = std::sqrt(std::pow(range_mom,2)+std::pow(0.105,2));
+
+            //neutrinoReconstructedEnergyUncalib.at(0)+=range_tote;
+
+            //double range_mom_corr = std::sqrt(std::pow(muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i)) + 0.105,2)-std::pow(0.105,2));
+            //double range_tote_corr = std::sqrt(std::pow(range_mom_corr,2)+std::pow(0.105,2));
+
+            //neutrinoReconstructedEnergyCalib.at(0)+=range_tote_corr;
             neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_muassumption->at(i);
             neutrinoReconstructedEnergyCalib.at(0)+=muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
+
 
           }
           else{
@@ -355,8 +421,19 @@ namespace numusel{
               mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
             }
 
+            // convert mcs energy to momentum
+            //double mcs_mom = std::sqrt(std::pow(mcs_energy + 0.105,2)-std::pow(0.105,2));
+            //double mcs_tote = std::sqrt(std::pow(mcs_mom,2)+std::pow(0.105,2));
+
+            //neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
+
+            //double mcs_mom_corr = std::sqrt(std::pow(muon_mcs_energy_func->Eval(mcs_energy) + 0.105,2)-std::pow(0.105,2));
+            //double mcs_tote_corr = std::sqrt(std::pow(mcs_mom_corr,2)+std::pow(0.105,2));
+
+            //neutrinoReconstructedEnergyCalib.at(0)+=mcs_tote_corr;
             neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
             neutrinoReconstructedEnergyCalib.at(0)+=muon_mcs_energy_func->Eval(mcs_energy);
+
           }
 
         }
@@ -377,6 +454,15 @@ namespace numusel{
           thisProtonInformation.second = vars->track_length->at(i);
           leadingProtonFinder.push_back(thisProtonInformation);
 
+          //double range_mom = std::sqrt(std::pow(vars->track_range_energy_passumption->at(i) + 0.938,2)-std::pow(0.938,2));
+          //double range_tote = std::sqrt(std::pow(range_mom,2)+std::pow(0.938,2));
+
+          //neutrinoReconstructedEnergyUncalib.at(0)+=range_tote;
+
+          //double range_mom_corr = std::sqrt(std::pow(proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i)) + 0.938,2)-std::pow(0.938,2));
+          //double range_tote_corr = std::sqrt(std::pow(range_mom_corr,2)+std::pow(0.938,2));
+
+          //neutrinoReconstructedEnergyCalib.at(0)+= range_tote_corr;
           neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_passumption->at(i);
           neutrinoReconstructedEnergyCalib.at(0)+=proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i));
 
@@ -481,7 +567,6 @@ namespace numusel{
     // add the histogram name, title, and bin ranges in HistogramHandler.h
     // vectors
 
-    numusel::HistogramHandler _histohandler;
     numusel::AnalysisCuts _anacuts;
 
     std::vector<std::pair<double, double>> track_thetaphi;
@@ -490,106 +575,111 @@ namespace numusel{
       track_thetaphi.push_back(track_thetaphipair);
     }
 
-    std::vector<std::pair<double, double>> candMuondEdxResRange;
-    std::vector<std::pair<double, double>> candMuondEdxResRange_contained;
-    std::vector<std::pair<double, double>> candMuondEdxResRange_uncontained;
-    std::vector<std::pair<double, double>> candProtondEdxResRange;
-    std::vector<std::pair<double, double>> candProtondEdxResRange_leading;
-    std::vector<std::pair<double, double>> candProtondEdxResRange_nonleading;
-
-    std::vector<double> pid;
-    for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
-      double lmip = vars->noBragg_fwd_mip->at(i);
-      double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
-      pid.push_back(std::log(lmip/lp));
-    }
-
-    std::vector<std::pair<int, float>> leadingProtonFinder;
-    leadingProtonFinder.resize(0);
-
-
-    for (int i = 0; i < pid.size(); i++){
-
-      // get muon candidate
-      if (pid.at(i) > _anacuts.pid_cutvalue){
-
-        for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
-          candMuondEdxResRange.push_back(thisPair);
-        }
-
-        if (vars->track_isContained->at(i) == true){
-
-          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
-            candMuondEdxResRange_contained.push_back(thisPair);
-          }
-
-        }
-        else{
-          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
-            candMuondEdxResRange_uncontained.push_back(thisPair);
-          }
-
-        }
-
-      }
-      // else they're proton candidates
-      else if (pid.at(i) < _anacuts.pid_cutvalue){
-
-        for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
-          candProtondEdxResRange.push_back(thisPair);
-        }
-
-
-        std::pair<int, float> thisProtonInformation;
-        thisProtonInformation.first = i;
-        thisProtonInformation.second = vars->track_length->at(i);
-        leadingProtonFinder.push_back(thisProtonInformation);
-
-      }
-
-    }
-
-    if (leadingProtonFinder.size() > 0){
-
-      // sort thisProtonInformation based on length
-      std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
-          return left.second > right.second;
-          });
-
-      // get leading proton information
-      for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
-        std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
-
-        candProtondEdxResRange_leading.push_back(thisPair);
-      }
-
-      //and non-leading proton information
-      for (int i = 1; i < leadingProtonFinder.size(); i++){
-        for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
-          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
-
-          candProtondEdxResRange_nonleading.push_back(thisPair);
-        }
-
-      }
-    }
-
     m_stagex->push_back(track_thetaphi);
-    m_stagex->push_back(candMuondEdxResRange);
-    m_stagex->push_back(candMuondEdxResRange_contained);
-    m_stagex->push_back(candMuondEdxResRange_uncontained);
-    m_stagex->push_back(candProtondEdxResRange);
-    m_stagex->push_back(candProtondEdxResRange_leading);
-    m_stagex->push_back(candProtondEdxResRange_nonleading);
 
+    if (isHasPID == true){
+
+      std::vector<std::pair<double, double>> candMuondEdxResRange;
+      std::vector<std::pair<double, double>> candMuondEdxResRange_contained;
+      std::vector<std::pair<double, double>> candMuondEdxResRange_uncontained;
+      std::vector<std::pair<double, double>> candProtondEdxResRange;
+      std::vector<std::pair<double, double>> candProtondEdxResRange_leading;
+      std::vector<std::pair<double, double>> candProtondEdxResRange_nonleading;
+
+      std::vector<double> pid;
+      for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
+        double lmip = vars->noBragg_fwd_mip->at(i);
+        double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
+        pid.push_back(std::log(lmip/lp));
+      }
+
+      std::vector<std::pair<int, float>> leadingProtonFinder;
+      leadingProtonFinder.resize(0);
+
+
+      for (int i = 0; i < pid.size(); i++){
+
+        // get muon candidate
+        if (pid.at(i) > _anacuts.pid_cutvalue){
+
+          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+            candMuondEdxResRange.push_back(thisPair);
+          }
+
+          if (vars->track_isContained->at(i) == true){
+
+            for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+              std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+              candMuondEdxResRange_contained.push_back(thisPair);
+            }
+
+          }
+          else{
+            for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+              std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+              candMuondEdxResRange_uncontained.push_back(thisPair);
+            }
+
+          }
+
+        }
+        // else they're proton candidates
+        else if (pid.at(i) < _anacuts.pid_cutvalue){
+
+          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+
+            candProtondEdxResRange.push_back(thisPair);
+          }
+
+
+          std::pair<int, float> thisProtonInformation;
+          thisProtonInformation.first = i;
+          thisProtonInformation.second = vars->track_length->at(i);
+          leadingProtonFinder.push_back(thisProtonInformation);
+
+        }
+
+      }
+
+      if (leadingProtonFinder.size() > 0){
+
+        // sort thisProtonInformation based on length
+        std::sort(leadingProtonFinder.begin(), leadingProtonFinder.end(), [](auto &left, auto &right){
+            return left.second > right.second;
+            });
+
+        // get leading proton information
+        for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
+          std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
+
+          candProtondEdxResRange_leading.push_back(thisPair);
+        }
+
+        //and non-leading proton information
+        for (int i = 1; i < leadingProtonFinder.size(); i++){
+          for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
+            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
+
+            candProtondEdxResRange_nonleading.push_back(thisPair);
+          }
+
+        }
+      }
+
+      m_stagex->push_back(candMuondEdxResRange);
+      m_stagex->push_back(candMuondEdxResRange_contained);
+      m_stagex->push_back(candMuondEdxResRange_uncontained);
+      m_stagex->push_back(candProtondEdxResRange);
+      m_stagex->push_back(candProtondEdxResRange_leading);
+      m_stagex->push_back(candProtondEdxResRange_nonleading);
+
+
+    }
 
 
   }

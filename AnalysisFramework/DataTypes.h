@@ -15,7 +15,9 @@
 enum kVarType {
   HISTOGRAM_1D,
   HISTOGRAM_2D,
-  EFFICIENCY
+  EFFICIENCY,
+  PDG,
+  TRACKCUTVAR,
 };
 
 /**
@@ -32,6 +34,7 @@ struct var_list {
   double vertex_x = -999;
   double vertex_y = -999;
   double vertex_z = -999;
+  std::vector<int>* pfp_pdgCode = nullptr;
   std::vector<double>* track_startx = nullptr;
   std::vector<double>* track_endx = nullptr;
   std::vector<double>* track_starty = nullptr;
@@ -54,6 +57,7 @@ struct var_list {
   std::vector<double>* track_range_mom_passumption = nullptr;
   std::vector<double>* track_range_energy_muassumption = nullptr;
   std::vector<double>* track_range_energy_passumption = nullptr;
+  std::vector<double>* track_residualrms = nullptr;
   std::vector<bool>* track_isContained = nullptr;
   std::vector<std::vector<double>>* track_dedxperhit_smeared = nullptr;
   std::vector<std::vector<double>>* track_resrangeperhit = nullptr;
@@ -111,6 +115,28 @@ struct hists_1d {
     h_mcnumubar = new TH1D(std::string(name+"numubar").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcnumuccother = new TH1D(std::string(name+"numuccother").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcnumucc0pinp = new TH1D(std::string(name+"numucc0pinp").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_onbeam = new TH1D(std::string(name+"onbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_offbeam = new TH1D(std::string(name+"offbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+  }
+};
+
+struct trackhists_1d {
+  TH1D* h_muon;
+  TH1D* h_proton;
+  TH1D* h_pion;
+  TH1D* h_kaon;
+  TH1D* h_electron;
+  TH1D* h_other;
+  TH1D* h_onbeam;
+  TH1D* h_offbeam;
+
+  trackhists_1d(std::string name, std::string title, double nbinsx, double binlowx, double binhighx){
+    h_muon = new TH1D(std::string(name+"muon").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_proton = new TH1D(std::string(name+"proton").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_pion = new TH1D(std::string(name+"pion").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_kaon = new TH1D(std::string(name+"kaon").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_electron = new TH1D(std::string(name+"electron").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_other = new TH1D(std::string(name+"other").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_onbeam = new TH1D(std::string(name+"onbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_offbeam = new TH1D(std::string(name+"offbeam").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
   }

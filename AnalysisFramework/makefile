@@ -14,5 +14,7 @@ DoEnergyRecoStudies: DoEnergyRecoStudies.cxx EnergyReco.cxx TreeHandler.cxx
 all: DoProducePlots DoEnergyRecoStudies
 
 clean:
-	rm *.o DoProducePlots
-	rm *.o DoEnergyRecoStudies
+	rm DoProducePlots
+	rm DoEnergyRecoStudies
+	rm plots/*.png
+	rm plots/*.pdf

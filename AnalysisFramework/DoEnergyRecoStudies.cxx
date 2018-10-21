@@ -356,7 +356,7 @@ int main(){
 
   TCanvas *c1 = new TCanvas();
   true_energy_range_energy_proton->Draw("colz");
-  leastSquaresFitToMedian(true_energy_range_energy_proton, 0.05, 0.35);
+  leastSquaresFitToMedian(true_energy_range_energy_proton, 0.05, 0.30);
 
   c1->SaveAs("plots/true_energy_range_energy_proton.png");
 
@@ -392,7 +392,7 @@ int main(){
 
   TCanvas *c7 = new TCanvas();
   true_energy_mcs_energy_muon_uncontained->Draw("colz");
-  leastSquaresFitToMedian(true_energy_mcs_energy_muon_uncontained, 0.1, 1.2);
+  leastSquaresFitToMedian(true_energy_mcs_energy_muon_uncontained, 0.1, 0.9);
 
   c7->SaveAs("plots/true_energy_mcs_energy_muon_uncontained.png");
 

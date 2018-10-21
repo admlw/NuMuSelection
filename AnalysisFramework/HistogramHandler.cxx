@@ -2,6 +2,24 @@
 
 namespace numusel{
 
+  std::pair<double,int> HistogramHandler::CalcChi2(TH1D* E, TH1D* O){
+
+    if (E->GetNbinsX() != O->GetNbinsX()) throw std::exception();
+
+    double chi2 = 0;
+    int nbins = 0;
+    for (int i = 0; i < E->GetNbinsX()+1; i++){
+      if (O->GetBinContent(i) == 0 || E->GetBinContent(i) == 0) continue;
+      chi2 += std::pow(O->GetBinContent(i) - E->GetBinContent(i),2)/E->GetBinContent(i);
+      nbins++;
+    }
+
+    std::pair<double, int> chi2ndof(chi2, nbins);
+
+    return chi2ndof;
+
+  }
+
   void HistogramHandler::Fill2DHistMC(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
 
     for (int i = 0; i < variable.size(); i++){
@@ -10,7 +28,7 @@ namespace numusel{
 
     }
 
-  }
+  };
 
   void HistogramHandler::Fill2DHistOnbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
 
@@ -20,7 +38,7 @@ namespace numusel{
 
     }
 
-  }
+  };
 
   void HistogramHandler::Fill2DHistOffbeam(hists_2d* h2d, std::vector<std::pair<double, double>> variable){
 
@@ -30,7 +48,7 @@ namespace numusel{
 
     }
 
-  }
+  };
 
 
   void HistogramHandler::FillHistMC(hists_1d* h1d, std::vector<double> variable, std::bitset<8> eventCat){
@@ -88,6 +106,70 @@ namespace numusel{
 
   };
 
+  void HistogramHandler::FillTrackHistMC(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> pid, std::vector<double> isCutPassed){
+
+    HistogramHandler _histoHandler;
+    Configuration _config;
+
+    if (_config.MakeTrackPlots == false) return;
+
+    for (int i = 0; i < variable.size(); i++){
+
+      if ((_config.UseTrackCut == true && isCutPassed.at(i) == 1) || (_config.UseTrackCut == false)){
+
+        if (pid.at(i) == 13)
+          h1d->h_muon->Fill(variable.at(i));
+  
+        else if (pid.at(i) == 2212)
+          h1d->h_proton->Fill(variable.at(i));
+  
+        else if (pid.at(i) == 211)
+          h1d->h_pion->Fill(variable.at(i));
+  
+        else if (pid.at(i) == 321)
+          h1d->h_kaon->Fill(variable.at(i));
+  
+        else if (pid.at(i) == 11)
+          h1d->h_electron->Fill(variable.at(i));
+  
+        else
+          h1d->h_other->Fill(variable.at(i));
+      }
+    }
+
+  };
+
+  void HistogramHandler::FillTrackHistOnBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> isCutPassed){
+
+    HistogramHandler _histoHandler;
+    Configuration _config;
+
+    if (_config.MakeTrackPlots == false) return;
+
+    for (int i = 0; i < variable.size(); i++){
+      
+      if ((_config.UseTrackCut == true && isCutPassed.at(i) == 1) || (_config.UseTrackCut == false)){
+         h1d->h_onbeam->Fill(variable.at(i));
+      }
+    }
+  };
+
+  void HistogramHandler::FillTrackHistOffBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> isCutPassed){
+
+    HistogramHandler _histoHandler;
+    Configuration _config;
+
+    if (_config.MakeTrackPlots == false) return;
+
+    for (int i = 0; i < variable.size(); i++){
+      if ((_config.UseTrackCut == true && isCutPassed.at(i) == 1) || (_config.UseTrackCut == false)){
+        h1d->h_offbeam->Fill(variable.at(i));
+      }
+    }
+
+  };
+
+
   void HistogramHandler::InitialiseHistoVec(std::vector< std::vector<hists_1d*> > *plots_to_make, int n_plots){
 
     numusel::HistogramHandler _histohandler;
@@ -97,6 +179,26 @@ namespace numusel{
 
         plots_to_make->at(i_st).at(i_pl) = new hists_1d(
             std::string("h_"+_histohandler.histoNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+            _histohandler.histoLabels.at(i_pl),
+            _histohandler.histoBins.at(i_pl).at(0),
+            _histohandler.histoBins.at(i_pl).at(1),
+            _histohandler.histoBins.at(i_pl).at(2)
+            );
+      }
+    }
+  };
+
+  void HistogramHandler::InitialiseTrackHistoVec(std::vector< std::vector<trackhists_1d*> > *plots_to_make, int n_plots){
+
+    numusel::HistogramHandler _histohandler;
+
+    for (int i_st = 0; i_st < _config.n_stages; i_st++){
+      for (int i_pl = 0; i_pl < n_plots; i_pl++){
+
+        if (_histohandler.histoMakeTrackPlot.at(i_pl) == false) continue;
+
+        plots_to_make->at(i_st).at(i_pl) = new trackhists_1d(
+            std::string("h_"+_histohandler.histoNames.at(i_pl)+"tracks_stage"+std::to_string(i_st)),
             _histohandler.histoLabels.at(i_pl),
             _histohandler.histoBins.at(i_pl).at(0),
             _histohandler.histoBins.at(i_pl).at(1),
@@ -183,6 +285,38 @@ namespace numusel{
     hists->h_onbeam->SetMarkerSize(0.6);
   };
 
+  void HistogramHandler::StyleTrackHistograms(trackhists_1d* hists){
+
+    hists->h_muon->SetFillColor(TColor::GetColor(8, 64, 129));
+    hists->h_proton->SetFillColor(TColor::GetColor(215, 48, 39));
+    hists->h_pion->SetFillColor(TColor::GetColor(166, 217, 106));
+    hists->h_kaon->SetFillColor(TColor::GetColor(133, 1, 98));
+    hists->h_electron->SetFillColor(TColor::GetColor(251, 233, 69));
+    hists->h_other->SetFillColor(TColor::GetColor(197, 197, 197));
+    
+    hists->h_muon->SetMarkerColor(TColor::GetColor(8, 64, 129));
+    hists->h_proton->SetMarkerColor(TColor::GetColor(215, 48, 39));
+    hists->h_pion->SetMarkerColor(TColor::GetColor(166, 217, 106));
+    hists->h_kaon->SetMarkerColor(TColor::GetColor(133, 1, 98));
+    hists->h_electron->SetMarkerColor(TColor::GetColor(251, 233, 69));
+    hists->h_other->SetMarkerColor(TColor::GetColor(197, 197, 197));
+
+    hists->h_muon->SetLineWidth(0);
+    hists->h_proton->SetLineWidth(0);
+    hists->h_pion->SetLineWidth(0);
+    hists->h_kaon->SetLineWidth(0);
+    hists->h_electron->SetLineWidth(0);
+    hists->h_other->SetLineWidth(0);
+
+    hists->h_offbeam->SetFillColor(kBlack);
+    hists->h_offbeam->SetFillStyle(3345);
+
+    hists->h_onbeam->SetLineColor(kBlack);
+    hists->h_onbeam->SetMarkerStyle(20);
+    hists->h_onbeam->SetMarkerSize(0.6);
+  };
+
+
   void HistogramHandler::ScaleHistograms(std::vector< std::vector<hists_1d*> > hists){
 
     for (int i_st = 0; i_st < hists.size(); i_st++){
@@ -214,9 +348,228 @@ namespace numusel{
 
   };
 
+  void HistogramHandler::ScaleTrackHistograms(std::vector< std::vector<trackhists_1d*> > hists){
+
+    HistogramHandler _histoHandler;
+     
+    for (int i_st = 0; i_st < hists.size(); i_st++){
+      for (int i_pl = 0; i_pl < hists.at(i_st).size(); i_pl++){
+      
+        if (_histoHandler.histoMakeTrackPlot.at(i_pl) == false) continue;
+       
+        trackhists_1d* thisHistSet = hists.at(i_st).at(i_pl);
+
+        thisHistSet->h_muon->Sumw2();
+        thisHistSet->h_proton->Sumw2();
+        thisHistSet->h_pion->Sumw2();
+        thisHistSet->h_kaon->Sumw2();
+        thisHistSet->h_electron->Sumw2();
+        thisHistSet->h_other->Sumw2();
+        thisHistSet->h_offbeam->Sumw2();
+
+        thisHistSet->h_muon->Scale(_config.simscaling);
+        thisHistSet->h_proton->Scale(_config.simscaling);
+        thisHistSet->h_pion->Scale(_config.simscaling);
+        thisHistSet->h_kaon->Scale(_config.simscaling);
+        thisHistSet->h_electron->Scale(_config.simscaling);
+        thisHistSet->h_other->Scale(_config.simscaling);
+        thisHistSet->h_offbeam->Scale(_config.offbeamscaling);
+      }
+    }
+
+  };
+
+  void HistogramHandler::MakeStackedTrackHistogramsAndSave(std::vector< std::vector<trackhists_1d*> > hists){
+
+    numusel::HistogramHandler _histohandler;
+    numusel::Configuration _config;
+
+    TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
+    TPad *topPad = new TPad("topPad", "", 0.005, 0.3, 0.995, 0.995);
+    TPad *bottomPad = new TPad("bottomPad", "", 0.005, 0.005, 0.995, 0.3);
+    topPad->SetTopMargin(0.28);
+    topPad->SetBottomMargin(0.005);
+    bottomPad->SetTopMargin(0.005);
+    bottomPad->SetBottomMargin(0.25);
+    topPad->Draw();
+    bottomPad->Draw();
+
+    for (int i_st = 0; i_st < hists.size(); i_st++){
+      for (int i_pl = 0; i_pl < hists.at(i_st).size(); i_pl++){
+
+        if (_histohandler.histoMakeTrackPlot.at(i_pl) == false) continue;
+
+        trackhists_1d* thisHistSet = hists.at(i_st).at(i_pl);
+
+        if (thisHistSet->h_onbeam->Integral() == 0) continue;
+
+        _histohandler.StyleTrackHistograms(thisHistSet);
+
+        topPad->cd();
+
+        THStack *hs = new THStack("hs", std::string(_histohandler.histoLabels.at(i_pl)).c_str());
+        hs->Add(thisHistSet->h_offbeam);
+        hs->Add(thisHistSet->h_muon);
+        hs->Add(thisHistSet->h_proton);
+        hs->Add(thisHistSet->h_pion);
+        hs->Add(thisHistSet->h_kaon);
+        hs->Add(thisHistSet->h_electron);
+        hs->Add(thisHistSet->h_other);
+
+        TH1D *h_tot = (TH1D*)thisHistSet->h_offbeam->Clone("h_tot");
+        h_tot->Add(thisHistSet->h_muon);
+        h_tot->Add(thisHistSet->h_proton);
+        h_tot->Add(thisHistSet->h_pion);
+        h_tot->Add(thisHistSet->h_kaon);
+        h_tot->Add(thisHistSet->h_electron);
+        h_tot->Add(thisHistSet->h_other);
+
+        h_tot->SetFillStyle(3354);
+        h_tot->SetFillColor(kBlack);
+
+        h_tot->GetYaxis()->SetRangeUser(0.001, h_tot->GetMaximum()*1.1);
+        h_tot->GetYaxis()->SetTitle("Selected Events");
+        h_tot->GetYaxis()->SetTitleSize(0.045);
+        h_tot->GetYaxis()->SetTitleOffset(1.1);
+
+        h_tot->GetYaxis()->SetRangeUser(0.001, std::max(h_tot->GetMaximum(),thisHistSet->h_onbeam->GetMaximum())*1.25);
+
+        h_tot->Draw();
+        hs->Draw("histsame");
+        h_tot->Draw("sameE2");
+
+        thisHistSet->h_onbeam->Draw("samepE1");
+
+        // Write POT to TPaveText
+        std::ostringstream streamObj;
+        streamObj << _config.onbeam_tor860_wcut;
+        std::string data_pot = std::string("POT: ")+streamObj.str();
+        TPaveText *pt = new TPaveText(0.5, 0.66, 0.89, 0.71,"NDC");
+        pt->AddText(data_pot.c_str());
+        pt->SetFillColor(kWhite);
+        pt->SetTextAlign(32);
+        pt->Draw("same");
+
+        std::pair<double, int> chi2ndof = _histohandler.CalcChi2(h_tot, thisHistSet->h_onbeam);
+        TString chi2_string = Form("%0.2f", chi2ndof.first);
+
+        std::string chi2ndof_string = std::string("#chi^{2}: ")+std::string(chi2_string.Data())+std::string("/")+std::to_string(chi2ndof.second);
+        TPaveText *pt2 = new TPaveText(0.12, 0.66, 0.5, 0.71,"NDC");
+        pt2->AddText(chi2ndof_string.c_str());
+        pt2->SetFillColor(kWhite);
+        pt2->SetTextAlign(12);
+        pt2->Draw("same");
+
+        TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.95);
+        leg_1->AddEntry(thisHistSet->h_muon, "Muon");
+        leg_1->AddEntry(thisHistSet->h_proton, "Proton");
+        leg_1->AddEntry(thisHistSet->h_pion, "Pion");
+        leg_1->AddEntry(thisHistSet->h_kaon, "Kaon");
+
+        TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.95);
+        leg_2->AddEntry(thisHistSet->h_electron, "Electron");
+        leg_2->AddEntry(thisHistSet->h_other, "Other");
+        leg_2->AddEntry(thisHistSet->h_offbeam, "Off-beam Data");
+        leg_2->AddEntry(thisHistSet->h_onbeam, "On-beam Data");
+
+        leg_1->SetLineWidth(0);
+        leg_1->SetFillStyle(0);
+        leg_1->Draw("same");
+        leg_2->SetLineWidth(0);
+        leg_2->SetFillStyle(0);
+        leg_2->Draw("same");
+
+        h_tot->GetYaxis()->Draw("same");
+
+        gPad->RedrawAxis();
+
+        bottomPad->cd();
+        gStyle->SetOptStat(0);
+        TH1D* h_onbeam_clone = (TH1D*)thisHistSet->h_onbeam->Clone("h_onbeam_clone");
+        h_onbeam_clone->Sumw2();
+        h_onbeam_clone->Add(h_tot, -1);
+        h_onbeam_clone->Divide(h_tot);
+
+        TF1* f0 = new TF1("f0", "[0]", 
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2));
+
+        f0->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
+        f0->SetParameter(0,0.0);
+        f0->SetNpx(100);
+        f0->SetLineStyle(2);
+        f0->SetLineColor(kGray+2);
+        f0->GetYaxis()->SetRangeUser(-1, 1);
+        f0->GetXaxis()->SetRangeUser(_histohandler.histoBins.at(i_pl).at(1), _histohandler.histoBins.at(i_pl).at(2));
+        f0->GetXaxis()->SetLabelSize(0.08);
+        f0->GetYaxis()->SetLabelSize(0.08);
+        f0->GetXaxis()->SetTitleSize(0.1);
+        f0->GetXaxis()->SetTitleOffset(1.0);
+        f0->GetYaxis()->SetNdivisions(303);
+        f0->GetYaxis()->SetTitle("#frac{(ONBEAM-STACK)}{STACK}");
+        f0->GetYaxis()->SetTitleSize(0.1);
+        f0->GetYaxis()->SetTitleOffset(0.4);
+        f0->Draw();
+
+        TF1* f50low = new TF1("f50low", "[0]", 
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2) + (_histohandler.histoBins.at(i_pl).at(2)-_histohandler.histoBins.at(i_pl).at(1))/(2*_histohandler.histoBins.at(i_pl).at(0)));
+
+        f50low->SetParameter(0,0.5);
+        f50low->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
+
+        f50low->SetLineStyle(2);
+        f50low->SetLineColor(kGray);
+        f50low->GetYaxis()->SetRangeUser(-1, 1);
+        f50low->GetXaxis()->SetLabelSize(0.08);
+        f50low->GetYaxis()->SetLabelSize(0.08);
+        f50low->SetNpx(99);
+        f50low->Draw("same");
+
+        TF1* f50high = new TF1("f50high", "[0]", 
+            _histohandler.histoBins.at(i_pl).at(1), 
+            _histohandler.histoBins.at(i_pl).at(2) + (_histohandler.histoBins.at(i_pl).at(2)-_histohandler.histoBins.at(i_pl).at(1))/(2*_histohandler.histoBins.at(i_pl).at(0)));
+
+        f50high->SetParameter(0,-0.5);
+        f50high->SetTitle(_histohandler.histoLabels.at(i_pl).c_str());
+
+        f50high->SetLineStyle(2);
+        f50high->SetLineColor(kGray);
+        f50high->GetYaxis()->SetRangeUser(-1, 1);
+        f50high->GetXaxis()->SetLabelSize(0.08);
+        f50high->GetYaxis()->SetLabelSize(0.08);
+        f50high->SetNpx(99);
+        f50high->Draw("same");
+
+        h_onbeam_clone->Draw("same");
+
+
+        c1->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames.at(i_pl)
+              +std::string("Track_stage")
+              +std::to_string(i_st)
+              +std::string(".pdf")).c_str());
+
+        c1->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames.at(i_pl)
+              +std::string("Track_stage")
+              +std::to_string(i_st)
+              +std::string(".png")).c_str());
+
+       }
+
+    }
+
+  };
+
+
+
   void HistogramHandler::MakeStackedHistogramsAndSave(std::vector< std::vector<hists_1d*> > hists){
 
     numusel::HistogramHandler _histohandler;
+    numusel::Configuration    _config;
 
     TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
     TPad *topPad = new TPad("topPad", "", 0.005, 0.3, 0.995, 0.995);
@@ -268,13 +621,33 @@ namespace numusel{
         h_tot->GetYaxis()->SetTitleSize(0.045);
         h_tot->GetYaxis()->SetTitleOffset(1.1);
 
-        h_tot->GetYaxis()->SetRangeUser(0, std::max(h_tot->GetMaximum(),thisHistSet->h_onbeam->GetMaximum())*1.25);
+        h_tot->GetYaxis()->SetRangeUser(0.001, std::max(h_tot->GetMaximum(),thisHistSet->h_onbeam->GetMaximum())*1.25);
 
         h_tot->Draw();
         hs->Draw("histsame");
         h_tot->Draw("sameE2");
 
         thisHistSet->h_onbeam->Draw("samepE1");
+
+        // Write POT to TPaveText
+        std::ostringstream streamObj;
+        streamObj << _config.onbeam_tor860_wcut;
+        std::string data_pot = std::string("POT: ")+streamObj.str();
+        TPaveText *pt = new TPaveText(0.5, 0.66, 0.89, 0.71,"NDC");
+        pt->AddText(data_pot.c_str());
+        pt->SetFillColor(kWhite);
+        pt->SetTextAlign(32);
+        pt->Draw("same");
+
+        std::pair<double, int> chi2ndof = _histohandler.CalcChi2(h_tot, thisHistSet->h_onbeam);
+        TString chi2_string = Form("%0.2f", chi2ndof.first);
+
+        std::string chi2ndof_string = std::string("#chi^{2}: ")+std::string(chi2_string.Data())+std::string("/")+std::to_string(chi2ndof.second);
+        TPaveText *pt2 = new TPaveText(0.12, 0.66, 0.5, 0.71,"NDC");
+        pt2->AddText(chi2ndof_string.c_str());
+        pt2->SetFillColor(kWhite);
+        pt2->SetTextAlign(12);
+        pt2->Draw("same");
 
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.98);
         leg_1->AddEntry(thisHistSet->h_mccosmic, "Cosmic");
@@ -421,6 +794,9 @@ namespace numusel{
 
     for (int i_st = 0; i_st < hists.size(); i_st++){
       for (int i_pl = 0; i_pl < hists.at(i_st).size(); i_pl++){
+
+        hists_2d* thisHistSet = hists.at(i_st).at(i_pl);
+        if (thisHistSet->h_onbeam->Integral() == 0) continue;
 
         TCanvas *c_mc = new TCanvas();
         hists.at(i_st).at(i_pl)->h_mc->Draw("colz");

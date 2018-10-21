@@ -33,8 +33,10 @@ numusel::SelectionMaker   _selmaker;
 numusel::EfficiencyPurity _effpur;
 numusel::HistogramHandler _histoHandler;
 numusel::TreeHandler      _treeHandler;
+numusel::AnalysisCuts     _anacuts;
 
 std::vector<std::vector<hists_1d*>> plots_to_make;
+std::vector<std::vector<trackhists_1d*>> trackplots_to_make;
 std::vector<std::vector<eff_1d*>> eff_to_make;
 std::vector<std::vector<hists_2d*>> plots_to_make_2D;
 
