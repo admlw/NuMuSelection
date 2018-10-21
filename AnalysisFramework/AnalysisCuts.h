@@ -3,6 +3,7 @@
 
 // local
 #include "DataTypes.h"
+#include "Configuration.h"
 
 // cpp
 #include <iostream>
@@ -13,12 +14,12 @@ namespace numusel{
 
     public:
 
-      int n_tracks_min_cut_val = 0;
-      int n_tracks_max_cut_val = 2;
-      int n_showers_min_cut_val = 0;
-      int n_showers_max_cut_val = 0;
       int n_pfParticles_min_cut_val = 2;
       int n_pfParticles_max_cut_val = 100;
+      int n_tracks_min_cut_val = 0;
+      int n_tracks_max_cut_val = 100;
+      int n_showers_min_cut_val = 0;
+      int n_showers_max_cut_val = 100;
       float pid_cutvalue = -1.0;
 
       /**

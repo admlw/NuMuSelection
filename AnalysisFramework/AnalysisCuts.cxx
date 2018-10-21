@@ -4,75 +4,84 @@ namespace numusel{
 
   bool AnalysisCuts::isPassNPfparticleSelection(var_list* vars){
 
-      if (vars->nSelectedPfparticles >= n_pfParticles_min_cut_val &&
-          vars->nSelectedPfparticles <= n_pfParticles_max_cut_val)
-        return true;
-      else return false;
+    if (vars->nSelectedPfparticles >= n_pfParticles_min_cut_val &&
+        vars->nSelectedPfparticles <= n_pfParticles_max_cut_val)
+      return true;
+    else return false;
 
-    };
+  };
 
-    bool AnalysisCuts::isPassNTrackSelection(var_list* vars){
+  bool AnalysisCuts::isPassNTrackSelection(var_list* vars){
 
-        if (vars->nSelectedTracks >= n_tracks_min_cut_val && 
-                vars->nSelectedTracks <= n_tracks_max_cut_val)
-            return true;
-        else return false;
+    if (vars->nSelectedTracks >= n_tracks_min_cut_val && 
+        vars->nSelectedTracks <= n_tracks_max_cut_val)
+      return true;
+    else return false;
 
-    };
+  };
 
-    bool AnalysisCuts::isPassNShowerSelection(var_list* vars){
+  bool AnalysisCuts::isPassNShowerSelection(var_list* vars){
 
-        if (vars->nSelectedShowers >= n_showers_min_cut_val &&
-                vars->nSelectedShowers <= n_showers_max_cut_val)
-            return true;
-        else return false;
+    if (vars->nSelectedShowers >= n_showers_min_cut_val &&
+        vars->nSelectedShowers <= n_showers_max_cut_val)
+      return true;
+    else return false;
 
-    };
+  };
 
-    std::pair<bool, std::vector<int>> AnalysisCuts::isPassParticleIDSelection(var_list* vars, float cutval){
+  std::pair<bool, std::vector<int>> AnalysisCuts::isPassParticleIDSelection(var_list* vars, float cutval){
 
-        std::pair<bool, std::vector<int>> thisPair;
+    numusel::Configuration _config;
 
-        int n_muon_cand = 0;
-        std::vector<int> pidPdgCodes;
+    std::pair<bool, std::vector<int>> thisPair;
 
-        // calculate PID variables of interest
-        for (int i = 0; i < vars->nSelectedTracks; i++){
-            double proton_likelihood = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
-            double mip_likelihood = vars->noBragg_fwd_mip->at(i);
+    int n_muon_cand = 0;
+    std::vector<int> pidPdgCodes;
 
-            double loglmipoverp = std::log(mip_likelihood/proton_likelihood);
+    // calculate PID variables of interest
+    for (int i = 0; i < vars->bragg_fwd_p->size(); i++){
 
-            if (loglmipoverp > cutval){
-                n_muon_cand++;
-                pidPdgCodes.push_back(13); 
-            }
-            else pidPdgCodes.push_back(2212);
+      if (_config.DoPIDForShowers == false && vars->pfp_pdgCode->at(i) == 11)
+        continue;
 
-        }
+      if (_config.DoPIDForTracks == false && vars->pfp_pdgCode->at(i) == 13)
+        continue;
 
-        if (n_muon_cand == 1){
+      double proton_likelihood = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
+      double mip_likelihood = vars->noBragg_fwd_mip->at(i);
 
-            thisPair.first = true;
-            thisPair.second = pidPdgCodes;
+      double loglmipoverp = std::log(mip_likelihood/proton_likelihood);
 
-        }
-        else{
+      if (loglmipoverp > cutval){
+        n_muon_cand++;
+        pidPdgCodes.push_back(13); 
+      }
+      else pidPdgCodes.push_back(2212);
 
-            thisPair.first = false;
-            thisPair.second = pidPdgCodes;
+    }
 
-        }
+    if (n_muon_cand == 1){
 
-        return thisPair;
+      thisPair.first = true;
+      thisPair.second = pidPdgCodes;
 
-    };
+    }
+    else{
 
-    std::pair<bool, std::vector<int>> AnalysisCuts::isPassParticleIDSelection(var_list* vars){
+      thisPair.first = false;
+      thisPair.second = pidPdgCodes;
 
-        std::pair<bool, std::vector<int>> thisPair = isPassParticleIDSelection(vars, pid_cutvalue);
-        return thisPair;
+    }
 
-    };
+    return thisPair;
+
+  };
+
+  std::pair<bool, std::vector<int>> AnalysisCuts::isPassParticleIDSelection(var_list* vars){
+
+    std::pair<bool, std::vector<int>> thisPair = isPassParticleIDSelection(vars, pid_cutvalue);
+    return thisPair;
+
+  };
 
 }
