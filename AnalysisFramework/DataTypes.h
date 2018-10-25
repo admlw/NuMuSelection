@@ -59,6 +59,7 @@ struct var_list {
   std::vector<double>* track_range_energy_passumption = nullptr;
   std::vector<double>* track_residualrms = nullptr;
   std::vector<bool>* track_isContained = nullptr;
+  std::vector<bool>* track_isCollectionPID = nullptr;
   std::vector<std::vector<double>>* track_dedxperhit_smeared = nullptr;
   std::vector<std::vector<double>>* track_resrangeperhit = nullptr;
 
@@ -72,7 +73,11 @@ struct var_list {
   int true_nu_ccnc = -999;
   std::vector<int>* true_match_pdg = nullptr;
   std::vector<double>* true_match_starte = nullptr;
+  std::vector<int>* true_match_motherid = nullptr;
+  std::vector<int>* true_match_trackid = nullptr;
+  std::vector<std::string>* true_match_process = nullptr;
   std::vector<double>* true_mcp_pdg = nullptr;
+  std::vector<int>* true_mcp_trackid = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;
   std::vector<double>* true_mcp_starte = nullptr;
   std::vector<double>* true_mcp_startp = nullptr;

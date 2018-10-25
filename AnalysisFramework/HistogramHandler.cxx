@@ -461,16 +461,16 @@ namespace numusel{
         pt2->Draw("same");
 
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.95);
-        leg_1->AddEntry(thisHistSet->h_muon, "Muon");
-        leg_1->AddEntry(thisHistSet->h_proton, "Proton");
-        leg_1->AddEntry(thisHistSet->h_pion, "Pion");
-        leg_1->AddEntry(thisHistSet->h_kaon, "Kaon");
+        leg_1->AddEntry(thisHistSet->h_muon,   Form("Muon, %g entries", thisHistSet->h_muon->Integral()));
+        leg_1->AddEntry(thisHistSet->h_proton, Form("Proton, %g entries", thisHistSet->h_proton->Integral()));
+        leg_1->AddEntry(thisHistSet->h_pion,   Form("Pion, %g entries", thisHistSet->h_pion->Integral()));
+        leg_1->AddEntry(thisHistSet->h_kaon,   Form("Kaon, %g entries", thisHistSet->h_kaon->Integral()));
 
         TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.95);
-        leg_2->AddEntry(thisHistSet->h_electron, "Electron");
-        leg_2->AddEntry(thisHistSet->h_other, "Other");
-        leg_2->AddEntry(thisHistSet->h_offbeam, "Off-beam Data");
-        leg_2->AddEntry(thisHistSet->h_onbeam, "On-beam Data");
+        leg_2->AddEntry(thisHistSet->h_electron, Form("Electron, %g entries", thisHistSet->h_electron->Integral()));
+        leg_2->AddEntry(thisHistSet->h_other,    Form("Other, %g entries", thisHistSet->h_other->Integral()));
+        leg_2->AddEntry(thisHistSet->h_offbeam,  Form("Off-beam Data, %g entries", thisHistSet->h_offbeam->Integral()));
+        leg_2->AddEntry(thisHistSet->h_onbeam,   Form("On-beam Data, %g entries", thisHistSet->h_onbeam->Integral()));
 
         leg_1->SetLineWidth(0);
         leg_1->SetFillStyle(0);
@@ -650,18 +650,18 @@ namespace numusel{
         pt2->Draw("same");
 
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.98);
-        leg_1->AddEntry(thisHistSet->h_mccosmic, "Cosmic");
-        leg_1->AddEntry(thisHistSet->h_mcmixed, "Mixed");
-        leg_1->AddEntry(thisHistSet->h_mcoofv, "OOFV");
-        leg_1->AddEntry(thisHistSet->h_mcnc, "NC");
-        leg_1->AddEntry(thisHistSet->h_mcnuenuebar, "#nu_{e}/#bar{#nu_{e}}");
+        leg_1->AddEntry(thisHistSet->h_mccosmic, Form("Cosmic, %g entries", thisHistSet->h_mccosmic->Integral()));
+        leg_1->AddEntry(thisHistSet->h_mcmixed, Form("Mixed, %g entries", thisHistSet->h_mcmixed->Integral()));
+        leg_1->AddEntry(thisHistSet->h_mcoofv, Form("OOFV, %g entries", thisHistSet->h_mcoofv->Integral()));
+        leg_1->AddEntry(thisHistSet->h_mcnc, Form("NC, %g entries", thisHistSet->h_mcnc->Integral()));
+        leg_1->AddEntry(thisHistSet->h_mcnuenuebar, Form("#nu_{e}/#bar{#nu_{e}}, %g entries", thisHistSet->h_mcnuenuebar->Integral()));
 
         TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.98);
-        leg_2->AddEntry(thisHistSet->h_mcnumubar, "#bar{#nu_{#mu}}");
-        leg_2->AddEntry(thisHistSet->h_mcnumuccother, "#nu_{#mu}CC-Other");
-        leg_2->AddEntry(thisHistSet->h_mcnumucc0pinp, "#nu_{#mu}CC0#piNP");
-        leg_2->AddEntry(thisHistSet->h_offbeam, "Off-beam Data");
-        leg_2->AddEntry(thisHistSet->h_onbeam, "On-beam Data");
+        leg_2->AddEntry(thisHistSet->h_mcnumubar, Form("#bar{#nu_{#mu}}, %g entries", thisHistSet->h_mcnumubar->Integral()));
+        leg_2->AddEntry(thisHistSet->h_mcnumuccother, Form("#nu_{#mu}CC-Other, %g entries", thisHistSet->h_mcnumuccother->Integral()));
+        leg_2->AddEntry(thisHistSet->h_mcnumucc0pinp, Form("#nu_{#mu}CC0#piNP, %g entries", thisHistSet->h_mcnumucc0pinp->Integral()));
+        leg_2->AddEntry(thisHistSet->h_offbeam, Form("Off-beam Data, %g entries", thisHistSet->h_offbeam->Integral()));
+        leg_2->AddEntry(thisHistSet->h_onbeam, Form("On-beam Data, %g entries", thisHistSet->h_onbeam->Integral()));
 
         leg_1->SetLineWidth(0);
         leg_1->SetFillStyle(0);

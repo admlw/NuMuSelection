@@ -46,6 +46,8 @@ namespace numusel{
        * pair.second: vector of pdg codes returned from PID
        *
        * this assumes the default pid cut values
+       *
+       * This also makes the demand that proton candidates be contained within the fiducial volume
        */
       std::pair< bool, std::vector<int> > isPassParticleIDSelection(var_list *vars);
 

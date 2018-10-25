@@ -25,6 +25,7 @@ namespace numusel{
     tree->SetBranchStatus("track_theta"          , 1);
     tree->SetBranchStatus("track_costheta"       , 1);
     tree->SetBranchStatus("track_isContained"    , 1);
+    tree->SetBranchStatus("track_isCollectionPID", 1);
     tree->SetBranchStatus("track_phi"            , 1);
     tree->SetBranchStatus("bragg_fwd_p"          , 1);
     tree->SetBranchStatus("bragg_bwd_p"          , 1);
@@ -63,6 +64,7 @@ namespace numusel{
     tree->SetBranchAddress("track_costheta"       , &(varstoset->track_costheta));
     tree->SetBranchAddress("track_phi"            , &(varstoset->track_phi));
     tree->SetBranchAddress("track_isContained"    , &(varstoset->track_isContained));
+    tree->SetBranchAddress("track_isCollectionPID", &(varstoset->track_isCollectionPID));
     tree->SetBranchAddress("bragg_fwd_p"          , &(varstoset->bragg_fwd_p));
     tree->SetBranchAddress("bragg_bwd_p"          , &(varstoset->bragg_bwd_p));
     tree->SetBranchAddress("noBragg_fwd_mip"      , &(varstoset->noBragg_fwd_mip));
@@ -92,10 +94,14 @@ namespace numusel{
       tree->SetBranchStatus("true_nu_ccnc"     , 1);
       tree->SetBranchStatus("true_match_pdg"   , 1);
       tree->SetBranchStatus("true_match_starte", 1);
+      tree->SetBranchStatus("true_match_motherid", 1);
+      tree->SetBranchStatus("true_match_trackid", 1);
+      tree->SetBranchStatus("true_match_process", 1);
       tree->SetBranchStatus("true_mcp_pdg"     , 1);
       tree->SetBranchStatus("true_mcp_process" , 1);
       tree->SetBranchStatus("true_mcp_starte"  , 1);
       tree->SetBranchStatus("true_mcp_startp"  , 1);
+      tree->SetBranchStatus("true_mcp_trackid", 1);
 
       tree->SetBranchAddress("isBeamNeutrino"   , &(varstoset->isBeamNeutrino));
       tree->SetBranchAddress("isCosmic"         , &(varstoset->isCosmic));
@@ -107,10 +113,14 @@ namespace numusel{
       tree->SetBranchAddress("true_nu_ccnc"     , &(varstoset->true_nu_ccnc));
       tree->SetBranchAddress("true_match_pdg"   , &(varstoset->true_match_pdg));
       tree->SetBranchAddress("true_match_starte", &(varstoset->true_match_starte));
+      tree->SetBranchAddress("true_match_trackid", &(varstoset->true_match_trackid));
+      tree->SetBranchAddress("true_match_motherid", &(varstoset->true_match_motherid));
+      tree->SetBranchAddress("true_match_process", &(varstoset->true_match_process));
       tree->SetBranchAddress("true_mcp_pdg"     , &(varstoset->true_mcp_pdg));
       tree->SetBranchAddress("true_mcp_process" , &(varstoset->true_mcp_process));
       tree->SetBranchAddress("true_mcp_starte"  , &(varstoset->true_mcp_starte));
       tree->SetBranchAddress("true_mcp_startp"  , &(varstoset->true_mcp_startp));
+      tree->SetBranchAddress("true_mcp_trackid", &(varstoset->true_mcp_trackid));
 
     }
 

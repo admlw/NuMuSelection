@@ -225,8 +225,54 @@ namespace numusel{
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
-      if (std::abs(vars->pfp_pdgCode->at(i)) == 11 && vars->track_costheta->at(i) < 0.0){
-        val = 1;
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 11){
+
+        if (vars->isSimulation == true){
+
+        int mother_pdg = 0;
+        std::string process = "";
+
+        if (std::abs(vars->true_match_pdg->at(i)) == 11){
+            if (std::abs(vars->true_match_pdg->at(i)) != 13 &&
+                std::abs(vars->true_match_pdg->at(i)) != 2212 &&
+                std::abs(vars->true_match_pdg->at(i)) != 211 &&
+                std::abs(vars->true_match_pdg->at(i)) != 321 &&
+                std::abs(vars->true_match_pdg->at(i)) != 11)
+              std::cout << vars->true_match_pdg->at(i) << std::endl;
+
+
+          process = vars->true_match_process->at(i);
+          //std::cout << "---- Found shower for electron at " << i << std::endl;
+          //std::cout << "process: " << vars->true_match_process->at(i) << std::endl;
+          //std::cout << "track id: " << vars->true_match_trackid->at(i) << std::endl;
+          //std::cout << "mother id: " << vars->true_match_motherid->at(i) << std::endl;
+          for (int j = 0; j < vars->true_mcp_pdg->size(); j++){
+
+            if (std::abs(vars->true_mcp_pdg->at(j)) != 13 &&
+                std::abs(vars->true_mcp_pdg->at(j)) != 2212 &&
+                std::abs(vars->true_mcp_pdg->at(j)) != 211 &&
+                std::abs(vars->true_mcp_pdg->at(j)) != 321 &&
+                std::abs(vars->true_mcp_pdg->at(j)) != 11)
+              std::cout << vars->true_mcp_pdg->at(j) << std::endl;
+
+
+
+            if (vars->true_mcp_trackid->at(j) == vars->true_match_motherid->at(i)){
+              //std::cout << "mother pdg: " << vars->true_mcp_pdg->at(j) << std::endl;
+              mother_pdg = vars->true_mcp_pdg->at(j);
+            }
+
+          }
+
+        }
+       
+//        if ((std::abs(mother_pdg) == 13 && (process != "muMinusCaptureAtRest" && process != "muIoni" && process != "Decay")) && mother_pdg != 22 && mother_pdg != 0){  // Decay, conv, muMinusCaptureAtRest, muIoni
+//
+        if (std::abs(mother_pdg) == 13 && process == "muIoni"){
+          val = 1;
+        }
+        else val = 0;
+        } else val = 1;
       }
       else val = 0;
 
@@ -279,7 +325,10 @@ namespace numusel{
     for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
       double lmip = vars->noBragg_fwd_mip->at(i);
       double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
-      pid.push_back(std::log(lmip/lp));
+      
+      if (lmip == -999)
+        pid.push_back(-999);
+      else pid.push_back(std::log(lmip/lp));
     }
     m_stagex->push_back(pid);
 
@@ -360,6 +409,8 @@ namespace numusel{
       for (int i = 0; i < pid.size(); i++){
 
         // get muon candidate
+        // if the pid value is 0, then this indicated there was no calorimetry information
+        // in the collection plane
         if (pid.at(i) > _anacuts.pid_cutvalue){
 
           candMuonLength.push_back(vars->track_length->at(i));
@@ -438,7 +489,7 @@ namespace numusel{
 
         }
         // else they're proton candidates
-        else {
+        else{
 
           candProtonLength.push_back(vars->track_length->at(i));
           candProtonTheta.push_back(vars->track_theta->at(i));
