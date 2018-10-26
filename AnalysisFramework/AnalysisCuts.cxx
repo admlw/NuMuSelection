@@ -77,6 +77,7 @@ namespace numusel{
     // calculate PID variables of interest
     for (int i = 0; i < vars->bragg_fwd_p->size(); i++){
 
+      // flags for turning on PID for showers/PID for tracks
       if (_config.DoPIDForShowers == false && vars->pfp_pdgCode->at(i) == 11){
         continue;
       }
@@ -95,15 +96,20 @@ namespace numusel{
       else
         loglmipoverp = std::log(mip_likelihood/proton_likelihood);
 
+      // muon candidate
       if (loglmipoverp > cutval){
         n_muon_cand++;
         pidPdgCodes.push_back(13); 
       }
+      // proton candidates
       else {
         pidPdgCodes.push_back(2212);
+
         if (vars->track_isContained->at(i) == 0)
           protons_contained = false;
 
+        // check proton quality, i.e. are more than 1/4 of the proton
+        // dE/dx values MIP-like
         for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
 
           if (vars->track_dedxperhit_smeared->at(i).at(j) <= 2)
@@ -119,7 +125,6 @@ namespace numusel{
       }
 
     }
-
 
     if (n_muon_cand == 1 && protons_contained == true &&  protons_quality == true){
 

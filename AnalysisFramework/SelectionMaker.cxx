@@ -222,6 +222,8 @@ namespace numusel{
 
     std::vector<double> iscutpassed;
 
+    // this currently just checks whether the pfparticles were identified
+    // as a shower by pandora
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
@@ -587,14 +589,24 @@ namespace numusel{
       std::vector<std::pair<int, float>> leadingProtonFinder;
       leadingProtonFinder.resize(0);
 
+      // loop PID vector that we've just filled
+      // We want to find:
+      // * contained muons
+      // * uncontained muons
+      // * protons
+      // separately since they require different energy reconstructions
+      //
+      // Also going to separate protons out by leading/non leading, mostly for 
+      // interests sake
+
       for (int i = 0; i < pid.size(); i++){
 
         // get muon candidate
         if (pid.at(i) > _anacuts.pid_cutvalue){
 
+          // any muon
           for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
             std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
             candMuondEdxResRange.push_back(thisPair);
           }
 
@@ -603,22 +615,23 @@ namespace numusel{
 
             for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
               std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
               candMuondEdxResRange_contained.push_back(thisPair);
-
             }
 
+            // add reconstructed energy for contained muons
             neutrinoReconstructedEnergyCalib_tmp.second += muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
+
           }
           // uncontained muons
           else{
+
             for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
               std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
               candMuondEdxResRange_uncontained.push_back(thisPair);
             }
 
+            // get MCS energy
             float mcs_energy = 0;
-
             if (vars->track_mcs_muassmp_fwd_loglikelihood->at(i) < vars->track_mcs_muassmp_bwd_loglikelihood->at(i)){
               mcs_energy = vars->track_mcs_muassmp_energy_fwd->at(i);
             }
@@ -626,11 +639,12 @@ namespace numusel{
               mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
             }
 
+            // add reconstructed energy from MCS for uncontained muons
             neutrinoReconstructedEnergyCalib_tmp.second += muon_mcs_energy_func->Eval(mcs_energy);
           }
 
         }
-        // else they're proton candidates
+        // protons
         else{
           if (pid.at(i) < _anacuts.pid_cutvalue){
 
@@ -644,14 +658,19 @@ namespace numusel{
             thisProtonInformation.first = i;
             thisProtonInformation.second = vars->track_length->at(i);
             leadingProtonFinder.push_back(thisProtonInformation);
+
           }
 
+          // add reconstructed energy from range for protons
           neutrinoReconstructedEnergyCalib_tmp.second += proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i));
 
         }
 
       }
 
+      // now going to use the vector of pairs we created earlier, 
+      // sort them by length, and then we can grab the leading
+      // and non-leading protons
       if (leadingProtonFinder.size() > 0){
 
         // sort thisProtonInformation based on length
@@ -662,7 +681,6 @@ namespace numusel{
         // get leading proton information
         for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).size(); j++){
           std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(0).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(0).first).at(j));
-
           candProtondEdxResRange_leading.push_back(thisPair);
         }
 
@@ -670,13 +688,14 @@ namespace numusel{
         for (int i = 1; i < leadingProtonFinder.size(); i++){
           for (int j = 0; j < vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).size(); j++){
             std::pair<float, float> thisPair(vars->track_resrangeperhit->at(leadingProtonFinder.at(i).first).at(j), vars->track_dedxperhit_smeared->at(leadingProtonFinder.at(i).first).at(j));
-
             candProtondEdxResRange_nonleading.push_back(thisPair);
           }
 
         }
       }
 
+      // we can only make the true neutrino energy versus deposited energy for 
+      // simulation, obviously
       if (vars->isSimulation)
         neutrinoReconstructedEnergyCalib_tmp.first = vars->true_genie_starte->at(0);
       else 
@@ -693,7 +712,6 @@ namespace numusel{
 
 
     }
-
 
   }
 
