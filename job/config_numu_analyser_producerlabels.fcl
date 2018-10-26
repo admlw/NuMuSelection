@@ -8,6 +8,7 @@ numuproducerlabels:
 {
   
   SelectionLabel: "UBXSec::UBXSec"
+  PFPLabel: "pandoraNu::UBXSec"
   TrackLabel: "pandoraNu::UBXSec"
   HitLabel: "pandoraCosmicHitRemoval::UBXSec"
   MCSSLabel: "pandoraNuMCSMu::UBXSec"
@@ -15,6 +16,7 @@ numuproducerlabels:
   TrackParticleIdAssn: "pid::numusel"
   TrackSmearedCaloAssn: "dedxcalibration::numusel"
   TrackUnsmearedCaloAssn: "pidcalibration::numusel"
+  PFPTrackAssn: "pandoraNu::UBXSec"
   SelectionTPCObjAssn: "UBXSec::UBXSec"
   HitTrackAssn: "pandoraNu::UBXSec"
   HitTruthAssns: "pandoraCosmicHitRemoval::UBXSec"
@@ -24,6 +26,7 @@ numuproducerlabels:
 numuproducerlabels_data:
 {
   selectionLabel: "UBXSec::UBXSec"
+  PFPLabel: "pandoraNu::UBXSec"
   TrackLabel: "pandoraNu::UBXSec"
   HitLabel: "pandoraCosmicHitRemoval::UBXSec"
   MCSSLabel: "pandoraNuMCSMu::UBXSec"
@@ -31,6 +34,7 @@ numuproducerlabels_data:
   TrackParticleIdAssn: "pid::numusel"
   TrackSmearedCaloAssn: "dedxcalibration::numusel"
   TrackUnsmearedCaloAssn: "pidcalibration::numusel"
+  PFPTrackAssn: "pandoraNu::UBXSec"
   SelectionTPCObjAssn: "UBXSec::UBXSec"
   HitTrackAssn: "pandoraNu::UBXSec"
 
