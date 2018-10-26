@@ -20,6 +20,7 @@
 #include "TLegend.h"
 #include "TStyle.h"
 #include "TPaveText.h"
+#include "TFile.h"
 
 // local
 #include "DataTypes.h"
@@ -41,7 +42,8 @@ namespace numusel{
         "h_dedx_resrg_mucand_uncontained",
         "h_dedx_resrg_pcand",
         "h_dedx_resrg_leadingpcand",
-        "h_dedx_resrg_nonleadingpcand"
+        "h_dedx_resrg_nonleadingpcand",
+        "h_trueenu_recoenu"
       };
 
       std::vector<std::string> histoLabels_2D = {
@@ -51,7 +53,8 @@ namespace numusel{
         "Uncontained Muon Candidate;Residual Range (cm);dE/dx (MeV/cm)",
         "Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
         "Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
-        "Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)"
+        "Non-Leading Proton Candidate;Residual Range (cm);dE/dx (MeV/cm)",
+        ";true E_{#nu};Reco E_{#nu}"
       };
      
       std::vector<std::vector<double>> histoBins_2D = {
@@ -61,7 +64,8 @@ namespace numusel{
         {50, 0, 30, 50, 0, 20},
         {50, 0, 30, 50, 0, 20},
         {50, 0, 30, 50, 0, 20},
-        {50, 0, 30, 50, 0, 20}
+        {50, 0, 30, 50, 0, 20},
+        {50, 0, 3, 50, 0, 3}
       };
 
       std::vector<std::string> histoNames = {
@@ -425,7 +429,7 @@ namespace numusel{
 
       std::vector< std::vector<double> > effpurBins = {
         {1, 0, 1},
-        {25, 0, 3},
+        {30, 0, 3},
         {25, 0, 2.5}
       };
 

@@ -801,6 +801,20 @@ namespace numusel{
         TCanvas *c_mc = new TCanvas();
         hists.at(i_st).at(i_pl)->h_mc->Draw("colz");
 
+        // if it's the plot of E_nu versus E_dep then fit a straight line
+        // to it
+        if (_histohandler.histoNames_2D.at(i_pl) == "h_trueenu_recoenu"){
+
+          hists.at(i_st).at(i_pl)->h_mc->Fit("pol1", "", "", 0.4, 1.0);
+          float par0 = hists.at(i_st).at(i_pl)->h_mc->GetFunction("pol1")->GetParameter(0);
+          float par1 = hists.at(i_st).at(i_pl)->h_mc->GetFunction("pol1")->GetParameter(1);
+
+          TF1* func = new TF1("func", "[0]*x+[1]", 0, 3);
+          func->SetParameters(par1, par0);
+          func->Draw("same");
+
+        }
+
         c_mc->SaveAs(std::string(
               std::string("plots/")
               +_histohandler.histoNames_2D.at(i_pl)
@@ -835,6 +849,9 @@ namespace numusel{
 
     numusel::HistogramHandler _histohandler;
 
+    TFile* outfile = new TFile("efficiencyPlots.root", "update");
+    outfile->cd();
+
     TCanvas *c1 = new TCanvas();
 
     for (int i_st = 0; i_st < effplots.size(); i_st++){
@@ -853,6 +870,12 @@ namespace numusel{
         c1->SetGridy();
 
         effplot->Draw("E1");
+
+        effplot->SetName(std::string(
+              _histohandler.effpurNames.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)).c_str());
+        effplot->Write();
 
         c1->SaveAs(std::string(
               std::string("plots/")
