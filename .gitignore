@@ -3,5 +3,6 @@
 *.pdf
 plots/
 .*swo
-ProducePlots
 *.root
+DoEnergyRecoStudies
+DoProducePlots
