@@ -20,7 +20,7 @@
 #include "DataTypes.h"
 #include "AnalysisCuts.h"
 #include "SelectionMaker.h"
-#include "EfficiencyPurity.h"
+#include "Efficiency.h"
 #include "HistogramHandler.h"
 #include "TreeHandler.h"
 #include "TPaveText.h"

@@ -415,19 +415,19 @@ namespace numusel{
       /*
        * These three vectors fully define all of the efficiency/purity histograms to produce
        */
-      std::vector<std::string> effpurNames = {
+      std::vector<std::string> effNames = {
         "totel_eff",
         "true_enu",
         "true_mu_p"
       };
 
-      std::vector<std::string> effpurLabels = {
+      std::vector<std::string> effLabels = {
         ";Total Efficiency;",
         ";E_{#nu}^{true} (Gev);",
         ";p_{#mu} (Gev);"
       };
 
-      std::vector< std::vector<double> > effpurBins = {
+      std::vector< std::vector<double> > effBins = {
         {1, 0, 1},
         {30, 0, 3},
         {25, 0, 2.5}

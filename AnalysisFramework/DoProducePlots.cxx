@@ -109,9 +109,9 @@ int main(){
   _histoHandler.InitialiseHistoVec(&plots_to_make_2D, n_plots2D);
 
   // initialise efficiency plots to make
-  int n_effpur = (int)_histoHandler.effpurNames.size();
-  eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_effpur));
-  _histoHandler.InitialiseHistoVec(&eff_to_make, n_effpur);
+  int n_eff = (int)_histoHandler.effNames.size();
+  eff_to_make = std::vector<std::vector<eff_1d*> >(_config.n_stages, std::vector<eff_1d*>(n_eff));
+  _histoHandler.InitialiseHistoVec(&eff_to_make, n_eff);
 
   //------------------------------------
   // loop simulation
@@ -131,9 +131,9 @@ int main(){
 
       for (size_t i_pl = 0; i_pl < effVariables.at(i_st).size(); i_pl++){
 
-        _effpur.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
+        _eff.FillEfficiencyNumerator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
-        _effpur.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
+        _eff.FillEfficiencyDenominator(eff_to_make.at(i_st).at(i_pl), effVariables.at(i_st).at(i_pl), eventCat, simulation_vars);
 
 
       }

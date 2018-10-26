@@ -216,11 +216,11 @@ namespace numusel{
       for (int i_pl = 0; i_pl < n_plots; i_pl++){
 
         plots_to_make->at(i_st).at(i_pl) = new eff_1d(
-            std::string("h_"+_histohandler.effpurNames.at(i_pl)+"_stage"+std::to_string(i_st)),
-            _histohandler.effpurLabels.at(i_pl),
-            _histohandler.effpurBins.at(i_pl).at(0),
-            _histohandler.effpurBins.at(i_pl).at(1),
-            _histohandler.effpurBins.at(i_pl).at(2)
+            std::string("h_"+_histohandler.effNames.at(i_pl)+"_stage"+std::to_string(i_st)),
+            _histohandler.effLabels.at(i_pl),
+            _histohandler.effBins.at(i_pl).at(0),
+            _histohandler.effBins.at(i_pl).at(1),
+            _histohandler.effBins.at(i_pl).at(2)
             );
       }
     }
@@ -872,21 +872,21 @@ namespace numusel{
         effplot->Draw("E1");
 
         effplot->SetName(std::string(
-              _histohandler.effpurNames.at(i_pl)
+              _histohandler.effNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)).c_str());
         effplot->Write();
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histohandler.effpurNames.at(i_pl)
+              +_histohandler.effNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".pdf")).c_str());
 
         c1->SaveAs(std::string(
               std::string("plots/")
-              +_histohandler.effpurNames.at(i_pl)
+              +_histohandler.effNames.at(i_pl)
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string(".png")).c_str());

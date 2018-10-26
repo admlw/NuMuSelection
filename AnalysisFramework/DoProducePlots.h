@@ -17,7 +17,7 @@
 #include "DataTypes.h"
 #include "AnalysisCuts.h"
 #include "SelectionMaker.h"
-#include "EfficiencyPurity.h"
+#include "Efficiency.h"
 #include "HistogramHandler.h"
 #include "TreeHandler.h"
 
@@ -30,7 +30,7 @@
 numusel::Configuration    _config;
 numusel::EventCategoriser _evcat;
 numusel::SelectionMaker   _selmaker;
-numusel::EfficiencyPurity _effpur;
+numusel::Efficiency       _eff;
 numusel::HistogramHandler _histoHandler;
 numusel::TreeHandler      _treeHandler;
 numusel::AnalysisCuts     _anacuts;

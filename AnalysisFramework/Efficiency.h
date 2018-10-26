@@ -1,5 +1,5 @@
-#ifndef EFFICIENCYPURITY_H
-#define EFFICIENCYPURITY_H
+#ifndef EFFICIENCY_H
+#define EFFICIENCY_H
 
 // cpp
 #include <bitset>
@@ -12,7 +12,7 @@
 
 namespace numusel{
 
-  class EfficiencyPurity{
+  class Efficiency{
 
     public:
 
