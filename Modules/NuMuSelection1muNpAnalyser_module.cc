@@ -32,6 +32,7 @@
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 
 // LArSoft includes
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"        
 #include "lardataobj/RecoBase/Hit.h"           
@@ -44,6 +45,7 @@
 #include "larcoreobj/SummaryData/POTSummary.h" 
 #include "larcore/Geometry/Geometry.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -52,6 +54,7 @@
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"        
 #include "uboone/UBXSec/DataTypes/TPCObject.h"              
 #include "uboone/UBXSec/Algorithms/FiducialVolume.h"        
+#include "uboone/UBXSec/Algorithms/TrackQuality.h"
 
 // ParticleID includes
 #include "uboone/ParticleID/Algorithms/uB_PlaneIDBitsetHelperFunctions.h"
@@ -106,6 +109,8 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
 
   private:
 
+    TFile* tfs_file = nullptr;
+
     // initialise services
     art::ServiceHandle< art::TFileService > tfs;
     art::ServiceHandle< geo::Geometry > geo;
@@ -116,14 +121,21 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     numusel::MapBuilderUtil _mbutil;
     trkf::TrackMomentumCalculator _trkmom;
 
+    // detector properties service
+    ::detinfo::DetectorProperties const* fDetectorProperties;
+
     // fhicl parameters
     std::string fSelectionLabel;
     std::string fHitLabel;
+    std::string fPfpLabel;
     std::string fTrackLabel;
+    std::string fShowerLabel;
     std::string fMCSLabel;
     std::string fTrackSmearedCalorimetryAssn;
     std::string fTrackUnsmearedCalorimetryAssn;
     std::string fTrackParticleIdAssn;
+    std::string fPfpTrackAssn;
+    std::string fPfpShowerAssn;
     std::string fSmearedCalorimetryAssn;
     std::string fUnsmearedCalorimetryAssn;
     std::string fSelectionTPCObjAssn;
@@ -149,6 +161,9 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     bool isSimulation;
     bool isUBXSecSelected;
 
+    // eventweight tree
+    TTree *ew_tree;
+
     // -- ubxsec
     bool isBeamNeutrino = false;
     bool isMixed = false;
@@ -168,6 +183,11 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector<double>* bragg_bwd_p      = nullptr;
     std::vector<double>* bragg_bwd_pi     = nullptr;
     std::vector<double>* bragg_bwd_k      = nullptr;
+    
+    std::vector<int>* pfp_pdgCode         = nullptr;
+    std::vector<int>* pfp_id              = nullptr;
+    std::vector<int>* pfp_nassctracks     = nullptr;
+    std::vector<int>* pfp_nasscshowers    = nullptr;
 
     std::vector<double>* track_dep_energy = nullptr;
 
@@ -186,9 +206,12 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector<int>* track_ndof         = nullptr;
     std::vector<int>* track_ntrajpoints  = nullptr;
     std::vector<bool>* track_isContained = nullptr;
+    std::vector<bool>* track_isCollectionPID = nullptr;
     std::vector< std::vector<double> >* track_dedxperhit_smeared = nullptr;
     std::vector< std::vector<double> >* track_dedxperhit_unsmeared = nullptr;
     std::vector< std::vector<double> >* track_resrangeperhit = nullptr;
+
+    std::vector<double>* track_residualrms = nullptr;
 
     // -- reco track mcs 
     // n.b. the particle hypothesis is always a muon here
@@ -324,12 +347,16 @@ NuMuSelection1muNpAnalyser::NuMuSelection1muNpAnalyser(fhicl::ParameterSet const
 
   fSelectionLabel      = p_labels.get<std::string>("SelectionLabel", "UBXSec");
   fHitLabel            = p_labels.get<std::string>("HitLabel", "pandoraCosmicHitRemoval::UBXSec");
+  fPfpLabel            = p_labels.get<std::string>("PFPLabel", "pandoraNu::UBXSec");
   fTrackLabel          = p_labels.get<std::string>("TrackLabel", "pandoraNu::UBXSec");
+  fShowerLabel         = p_labels.get<std::string>("ShowerLabel", "pandoraNu::UBXSec");
   fMCSLabel            = p_labels.get<std::string>("MCSLabel", "pandoraNuMCSMu");
 
   fTrackSmearedCalorimetryAssn   = p_labels.get<std::string>("TrackSmearedCaloAssn", "simcalibration::numusel");
   fTrackUnsmearedCalorimetryAssn = p_labels.get<std::string>("TrackUnsmearedCaloAssn", "pidcalibration::numusel");
   fTrackParticleIdAssn    = p_labels.get<std::string>("TrackParticleIdAssn");
+  fPfpTrackAssn           = p_labels.get<std::string>("PFPTrackAssn", "pandoraNu::UBXSec");
+  fPfpShowerAssn          = p_labels.get<std::string>("PFPShowerAssn", "pandoraNu::UBXSec");
   fSelectionTPCObjAssn    = p_labels.get<std::string>("SelectionTPCObjAssn", "UBXSec");
   fHitTrackAssn           = p_labels.get<std::string>("HitTrackAssn", "pandoraNu::UBXSec");
   fHitTruthAssn           = p_labels.get<std::string>("HitTruthAssn", "pandoraCosmicHitRemoval::UBXSec");
@@ -344,6 +371,8 @@ NuMuSelection1muNpAnalyser::NuMuSelection1muNpAnalyser(fhicl::ParameterSet const
       geo->DetLength());
 
   _fiducialVolume.PrintConfig();
+
+  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
 }
 
@@ -378,10 +407,21 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   art::Ptr<ubana::TPCObject> selectedTPCObject;
 
   // other handles to information we're going to need
+  
+  art::Handle< std::vector< recob::PFParticle> > pfpHandle;
+  e.getByLabel(fPfpLabel, pfpHandle);
+  std::vector< art::Ptr<recob::PFParticle> > pfpPtrVector;
+  art::fill_ptr_vector(pfpPtrVector, pfpHandle);
+
   art::Handle< std::vector< recob::Track > > trackHandle;
   e.getByLabel(fTrackLabel, trackHandle);
   std::vector< art::Ptr<recob::Track> > trackPtrVector;
   art::fill_ptr_vector(trackPtrVector, trackHandle);
+
+  art::Handle< std::vector< recob::Shower > > showerHandle;
+  e.getByLabel(fShowerLabel, showerHandle);
+  std::vector< art::Ptr<recob::Shower> > showerPtrVector;
+  art::fill_ptr_vector(showerPtrVector, showerHandle);
 
   art::Handle< std::vector< recob::Hit > > hitHandle;
   e.getByLabel(fHitLabel, hitHandle);
@@ -431,9 +471,12 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       std::cout << "\n[NuMuSelection] No MCFlux Information" << std::endl;                  
       return;                                                                         
     }                                                                                 
+
   }                                                                                   
 
   // the assns we need
+  art::FindManyP< recob::Track > tracksFromPfp(pfpHandle, e, fPfpTrackAssn);
+  art::FindManyP< recob::Shower > showersFromPfp(pfpHandle, e, fPfpShowerAssn);
   art::FindManyP< recob::Hit > hitsFromTrack(trackHandle, e, fHitTrackAssn);
   art::FindManyP< anab::ParticleID > pidFromTrack(trackHandle, e, fTrackParticleIdAssn);
   art::FindManyP< anab::Calorimetry > unsmearedCaloFromTrack(trackHandle, e, fTrackUnsmearedCalorimetryAssn);
@@ -579,7 +622,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
     // get selected TPC object and associated information
     selectedTPCObject = selectedTPCObjects.at(0).at(0);
-    const std::vector<recob::Track>& selectedTracks = selectedTPCObject->GetTracks();
+    const std::vector<recob::PFParticle>& selectedPfps = selectedTPCObject->GetPFPs();
+    std::cout << "[NuMuSelection] selectedTPCObject->GetPFPs.size(): " << selectedPfps.size() << std::endl;
     selectedVertex   = selectedTPCObject->GetVertex();
     double xyz[3];
     selectedVertex.XYZ(xyz);
@@ -592,12 +636,20 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
     selectedTPCObject->GetMultiplicity(nSelectedPfparticles,nSelectedTracks,nSelectedShowers);
 
     std::cout << "[NuMuSelection] Vertex position: " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl; 
+    std::cout << "[NuMuSelection] Number of PFParticles: " << nSelectedPfparticles << std::endl;
     std::cout << "[NuMuSelection] Number of tracks: " << nSelectedTracks << std::endl;
     std::cout << "[NuMuSelection] Number of showers: " << nSelectedShowers << std::endl;
 
     if (isSimulation){
 
+      // hand off to event weight utility to produce 
+      // file with event weights in is
+      //std::cout << "Passing to write tree..." << std::endl;
+      //tfs_file = &tfs->file();
+      //std::cout << "TFileService Name: " << tfs_file->GetName() << std::endl;
+      //std::cout << "TFileService ls: " << tfs_file->Print() << std::endl; 
       _ewutil.WriteTree(e, mcFlux, mcTruth, gTruth);
+      //std::cout << "...done." << std::endl;
 
       isBeamNeutrino = false;
       isMixed        = false;
@@ -619,25 +671,38 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
     }
 
     // loop tracks in TPC object and get information
-    for (size_t i = 0; i < selectedTracks.size(); i++){
+    for (size_t i = 0; i < selectedPfps.size(); i++){
 
-      const recob::Track& track = selectedTracks.at(i);
+      const recob::PFParticle& pfp = selectedPfps.at(i);
 
-      std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track.ID());
-      std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track.ID());
-      std::vector< art::Ptr< anab::Calorimetry > > unsmearedCalos = unsmearedCaloFromTrack.at(track.ID());
-      std::vector< art::Ptr< anab::Calorimetry > > smearedCalos   = smearedCaloFromTrack.at(track.ID());
+      int nassociatedtracks =  (tracksFromPfp.at(pfp.Self())).size();  
+      int nassociatedshowers = (showersFromPfp.at(pfp.Self())).size();
+
+      std::cout << "[NuMuSelection] Number of tracks associated to pfparticle with pdg code " << pfp.PdgCode() <<" is : " << nassociatedtracks << std::endl;
+      if (nassociatedtracks == 0) continue;
+      
+      pfp_pdgCode->push_back(pfp.PdgCode());
+      pfp_id->push_back(pfp.Self()); 
+      pfp_nassctracks->push_back(nassociatedtracks);
+      pfp_nasscshowers->push_back(nassociatedshowers);
+     
+      art::Ptr< recob::Track> track = (tracksFromPfp.at(pfp.Self())).at(0);
+
+      std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track->ID());
+      std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track->ID());
+      std::vector< art::Ptr< anab::Calorimetry > > unsmearedCalos = unsmearedCaloFromTrack.at(track->ID());
+      std::vector< art::Ptr< anab::Calorimetry > > smearedCalos   = smearedCaloFromTrack.at(track->ID());
 
       // check whether track is contained in FV or not
-      bool start_isContained = _fiducialVolume.InFV(track.Start().X(), track.Start().Y(), track.Start().Z());
-      bool end_isContained   = _fiducialVolume.InFV(track.End().X(), track.End().Y(), track.End().Z());
+      bool start_isContained = _fiducialVolume.InFV(track->Start().X(), track->Start().Y(), track->Start().Z());
+      bool end_isContained   = _fiducialVolume.InFV(track->End().X(), track->End().Y(), track->End().Z());
 
       if (start_isContained && end_isContained){
-        std::cout << "track is contained" << std::endl;
+        std::cout << "[NuMuSelection] track is contained" << std::endl;
         track_isContained->push_back(true);
       }
       else{
-        std::cout << "track is uncontained" << std::endl;
+        std::cout << "[NuMuSelection] track is uncontained" << std::endl;
         track_isContained->push_back(false);
       }
 
@@ -646,7 +711,7 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
       for (auto const& x : trackIdMcsFitMap){
 
-        if (track.ID() == x.first){
+        if (track->ID() == x.first){
 
           mcsFitResult = x.second;
           break;
@@ -667,14 +732,14 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       track_mcs_muassmp_particlehypothesis->push_back(mcsFitResult->particleIdHyp());
 
       // get momentum and energy from range (for contained particles)
-      track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track.Length(),13));
-      track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track.Length(),2212));
-      track_range_energy_muassumption->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000.);
-      track_range_energy_passumption ->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272)/1000.);
+      track_range_mom_muassumption->push_back(_trkmom.GetTrackMomentum(track->Length(),13));
+      track_range_mom_passumption->push_back(_trkmom.GetTrackMomentum(track->Length(),2212));
+      track_range_energy_muassumption->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track->Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000.);
+      track_range_energy_passumption ->push_back((std::sqrt(std::pow(_trkmom.GetTrackMomentum(track->Length(),2212)*1000.,2)+std::pow(938.272,2))-938.272)/1000.);
 
       if (pids.size() == 0){
 
-        std::cout << "[NuMuSelection] No track<->PID association found for track with ID " << track.ID() << ". Throwing exception. " << std::endl;
+        std::cout << "[NuMuSelection] No track<->PID association found for track with ID " << track->ID() << ". Throwing exception. " << std::endl;
         throw std::exception();
 
       }
@@ -683,11 +748,16 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
       // get PID information
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
 
+      bool isPIDOnCollection = false;
+
       for (size_t i_alg = 0; i_alg < algScoresVec.size(); i_alg++){
 
         anab::sParticleIDAlgScores algScore = algScoresVec.at(i_alg);
 
         if(algScore.fAlgName == "BraggPeakLLH" && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){                                   
+
+          isPIDOnCollection = true;
+
           if (anab::kVariableType(algScore.fVariableType) == anab::kLikelihood && anab::kTrackDir(algScore.fTrackDir) == anab::kForward){     
 
             if (algScore.fAssumedPdg == 13  ) bragg_fwd_mu->push_back(algScore.fValue);   
@@ -719,19 +789,21 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
       }
 
-      track_length->push_back(track.Length());
-      track_theta->push_back(track.Theta());
-      track_costheta->push_back(std::cos(track.Theta()));
-      track_phi->push_back(track.Phi());
-      track_startx->push_back(track.Start().X());
-      track_starty->push_back(track.Start().Y());
-      track_startz->push_back(track.Start().Z());
-      track_endx->push_back(track.End().X());
-      track_endy->push_back(track.End().Y());
-      track_endz->push_back(track.End().Z());
-      track_chi2->push_back(track.Chi2());
-      track_ndof->push_back(track.Ndof());
-      track_ntrajpoints->push_back(track.NumberTrajectoryPoints());
+      track_isCollectionPID->push_back(isPIDOnCollection);
+    
+      track_length->push_back(track->Length());
+      track_theta->push_back(track->Theta());
+      track_costheta->push_back(std::cos(track->Theta()));
+      track_phi->push_back(track->Phi());
+      track_startx->push_back(track->Start().X());
+      track_starty->push_back(track->Start().Y());
+      track_startz->push_back(track->Start().Z());
+      track_endx->push_back(track->End().X());
+      track_endy->push_back(track->End().Y());
+      track_endz->push_back(track->End().Z());
+      track_chi2->push_back(track->Chi2());
+      track_ndof->push_back(track->Ndof());
+      track_ntrajpoints->push_back(track->NumberTrajectoryPoints());
 
       for (size_t j = 0; j < smearedCalos.size(); j++){
 
@@ -746,6 +818,37 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
       }
 
+      // if there is no PID on collection plane then fill with dummy variables
+      // so that the track<->PID iterator value is the same
+      if (!isPIDOnCollection){
+
+        std::cout << "[NuMuSelection] There is no PID on the collection plane for pfp with ID " << pfp.Self() << std::endl;
+        std::cout << "[NuMuSelection] This PFParticle has " << nassociatedtracks << " associated tracks, and " << nassociatedshowers << " associated showers " << std::endl;
+
+        for (size_t j = 0; j < smearedCalos.size(); j++){
+          if (smearedCalos.at(j)->PlaneID().Plane == 2){
+            std::cout << "[NuMuSelection] The track built from this PFParticle has " << smearedCalos.at(j)->dEdx().size() << " dE/dx points to use" << std::endl;  
+          }
+        }
+        bragg_fwd_mu->push_back(-999);   
+        bragg_fwd_p->push_back(-999);   
+        bragg_fwd_pi->push_back(-999);   
+        bragg_fwd_k->push_back(-999);   
+        bragg_bwd_mu->push_back(-999);   
+        bragg_bwd_p->push_back(-999);   
+        bragg_bwd_pi->push_back(-999);   
+        bragg_bwd_k->push_back(-999);   
+        noBragg_fwd_mip->push_back(-999);   
+        track_dep_energy->push_back(-999);
+     
+        std::vector<double> defaultVec = {999.};
+        track_dedxperhit_unsmeared->push_back(defaultVec);
+        track_dedxperhit_smeared->push_back(defaultVec);
+        track_resrangeperhit->push_back(defaultVec);
+        
+      }
+
+ 
       if (isSimulation){
         art::FindMany< simb::MCParticle, anab::BackTrackerHitMatchingData > particlesPerHit(hitHandle, e, fHitTruthAssn);
         std::pair< const simb::MCParticle*, double > mcpInformation = GetAssociatedMCParticle(hits, particlesPerHit);
@@ -761,9 +864,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         std::cout << "[NuMuSelection] pdg code: " << mcpMatchedParticle->PdgCode() 
         << " mcs momentum: " << mcsFitResult->fwdMomentum()  
         << " mcs energy: " << (std::sqrt(std::pow(mcsFitResult->fwdMomentum()*1000,2)+std::pow(105.7,2)) - 105.7)/1000.
-        << " range momentum: " << _trkmom.GetTrackMomentum(track.Length(),13)
-        << " range energy: " << (std::sqrt(std::pow(_trkmom.GetTrackMomentum(track.Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000. << std::endl;
-        
+        << " range momentum: " << _trkmom.GetTrackMomentum(track->Length(),13)
+        << " range energy: " << (std::sqrt(std::pow(_trkmom.GetTrackMomentum(track->Length(),13)*1000.,2)+std::pow(105.7,2))-105.7)/1000. << std::endl;
 
         // need something smart to deal with these two
         true_match_process->push_back(mcpMatchedParticle->Process());
@@ -801,6 +903,47 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         true_match_rescatter->push_back(mcpMatchedParticle->Rescatter());
 
       }
+
+      //
+      // shamelessly stolen from Marco
+      //
+      
+      std::vector<TVector3> hit_v;
+      std::vector<TVector3> track_v;
+
+      // collect hits
+      for (auto hit: hits){
+        if (hit->View() == 2){
+          TVector3 h(hit->WireID().Wire, hit->PeakTime(), 0);
+          hit_v.emplace_back(h);
+        }
+
+      }
+
+      // collect track points
+      for (size_t i_tp = 0; i_tp < track->NumberTrajectoryPoints(); i_tp++){
+        try{
+          if (track->HasValidPoint(i_tp)){
+            TVector3 trk_pt = track->LocationAtPoint(i_tp);
+            double wire = geo->NearestWire(trk_pt, 2);
+            double time = fDetectorProperties->ConvertXToTicks(trk_pt.X(), geo::PlaneID(0,0,2))-2400;
+            TVector3 p(wire, time, 0.);
+            track_v.emplace_back(p);
+
+          }
+        }
+        catch (...) {
+          continue;
+        }
+      }
+
+      ubana::TrackQuality _trackQuality;
+      _trackQuality.SetTrackPoints(track_v);
+      _trackQuality.SetHitCollection(hit_v);
+      std::pair<double,double> residual_mean_std = _trackQuality.GetResiduals();
+      std::cout << "[NuMuSelection] Track Residuals are: " << residual_mean_std.first << "," << residual_mean_std.second << std::endl;
+      track_residualrms->push_back(residual_mean_std.second);
+
     }
 
   }
@@ -822,7 +965,9 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
   }
 
   std::cout << "[NuMuSelection] Filling Tree... " << std::endl;
+  //tfs_file->cd();
   ana_tree->Fill();
+  std::cout << "[NuMuSelection] Done." << std::endl;
 
 }
 
@@ -838,6 +983,8 @@ void NuMuSelection1muNpAnalyser::beginJob()
   sr_tree->Branch("sr_begintime", &sr_begintime);
   sr_tree->Branch("sr_endtime", &sr_endtime);
   sr_tree->Branch("sr_pot", &sr_pot);
+
+  ew_tree = tfs->make<TTree>("ew_tree", "event weight tree");
 
 }
 
@@ -888,7 +1035,12 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("bragg_bwd_p"                  , "std::vector<double>"                                , &bragg_bwd_p    );
   tree->Branch("bragg_bwd_pi"                 , "std::vector<double>"                                , &bragg_bwd_pi   );
   tree->Branch("bragg_bwd_k"                  , "std::vector<double>"                                , &bragg_bwd_k    );
+  tree->Branch("pfp_pdgCode"                  , "std::vector<int>"                                   , &pfp_pdgCode    );
+  tree->Branch("pfp_id"                       , "std::vector<int>"                                   , &pfp_id         );
+  tree->Branch("pfp_nassctracks"              , "std::vector<int>"                                   , &pfp_nassctracks);
+  tree->Branch("pfp_nasscshowers"             , "std::vector<int>"                                   , &pfp_nasscshowers);
   tree->Branch("track_isContained"            , "std::vector<bool>"                                  , &track_isContained);
+  tree->Branch("track_isCollectionPID"        , "std::vector<bool>"                                  , &track_isCollectionPID);
   tree->Branch("track_dep_energy"             , "std::vector<double>"                                , &track_dep_energy  );
   tree->Branch("track_length"                 , "std::vector<double>"                                , &track_length   );
   tree->Branch("track_theta"                  , "std::vector<double>"                                , &track_theta    );
@@ -905,7 +1057,8 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("track_ntrajpoints"            , "std::vector<int>"                                   , &track_ntrajpoints );
   tree->Branch("track_dedxperhit_smeared"     , "std::vector< std::vector<double> >"                 , &track_dedxperhit_smeared);
   tree->Branch("track_dedxperhit_unsmeared"   , "std::vector< std::vector<double> >"                 , &track_dedxperhit_unsmeared);
-  tree->Branch("track_resrangeperhit"         , "std::vector< std::vector<double> >"                 , & track_resrangeperhit);
+  tree->Branch("track_resrangeperhit"         , "std::vector< std::vector<double> >"                 , &track_resrangeperhit);
+  tree->Branch("track_residualrms"            , "std::vector<double>"                                , &track_residualrms);
   tree->Branch("vertex_x"                     , &vertex_x);
   tree->Branch("vertex_y"                     , &vertex_y);
   tree->Branch("vertex_z"                     , &vertex_z);
@@ -1037,7 +1190,12 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   bragg_bwd_p->resize(0);
   bragg_bwd_pi->resize(0);
   bragg_bwd_k->resize(0);
+  pfp_pdgCode->resize(0);
+  pfp_id->resize(0);
+  pfp_nassctracks->resize(0);
+  pfp_nasscshowers->resize(0);
   track_isContained->resize(0);
+  track_isCollectionPID->resize(0);
   track_dep_energy->resize(0);
   track_length->resize(0);
   track_theta->resize(0);
@@ -1055,6 +1213,7 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   track_dedxperhit_smeared->resize(0);
   track_dedxperhit_unsmeared->resize(0);
   track_resrangeperhit->resize(0);
+  track_residualrms->resize(0);
   track_mcs_muassmp_fwd->resize(0);
   track_mcs_muassmp_bwd->resize(0);
   track_mcs_muassmp_energy_fwd->resize(0);
@@ -1166,7 +1325,12 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   bragg_bwd_p->resize(1, -999);
   bragg_bwd_pi->resize(1, -999);
   bragg_bwd_k->resize(1, -999);
+  pfp_pdgCode->resize(1, -999);
+  pfp_id->resize(1, -999);
+  pfp_nassctracks->resize(1, -999);
+  pfp_nasscshowers->resize(1, -999);
   track_isContained->resize(1,-999);
+  track_isCollectionPID->resize(1,-999);
   track_dep_energy->resize(1,-999);
   track_length->resize(1, -999);
   track_theta->resize(1, -999);
@@ -1184,6 +1348,7 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   track_dedxperhit_smeared->resize(1, {{-999.}});
   track_dedxperhit_unsmeared->resize(1, {{-999.}});
   track_resrangeperhit->resize(1, {{-999.}});
+  track_residualrms->resize(1, -999);
   track_mcs_muassmp_fwd->resize(1, -999);
   track_mcs_muassmp_bwd->resize(1, -999);
   track_mcs_muassmp_energy_fwd->resize(1, -999);
