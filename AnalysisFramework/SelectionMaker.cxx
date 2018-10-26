@@ -225,61 +225,13 @@ namespace numusel{
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
-      if (std::abs(vars->pfp_pdgCode->at(i)) == 11){
-
-        if (vars->isSimulation == true){
-
-        int mother_pdg = 0;
-        std::string process = "";
-
-        if (std::abs(vars->true_match_pdg->at(i)) == 11){
-            if (std::abs(vars->true_match_pdg->at(i)) != 13 &&
-                std::abs(vars->true_match_pdg->at(i)) != 2212 &&
-                std::abs(vars->true_match_pdg->at(i)) != 211 &&
-                std::abs(vars->true_match_pdg->at(i)) != 321 &&
-                std::abs(vars->true_match_pdg->at(i)) != 11)
-              std::cout << vars->true_match_pdg->at(i) << std::endl;
-
-
-          process = vars->true_match_process->at(i);
-          //std::cout << "---- Found shower for electron at " << i << std::endl;
-          //std::cout << "process: " << vars->true_match_process->at(i) << std::endl;
-          //std::cout << "track id: " << vars->true_match_trackid->at(i) << std::endl;
-          //std::cout << "mother id: " << vars->true_match_motherid->at(i) << std::endl;
-          for (int j = 0; j < vars->true_mcp_pdg->size(); j++){
-
-            if (std::abs(vars->true_mcp_pdg->at(j)) != 13 &&
-                std::abs(vars->true_mcp_pdg->at(j)) != 2212 &&
-                std::abs(vars->true_mcp_pdg->at(j)) != 211 &&
-                std::abs(vars->true_mcp_pdg->at(j)) != 321 &&
-                std::abs(vars->true_mcp_pdg->at(j)) != 11)
-              std::cout << vars->true_mcp_pdg->at(j) << std::endl;
-
-
-
-            if (vars->true_mcp_trackid->at(j) == vars->true_match_motherid->at(i)){
-              //std::cout << "mother pdg: " << vars->true_mcp_pdg->at(j) << std::endl;
-              mother_pdg = vars->true_mcp_pdg->at(j);
-            }
-
-          }
-
-        }
-       
-//        if ((std::abs(mother_pdg) == 13 && (process != "muMinusCaptureAtRest" && process != "muIoni" && process != "Decay")) && mother_pdg != 22 && mother_pdg != 0){  // Decay, conv, muMinusCaptureAtRest, muIoni
-//
-        if (std::abs(mother_pdg) == 13 && process == "muIoni"){
-          val = 1;
-        }
-        else val = 0;
-        } else val = 1;
-      }
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 11)
+        val = 1;
       else val = 0;
 
       iscutpassed.push_back(val);
 
     }
-
     m_stagex->push_back(iscutpassed);
 
   }
@@ -295,9 +247,9 @@ namespace numusel{
     numusel::AnalysisCuts     _anacuts;
     numusel::Configuration    _config;
 
-    TF1* proton_range_energy_func = new TF1("proton_range_energy_func", "[0]*x+[1]", 0, 10);
-    TF1* muon_range_energy_func = new TF1("muon_range_energy_func", "[0]*x+[1]", 0, 10);
-    TF1* muon_mcs_energy_func = new TF1("muon_mcs_energy_func", "[0]*x+[1]", 0, 10);
+    TF1* proton_range_energy_func = new TF1("proton_range_energy_func", "(x-[1])/[0]", 0, 10);
+    TF1* muon_range_energy_func = new TF1("muon_range_energy_func", "(x-[1])/[0]", 0, 10);
+    TF1* muon_mcs_energy_func = new TF1("muon_mcs_energy_func", "(x-[1])/[0]", 0, 10);
 
     proton_range_energy_func->SetParameters(_config.proton_range_m, _config.proton_range_c);
     muon_range_energy_func->SetParameters(_config.muon_range_contained_m, _config.muon_range_contained_c);
@@ -325,7 +277,7 @@ namespace numusel{
     for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
       double lmip = vars->noBragg_fwd_mip->at(i);
       double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
-      
+
       if (lmip == -999)
         pid.push_back(-999);
       else pid.push_back(std::log(lmip/lp));
@@ -437,15 +389,6 @@ namespace numusel{
             candMuonRangeMomentumMuassmp_contained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_contained.push_back(vars->track_range_energy_muassumption->at(i));
 
-            //double range_mom = std::sqrt(std::pow(vars->track_range_energy_muassumption->at(i) + 0.105,2)-std::pow(0.105,2));
-            //double range_tote = std::sqrt(std::pow(range_mom,2)+std::pow(0.105,2));
-
-            //neutrinoReconstructedEnergyUncalib.at(0)+=range_tote;
-
-            //double range_mom_corr = std::sqrt(std::pow(muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i)) + 0.105,2)-std::pow(0.105,2));
-            //double range_tote_corr = std::sqrt(std::pow(range_mom_corr,2)+std::pow(0.105,2));
-
-            //neutrinoReconstructedEnergyCalib.at(0)+=range_tote_corr;
             neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_muassumption->at(i);
             neutrinoReconstructedEnergyCalib.at(0)+=muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
 
@@ -472,16 +415,6 @@ namespace numusel{
               mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
             }
 
-            // convert mcs energy to momentum
-            //double mcs_mom = std::sqrt(std::pow(mcs_energy + 0.105,2)-std::pow(0.105,2));
-            //double mcs_tote = std::sqrt(std::pow(mcs_mom,2)+std::pow(0.105,2));
-
-            //neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
-
-            //double mcs_mom_corr = std::sqrt(std::pow(muon_mcs_energy_func->Eval(mcs_energy) + 0.105,2)-std::pow(0.105,2));
-            //double mcs_tote_corr = std::sqrt(std::pow(mcs_mom_corr,2)+std::pow(0.105,2));
-
-            //neutrinoReconstructedEnergyCalib.at(0)+=mcs_tote_corr;
             neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
             neutrinoReconstructedEnergyCalib.at(0)+=muon_mcs_energy_func->Eval(mcs_energy);
 
@@ -505,15 +438,6 @@ namespace numusel{
           thisProtonInformation.second = vars->track_length->at(i);
           leadingProtonFinder.push_back(thisProtonInformation);
 
-          //double range_mom = std::sqrt(std::pow(vars->track_range_energy_passumption->at(i) + 0.938,2)-std::pow(0.938,2));
-          //double range_tote = std::sqrt(std::pow(range_mom,2)+std::pow(0.938,2));
-
-          //neutrinoReconstructedEnergyUncalib.at(0)+=range_tote;
-
-          //double range_mom_corr = std::sqrt(std::pow(proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i)) + 0.938,2)-std::pow(0.938,2));
-          //double range_tote_corr = std::sqrt(std::pow(range_mom_corr,2)+std::pow(0.938,2));
-
-          //neutrinoReconstructedEnergyCalib.at(0)+= range_tote_corr;
           neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_passumption->at(i);
           neutrinoReconstructedEnergyCalib.at(0)+=proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i));
 
@@ -619,6 +543,15 @@ namespace numusel{
     // vectors
 
     numusel::AnalysisCuts _anacuts;
+    numusel::Configuration _config;
+
+    TF1* proton_range_energy_func = new TF1("proton_range_energy_func", "(x-[1])/[0]", 0, 10);
+    TF1* muon_range_energy_func = new TF1("muon_range_energy_func", "(x-[1])/[0]", 0, 10);
+    TF1* muon_mcs_energy_func = new TF1("muon_mcs_energy_func", "(x-[1])/[0]", 0, 10);
+
+    proton_range_energy_func->SetParameters(_config.proton_range_m, _config.proton_range_c);
+    muon_range_energy_func->SetParameters(_config.muon_range_contained_m, _config.muon_range_contained_c);
+    muon_mcs_energy_func->SetParameters(_config.muon_mcs_uncontained_m, _config.muon_mcs_uncontained_c);
 
     std::vector<std::pair<double, double>> track_thetaphi;
     for (int i = 0; i < vars->track_theta->size(); i++){ 
@@ -636,17 +569,23 @@ namespace numusel{
       std::vector<std::pair<double, double>> candProtondEdxResRange;
       std::vector<std::pair<double, double>> candProtondEdxResRange_leading;
       std::vector<std::pair<double, double>> candProtondEdxResRange_nonleading;
+      std::vector<std::pair<double, double>> neutrinoReconstructedEnergyCalib;
 
+      std::pair<double, double> neutrinoReconstructedEnergyCalib_tmp(0., 0.);
+
+      // setup pid vector for later use
       std::vector<double> pid;
       for (int i = 0; i < vars->noBragg_fwd_mip->size(); i++){
         double lmip = vars->noBragg_fwd_mip->at(i);
         double lp = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
-        pid.push_back(std::log(lmip/lp));
+
+        if (lmip == -999)
+          pid.push_back(-999);
+        else pid.push_back(std::log(lmip/lp));
       }
 
       std::vector<std::pair<int, float>> leadingProtonFinder;
       leadingProtonFinder.resize(0);
-
 
       for (int i = 0; i < pid.size(); i++){
 
@@ -659,39 +598,55 @@ namespace numusel{
             candMuondEdxResRange.push_back(thisPair);
           }
 
+          // contained muons
           if (vars->track_isContained->at(i) == true){
 
             for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
               std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
 
               candMuondEdxResRange_contained.push_back(thisPair);
+
             }
 
+            neutrinoReconstructedEnergyCalib_tmp.second += muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
           }
+          // uncontained muons
           else{
             for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
               std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
-
               candMuondEdxResRange_uncontained.push_back(thisPair);
             }
 
+            float mcs_energy = 0;
+
+            if (vars->track_mcs_muassmp_fwd_loglikelihood->at(i) < vars->track_mcs_muassmp_bwd_loglikelihood->at(i)){
+              mcs_energy = vars->track_mcs_muassmp_energy_fwd->at(i);
+            }
+            else {
+              mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
+            }
+
+            neutrinoReconstructedEnergyCalib_tmp.second += muon_mcs_energy_func->Eval(mcs_energy);
           }
 
         }
         // else they're proton candidates
-        else if (pid.at(i) < _anacuts.pid_cutvalue){
+        else{
+          if (pid.at(i) < _anacuts.pid_cutvalue){
 
-          for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-            std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
+            for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
+              std::pair<float, float> thisPair(vars->track_resrangeperhit->at(i).at(j), vars->track_dedxperhit_smeared->at(i).at(j));
 
-            candProtondEdxResRange.push_back(thisPair);
+              candProtondEdxResRange.push_back(thisPair);
+            }
+
+            std::pair<int, float> thisProtonInformation;
+            thisProtonInformation.first = i;
+            thisProtonInformation.second = vars->track_length->at(i);
+            leadingProtonFinder.push_back(thisProtonInformation);
           }
 
-
-          std::pair<int, float> thisProtonInformation;
-          thisProtonInformation.first = i;
-          thisProtonInformation.second = vars->track_length->at(i);
-          leadingProtonFinder.push_back(thisProtonInformation);
+          neutrinoReconstructedEnergyCalib_tmp.second += proton_range_energy_func->Eval(vars->track_range_energy_passumption->at(i));
 
         }
 
@@ -722,12 +677,19 @@ namespace numusel{
         }
       }
 
+      if (vars->isSimulation)
+        neutrinoReconstructedEnergyCalib_tmp.first = vars->true_genie_starte->at(0);
+      else 
+        neutrinoReconstructedEnergyCalib_tmp.first = 0;
+      neutrinoReconstructedEnergyCalib.push_back(neutrinoReconstructedEnergyCalib_tmp);
+
       m_stagex->push_back(candMuondEdxResRange);
       m_stagex->push_back(candMuondEdxResRange_contained);
       m_stagex->push_back(candMuondEdxResRange_uncontained);
       m_stagex->push_back(candProtondEdxResRange);
       m_stagex->push_back(candProtondEdxResRange_leading);
       m_stagex->push_back(candProtondEdxResRange_nonleading);
+      m_stagex->push_back(neutrinoReconstructedEnergyCalib);
 
 
     }
