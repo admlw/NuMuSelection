@@ -104,6 +104,7 @@ namespace numusel{
         break;
     }
     // passes first cut
+    // nPFP cut
     if (_anacuts.isPassNPfparticleSelection(vars)){
       switch(var_type){
         case HISTOGRAM_1D:
@@ -120,6 +121,7 @@ namespace numusel{
           break;
       }
       // passes second cut
+      // nTrack cut (obsolete)
       if (_anacuts.isPassNTrackSelection(vars)){
         switch(var_type){
           case HISTOGRAM_1D:
@@ -137,6 +139,7 @@ namespace numusel{
         }
 
         // passes third cut
+        // nShower cut (obslete)
         if (_anacuts.isPassNShowerSelection(vars)){
           switch(var_type){
             case HISTOGRAM_1D:
@@ -155,6 +158,7 @@ namespace numusel{
           }
 
           // passes fourth cut
+          // PID cut and proton quality cuts
           if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
             switch(var_type){
               case HISTOGRAM_1D:
