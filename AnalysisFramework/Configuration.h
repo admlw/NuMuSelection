@@ -24,18 +24,24 @@ namespace numusel{
       double simscaling = 1.06; 
 */
 
-      // test building showers as tracks
-      //std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks/numusel_showersastracks_onbeam.root";
-      //std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks/numusel_showersastracks_offbeam.root";
-      //std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks/numusel_showersastracks_bnbcosmic.root";
-      //std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks/numusel_showersastracks_bnbcosmic_dic3.root";
+      /** testBuildShowersAsTracks_2
       std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_onbeam.root";
       std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_offbeam.root";
       std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_bnbcos.root";
 
-
       double bnbcosPOT = 1.9715e+20; //nominal
       //double bnbcosPOT = 9.34638e+19; // dic
+      double onbeam_tor860_wcut = 3.245e+19;
+      double onbeam_E1DCNT_wcut = 7244484;
+      double offbeam_EXT = 10946246;
+*/
+
+      // testBuildShowersAsTracks_3
+      std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_onbeam.root";
+      std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_offbeam.root";
+      std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_bnbcos.root";
+
+      double bnbcosPOT = 1.97315e+20; //nominal
       double onbeam_tor860_wcut = 3.245e+19;
       double onbeam_E1DCNT_wcut = 7244484;
       double offbeam_EXT = 10946246;
