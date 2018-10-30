@@ -66,12 +66,17 @@ int main(){
 
   // initialise output trees
 
-  TFile *outfile = new TFile("selectedEvents.root", "RECREATE");
-  outfile->cd();
-
-  TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
-  TTree *t_offbeam_out = (TTree*)t_offbeam->CloneTree(0);
+  TFile *outfile_sim = new TFile("selectedEvents_sim.root", "UPDATE");
+  outfile_sim->cd();
   TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
+ 
+  TFile *outfile_onbeam = new TFile("selectedEvents_onbeam.root", "UPDATE");
+  outfile_onbeam->cd();
+  TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
+
+  TFile *outfile_offbeam = new TFile("selectedEvents_offbeam.root", "UPDATE");
+  outfile_offbeam->cd();
+  TTree *t_offbeam_out = (TTree*)t_offbeam->CloneTree(0);
 
   //_treeHandler.SetTreeVars(t_onbeam_out, &onbeam_vars_tmp, false);
   //_treeHandler.SetTreeVars(t_offbeam_out, &offbeam_vars_tmp, false);
@@ -289,8 +294,13 @@ int main(){
 
   std::cout << "purity:" << plots_to_make.at(finalStage).at(0)->h_mcnumucc0pinp->GetBinContent(1)/h_tot->GetBinContent(1) << std::endl;
 
+  outfile_onbeam->cd();  
   t_onbeam_out->Write();
+
+  outfile_offbeam->cd();  
   t_offbeam_out->Write();
+  
+  outfile_sim->cd();  
   t_simulation_out->Write();
 
   return 0;
