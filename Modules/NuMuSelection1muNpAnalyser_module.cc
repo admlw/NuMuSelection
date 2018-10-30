@@ -49,6 +49,7 @@
 
 // ROOT includes
 #include "TTree.h"
+#include "TMath.h"
 
 // ubxsec includes
 #include "uboone/UBXSec/DataTypes/SelectionResult.h"        
@@ -212,6 +213,11 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
     std::vector< std::vector<double> >* track_resrangeperhit = nullptr;
 
     std::vector<double>* track_residualrms = nullptr;
+
+    // -- reco track hit information
+    std::vector<double>* track_hit_median_peak_amplitude = nullptr;
+    std::vector<double>* track_hit_median_integral = nullptr;
+    std::vector<double>* track_hit_median_multiplicity = nullptr;
 
     // -- reco track mcs 
     // n.b. the particle hypothesis is always a muon here
@@ -688,6 +694,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
      
       art::Ptr< recob::Track> track = (tracksFromPfp.at(pfp.Self())).at(0);
 
+      std::cout << "[NuMuSelection] Found track with ID " << track->ID() << std::endl;
+
       std::vector< art::Ptr< recob::Hit > > hits = hitsFromTrack.at(track->ID());
       std::vector< art::Ptr< anab::ParticleID > > pids = pidFromTrack.at(track->ID());
       std::vector< art::Ptr< anab::Calorimetry > > unsmearedCalos = unsmearedCaloFromTrack.at(track->ID());
@@ -744,6 +752,24 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
 
       }
 
+      // get median hit integral, peak amplitude, multiplicity
+      std::vector<double> hit_multiplicities;
+      std::vector<double> hit_peakamps;
+      std::vector<double> hit_integrals;
+      for (size_t i_hit = 0; i_hit < hits.size(); i_hit++){
+        art::Ptr< recob::Hit > thisHit = hits.at(i_hit); 
+
+        if (thisHit->View() == 2){
+          hit_peakamps.push_back(thisHit->PeakAmplitude());
+          hit_integrals.push_back(thisHit->Integral());
+          hit_multiplicities.push_back(thisHit->Multiplicity());
+        }
+
+      }
+
+      track_hit_median_peak_amplitude->push_back(TMath::Median(hit_peakamps.size(), &hit_peakamps[0]));
+      track_hit_median_integral->push_back(TMath::Median(hit_integrals.size(), &hit_integrals[0]));
+      track_hit_median_multiplicity->push_back(TMath::Median(hit_multiplicities.size(), &hit_multiplicities[0]));
 
       // get PID information
       std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
@@ -781,6 +807,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         if (algScore.fAlgName == "DepEvsRangeE"
             && anab::kVariableType(algScore.fVariableType) == anab::kEdeposited
             && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){
+
+            std::cout << "Found anab::ParticleID on collection plane" << std::endl;
 
             track_dep_energy->push_back(algScore.fValue / 1000.);
 
@@ -1059,6 +1087,9 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
   tree->Branch("track_dedxperhit_unsmeared"   , "std::vector< std::vector<double> >"                 , &track_dedxperhit_unsmeared);
   tree->Branch("track_resrangeperhit"         , "std::vector< std::vector<double> >"                 , &track_resrangeperhit);
   tree->Branch("track_residualrms"            , "std::vector<double>"                                , &track_residualrms);
+  tree->Branch("track_hit_median_peak_amplitude", "std::vector<double>"                              , &track_hit_median_peak_amplitude);
+  tree->Branch("track_hit_median_integral"      , "std::vector<double>"                              , &track_hit_median_integral);
+  tree->Branch("track_hit_median_multiplicity"  , "std::vector<double>"                              , &track_hit_median_multiplicity);
   tree->Branch("vertex_x"                     , &vertex_x);
   tree->Branch("vertex_y"                     , &vertex_y);
   tree->Branch("vertex_z"                     , &vertex_z);
@@ -1214,6 +1245,9 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
   track_dedxperhit_unsmeared->resize(0);
   track_resrangeperhit->resize(0);
   track_residualrms->resize(0);
+  track_hit_median_peak_amplitude->resize(0);
+  track_hit_median_integral->resize(0);
+  track_hit_median_multiplicity->resize(0);
   track_mcs_muassmp_fwd->resize(0);
   track_mcs_muassmp_bwd->resize(0);
   track_mcs_muassmp_energy_fwd->resize(0);
@@ -1349,6 +1383,9 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
   track_dedxperhit_unsmeared->resize(1, {{-999.}});
   track_resrangeperhit->resize(1, {{-999.}});
   track_residualrms->resize(1, -999);
+  track_hit_median_peak_amplitude->resize(1, -999);
+  track_hit_median_integral->resize(1, -999);
+  track_hit_median_multiplicity->resize(1, -999);
   track_mcs_muassmp_fwd->resize(1, -999);
   track_mcs_muassmp_bwd->resize(1, -999);
   track_mcs_muassmp_energy_fwd->resize(1, -999);
