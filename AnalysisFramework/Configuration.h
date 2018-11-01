@@ -40,6 +40,7 @@ namespace numusel{
       std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_onbeam.root";
       std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_offbeam.root";
       std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_bnbcos.root";
+      std::string s_ew = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/ew_bnbcos.root";
 
       double bnbcosPOT = 1.97315e+20; //nominal
       double onbeam_tor860_wcut = 3.245e+19;
@@ -53,10 +54,14 @@ namespace numusel{
       bool DoPIDForTracks = true;
 
       // makes plots for track distributions separated by true pdg
-      bool MakeTrackPlots = true;
+      bool MakeTrackPlots = false;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
       bool UseTrackCut = false;
+
+      // means we only run over 1000 events for sim, onbeam and offbeam
+      bool QuickDev = false;
+      int QuickDevEvents = 1000;
 
       // there are four stages to the selection
       // * no cuts (pure UBXSec)
