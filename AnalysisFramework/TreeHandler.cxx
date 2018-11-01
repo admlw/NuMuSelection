@@ -2,10 +2,30 @@
 
 namespace numusel{
 
+  void TreeHandler::SetEWTreeVars(TTree* tree, ew_list* varstoset){
+
+    tree->SetBranchStatus("*", 0);
+
+    tree->SetBranchStatus("run", 1);
+    tree->SetBranchStatus("subrun", 1);
+    tree->SetBranchStatus("event", 1);
+    tree->SetBranchStatus("MCFlux_evtno", 1);
+
+    tree->SetBranchAddress("run", &(varstoset->run));
+    tree->SetBranchAddress("subrun", &(varstoset->subrun));
+    tree->SetBranchAddress("event", &(varstoset->event));
+    tree->SetBranchAddress("MCFlux_evtno"     , &(varstoset->MCFlux_evtno));
+
+  };
+
   void TreeHandler::SetTreeVars(TTree* tree, var_list* varstoset, bool b_isSimulation){
 
     tree->SetBranchStatus("*",0);
-    
+   
+    tree->SetBranchStatus("run", 1);
+    tree->SetBranchStatus("subrun", 1);
+    tree->SetBranchStatus("event", 1);
+
     tree->SetBranchStatus("isUBXSecSelected"     , 1);
     tree->SetBranchStatus("isSimulation"         , 1);
     tree->SetBranchStatus("nSelectedTracks"      , 1);
@@ -44,6 +64,9 @@ namespace numusel{
     tree->SetBranchStatus("track_resrangeperhit", 1);
     tree->SetBranchStatus("track_residualrms", 1);
 
+    tree->SetBranchAddress("run",    &(varstoset->run));
+    tree->SetBranchAddress("subrun", &(varstoset->subrun));
+    tree->SetBranchAddress("event",  &(varstoset->event));
     tree->SetBranchAddress("isUBXSecSelected"     , &(varstoset->isUBXSecSelected));
     tree->SetBranchAddress("isSimulation"         , &(varstoset->isSimulation));
     tree->SetBranchAddress("nSelectedTracks"      , &(varstoset->nSelectedTracks));
@@ -125,5 +148,34 @@ namespace numusel{
     }
 
   };
+
+  int TreeHandler::FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event){
+
+    int entry = -1;
+/*
+    int ewrun;
+    int ewsubrun;
+    int ewevent;
+
+    ewin->SetBranchAddress("run", &ewrun);
+    ewin->SetBranchAddress("subrun", &ewsubrun);
+    ewin->SetBranchAddress("event", &ewevent);
+*/
+    for (size_t i = 0; i < ewin->GetEntries(); i++){
+
+      ewin->GetEntry(i);
+
+      if (ewvars->run == run && ewvars->subrun == subrun && ewvars->event == event){
+
+        entry = i;
+        break;
+      
+      }
+
+    }
+
+    return entry;
+
+   };
 
 }

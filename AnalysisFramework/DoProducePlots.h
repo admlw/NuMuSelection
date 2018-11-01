@@ -10,6 +10,7 @@
 #include "TStyle.h"
 #include "TF1.h"
 #include "TPad.h"
+#include "TError.h"
 
 // local
 #include "Configuration.h"

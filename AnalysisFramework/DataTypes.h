@@ -25,6 +25,10 @@ enum kVarType {
  */
 struct var_list {
 
+  int run = -999;
+  int subrun = -999;
+  int event = -999;
+
   bool isUBXSecSelected = false;
   bool isSimulation = false;
   int nSelectedTracks = -999;
@@ -82,6 +86,16 @@ struct var_list {
   std::vector<double>* true_mcp_starte = nullptr;
   std::vector<double>* true_mcp_startp = nullptr;
 
+};
+
+/**
+ * holds all variables to be pulled from the event weight root file
+ */
+struct ew_list {
+  int run = -999;
+  int subrun = -999;
+  int event = -999;
+  int MCFlux_evtno = -999;
 };
 
 struct hists_2d {

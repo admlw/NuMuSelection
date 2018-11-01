@@ -20,6 +20,17 @@
 
 int main(){
 
+  // only print errors, no warnings, info, etc.
+  // options (verbosity ordered):
+  //  kPrint
+  //  kInfo
+  //  kWarning
+  //  kError
+  //  kBreak
+  //  kSysError
+  //  kFatal
+  gErrorIgnoreLevel = kError;
+
   // print configuration information
   std::cout << "--- POT INFORMATION" << std::endl;
   std::cout << "----- simulation POT:          " << _config.bnbcosPOT << std::endl;
@@ -47,44 +58,46 @@ int main(){
 
   // pull out TTrees from provided TFiles
   // input trees are set in Configuration.h
-  TTree* t_onbeam = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
-  TTree* t_offbeam = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
+  TTree* t_onbeam     = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
+  TTree* t_offbeam    = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
+  TTree* t_ew         = (TTree*)(new TFile(_config.s_ew.c_str(), "read"))->Get("ew_tree");
 
   // initialise variables and trees
   var_list onbeam_vars_tmp;
   var_list offbeam_vars_tmp;
   var_list simulation_vars_tmp;
+  ew_list ew_vars_tmp;
 
   var_list* onbeam_vars = &onbeam_vars_tmp;
   var_list* offbeam_vars = &offbeam_vars_tmp;
   var_list* simulation_vars = &simulation_vars_tmp;
+  ew_list* ew_vars = &ew_vars_tmp;
 
   _treeHandler.SetTreeVars(t_onbeam, &onbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
+  _treeHandler.SetEWTreeVars(t_ew, &ew_vars_tmp);
 
   // initialise output trees
 
-  TFile *outfile_sim = new TFile("selectedEvents_sim.root", "UPDATE");
+  TFile *outfile_sim = new TFile("selectedEvents_sim.root", "RECREATE");
   outfile_sim->cd();
   TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
- 
-  TFile *outfile_onbeam = new TFile("selectedEvents_onbeam.root", "UPDATE");
+  TTree *t_ew_out = (TTree*)t_ew->CloneTree(0);  
+  
+  TFile *outfile_onbeam = new TFile("selectedEvents_onbeam.root", "RECREATE");
   outfile_onbeam->cd();
   TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
 
-  TFile *outfile_offbeam = new TFile("selectedEvents_offbeam.root", "UPDATE");
+  TFile *outfile_offbeam = new TFile("selectedEvents_offbeam.root", "RECREATE");
   outfile_offbeam->cd();
   TTree *t_offbeam_out = (TTree*)t_offbeam->CloneTree(0);
-
-  //_treeHandler.SetTreeVars(t_onbeam_out, &onbeam_vars_tmp, false);
-  //_treeHandler.SetTreeVars(t_offbeam_out, &offbeam_vars_tmp, false);
-  //_treeHandler.SetTreeVars(t_simulation_out, &simulation_vars_tmp, true);
 
   t_onbeam_out->SetName("onbeam");
   t_offbeam_out->SetName("offbeam");
   t_simulation_out->SetName("simulation");
+  t_ew_out->SetName("ew");
 
   // debugging
   std::cout << "histoNames size: " << _histoHandler.histoNames.size() << std::endl;
@@ -125,6 +138,8 @@ int main(){
   std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
   for (int i = 0; i < t_simulation->GetEntries(); i++){
 
+    if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
+
     t_simulation->GetEntry(i);
 
     // get bitset
@@ -147,9 +162,9 @@ int main(){
     if (simulation_vars->isUBXSecSelected){
 
       // get plots for data/MC comparisons
-      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, HISTOGRAM_1D, t_simulation, t_simulation_out, i);
-      std::vector<std::vector<std::vector<double>>> plottingVariablesPDG = _selmaker.GetPlottingVariables(simulation_vars, PDG, t_simulation, t_simulation_out, i);
-      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(simulation_vars, TRACKCUTVAR, t_simulation, t_simulation_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(simulation_vars, HISTOGRAM_1D, t_simulation, t_simulation_out, i, ew_vars, t_ew, t_ew_out);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesPDG = _selmaker.GetPlottingVariables(simulation_vars, PDG, nullptr, nullptr,  i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(simulation_vars, TRACKCUTVAR, nullptr, nullptr, i);
 
       for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
 
@@ -166,7 +181,7 @@ int main(){
       }
 
       // get plots for 2d histograms
-      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(simulation_vars, HISTOGRAM_2D, t_simulation, t_simulation_out, i);
+      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(simulation_vars, HISTOGRAM_2D, nullptr, nullptr, i);
 
 
       for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
@@ -187,12 +202,14 @@ int main(){
   std::cout << "[MDSCP] Beginning onbeam loop..." << std::endl;
   for (int i = 0; i < t_onbeam->GetEntries(); i++){
 
+    if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
+
     t_onbeam->GetEntry(i);
 
     if (onbeam_vars->isUBXSecSelected){
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, HISTOGRAM_1D, t_onbeam, t_onbeam_out, i);
-      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(onbeam_vars, TRACKCUTVAR, t_onbeam, t_onbeam_out, i);
+      std::vector<std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(onbeam_vars, HISTOGRAM_1D, t_onbeam, t_onbeam_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(onbeam_vars, TRACKCUTVAR, nullptr, nullptr, i);
 
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
@@ -207,7 +224,7 @@ int main(){
       }
 
       // get plots for 2d histograms
-      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(onbeam_vars, HISTOGRAM_2D, t_onbeam, t_onbeam_out, i);
+      std::vector<std::vector<std::vector<std::pair<double,double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(onbeam_vars, HISTOGRAM_2D, nullptr, nullptr, i);
 
       for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
 
@@ -229,12 +246,14 @@ int main(){
   std::cout << "[MDSCP] Beginning offbeam loop..." << std::endl;
   for (int i = 0; i < t_offbeam->GetEntries(); i++){
 
+    if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
+
     t_offbeam->GetEntry(i);
 
     if (offbeam_vars->isUBXSecSelected){
 
-      std::vector< std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, HISTOGRAM_1D, t_offbeam, t_offbeam_out, i);
-      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(offbeam_vars, TRACKCUTVAR, t_offbeam, t_offbeam_out, i);
+      std::vector<std::vector<std::vector<double>> > plottingVariables = _selmaker.GetPlottingVariables(offbeam_vars, HISTOGRAM_1D, t_offbeam, t_offbeam_out, i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(offbeam_vars, TRACKCUTVAR, nullptr, nullptr, i);
 
       for (int i_st = 0; i_st < (int)plottingVariables.size(); i_st++){ 
         for (int i_pl = 0; i_pl < (int)plottingVariables.at(i_st).size(); i_pl++){
@@ -248,7 +267,7 @@ int main(){
       }
 
       // get plots for 2d histograms
-      std::vector<std::vector<std::vector<std::pair<double, double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(offbeam_vars, HISTOGRAM_2D, t_offbeam, t_offbeam_out, i);
+      std::vector<std::vector<std::vector<std::pair<double, double>>>> plottingVariables_2d = _selmaker.Get2DPlottingVariables(offbeam_vars, HISTOGRAM_2D, nullptr, nullptr, i);
 
       for (size_t i_st = 0; i_st < plottingVariables_2d.size(); i_st++){ 
         for (size_t i_pl = 0; i_pl < plottingVariables_2d.at(i_st).size(); i_pl++){
@@ -302,6 +321,7 @@ int main(){
   
   outfile_sim->cd();  
   t_simulation_out->Write();
+  t_ew_out->Write();
 
   return 0;
 

@@ -5,6 +5,7 @@
 #include "AnalysisCuts.h"
 #include "DataTypes.h"
 #include "HistogramHandler.h"
+#include "TreeHandler.h"
 
 // cpp
 #include <vector>
@@ -50,12 +51,12 @@ namespace numusel{
       /**
        * gets variables to plot for each stage of the selection with input cut value
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, float cutvalue, TTree* infile=nullptr, TTree* outfile=nullptr, int entry=-1);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, float cutvalue, TTree* infile=nullptr, TTree* outfile=nullptr, int entry=-1, ew_list* ewvars = nullptr, TTree* ewin = nullptr, TTree* ewout = nullptr);
  
       /**
        * gets variables to plot for each stage of the selection
        */
-      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile = nullptr, TTree* outfile = nullptr, int entry=-1);
+      std::vector<std::vector<std::vector<double>>> GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile = nullptr, TTree* outfile = nullptr, int entry=-1, ew_list* ewvars=nullptr, TTree* ewin = nullptr, TTree* ewout=nullptr);
  
       /**
        * gets variables to plot in 2d

@@ -805,6 +805,12 @@ namespace numusel{
         // to it
         if (_histohandler.histoNames_2D.at(i_pl) == "h_trueenu_recoenu"){
 
+          TF1* yx = new TF1("yx", "x", 0, 3.);
+          yx->SetLineColor(kGray);
+          yx->SetLineStyle(2);
+          yx->Draw("same");
+
+/*
           hists.at(i_st).at(i_pl)->h_mc->Fit("pol1", "", "", 0.4, 1.0);
           float par0 = hists.at(i_st).at(i_pl)->h_mc->GetFunction("pol1")->GetParameter(0);
           float par1 = hists.at(i_st).at(i_pl)->h_mc->GetFunction("pol1")->GetParameter(1);
@@ -812,7 +818,7 @@ namespace numusel{
           TF1* func = new TF1("func", "[0]*x+[1]", 0, 3);
           func->SetParameters(par1, par0);
           func->Draw("same");
-
+*/
         }
 
         c_mc->SaveAs(std::string(

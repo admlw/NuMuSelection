@@ -77,7 +77,7 @@ namespace numusel{
 
   }
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, float cutval, TTree* infile, TTree* outfile, int entry){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, float cutval, TTree* infile, TTree* outfile, int entry, ew_list* ewvars, TTree* ewin, TTree* ewout){
 
     thisMatrix.clear();
     m_stage0.resize(0);
@@ -88,6 +88,7 @@ namespace numusel{
 
     numusel::AnalysisCuts _anacuts; 
     numusel::SelectionMaker _selmaker;
+    numusel::TreeHandler _treehandler;
 
     switch(var_type){
       case HISTOGRAM_1D:
@@ -175,9 +176,16 @@ namespace numusel{
                 break;
 
             }
-            if (entry != -1){
+            if (entry != -1 && infile != nullptr){
               infile->GetEntry(entry);
               outfile->Fill();
+
+              if (ewin != nullptr){
+                int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event);
+                _treehandler.SetEWTreeVars(ewin, ewvars);
+                ewin->GetEntry(thisEntry);
+                ewout->Fill();
+              }
             }
           }
 
@@ -196,10 +204,10 @@ namespace numusel{
     return thisMatrix;
   };
 
-  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile,  TTree* outfile, int entry){
+  std::vector<std::vector<std::vector<double>>> SelectionMaker::GetPlottingVariables(var_list* vars, kVarType var_type, TTree* infile,  TTree* outfile, int entry, ew_list* ewvars, TTree* ewin, TTree* ewout){
 
     numusel::AnalysisCuts _anacuts; 
-    thisMatrix = GetPlottingVariables(vars, var_type, _anacuts.pid_cutvalue, infile, outfile, entry);
+    thisMatrix = GetPlottingVariables(vars, var_type, _anacuts.pid_cutvalue, infile, outfile, entry, ewvars, ewin, ewout);
 
     return thisMatrix;
 

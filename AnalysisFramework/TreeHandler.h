@@ -25,6 +25,13 @@ namespace numusel{
        */
       void SetTreeVars(TTree* tree, var_list* varstoset, bool b_isSimulation);
 
+      /**
+       * Sets accessors for event weight tree
+       */
+      void SetEWTreeVars(TTree* tree, ew_list* varstoset);
+
+      int FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event);
+
   };
 
 }
