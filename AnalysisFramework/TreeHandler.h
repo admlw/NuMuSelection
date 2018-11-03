@@ -21,6 +21,18 @@ namespace numusel{
     public:
 
       /**
+       * Set all branch status to 0 except for run, subrun, event, 
+       * which are used as searcing criteria. This results in a 
+       * significant speed up of the code
+       */
+      void PrepareTreeForSearching(TTree* tree);
+
+      /**
+       * Set all branch status to 1
+       */
+      void PrepareTreeForWriting(TTree* tree);
+
+      /**
        * Sets accessors for tree variables to be contained in the var_list
        */
       void SetTreeVars(TTree* tree, var_list* varstoset, bool b_isSimulation);
@@ -30,7 +42,11 @@ namespace numusel{
        */
       void SetEWTreeVars(TTree* tree, ew_list* varstoset);
 
-      int FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event);
+      /**
+       * Used to find the entry in the eventweight tree corresponding to the 
+       * run, subrun, and event of the analysis tree
+       */
+      int FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event, int startentry);
 
   };
 

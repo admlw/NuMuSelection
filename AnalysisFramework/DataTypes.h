@@ -86,16 +86,112 @@ struct var_list {
   std::vector<double>* true_mcp_starte = nullptr;
   std::vector<double>* true_mcp_startp = nullptr;
 
+  double reconstructedNeutrinoEnergy = -999;
+
 };
 
 /**
  * holds all variables to be pulled from the event weight root file
  */
 struct ew_list {
+  static const int MaxArraySize = 50;
+
   int run = -999;
   int subrun = -999;
   int event = -999;
   int MCFlux_evtno = -999;
+  double MCFlux_NuPosX = -999;
+  double MCFlux_NuPosY = -999;
+  double MCFlux_NuPosZ = -999;
+  double MCFlux_NuMomX = -999;
+  double MCFlux_NuMomY = -999;
+  double MCFlux_NuMomZ = -999;
+  double MCFlux_NuMomE = -999;
+  double MCFlux_genx = -999;
+  double MCFlux_geny = -999;
+  double MCFlux_genz = -999;
+  int MCFlux_ntype = -999;
+  int MCFlux_ptype = -999;
+  double MCFlux_nimpwt = -999;
+  double MCFlux_dk2gen = -999;
+  double MCFlux_nenergyn = -999;
+  double MCFlux_tpx = -999;
+  double MCFlux_tpy = -999;
+  double MCFlux_tpz = -999;
+  int MCFlux_tptype = -999;
+  double MCFlux_vx = -999;
+  double MCFlux_vy = -999;
+  double MCFlux_vz = -999;
+
+  int MCTruth_NParticles = -999;
+  int MCTruth_particles_TrackId[MaxArraySize];
+  int MCTruth_particles_PdgCode[MaxArraySize];
+  int MCTruth_particles_Mother[MaxArraySize];
+  int MCTruth_particles_StatusCode[MaxArraySize];
+  int MCTruth_particles_NumberDaughters[MaxArraySize];
+  int MCTruth_particles_Daughters[MaxArraySize][100];
+  double MCTruth_particles_Gvx[MaxArraySize];
+  double MCTruth_particles_Gvy[MaxArraySize];
+  double MCTruth_particles_Gvz[MaxArraySize];
+  double MCTruth_particles_Gvt[MaxArraySize];
+  double MCTruth_particles_px0[MaxArraySize];
+  double MCTruth_particles_py0[MaxArraySize];
+  double MCTruth_particles_pz0[MaxArraySize];
+  double MCTruth_particles_e0[MaxArraySize];
+  int MCTruth_particles_Rescatter[MaxArraySize];
+  double MCTruth_particles_polx[MaxArraySize];
+  double MCTruth_particles_poly[MaxArraySize];
+  double MCTruth_particles_polz[MaxArraySize];
+  int MCTruth_neutrino_CCNC = -999;
+  int MCTruth_neutrino_mode = -999;
+  int MCTruth_neutrino_interactionType = -999;
+  int MCTruth_neutrino_target = -999;
+  int MCTruth_neutrino_nucleon = -999;
+  int MCTruth_neutrino_quark = -999;
+  double MCTruth_neutrino_W = -999;
+  double MCTruth_neutrino_X = -999;
+  double MCTruth_neutrino_Y = -999;
+  double MCTruth_neutrino_QSqr = -999;
+
+  bool GTruth_IsSeaQuark;
+  int GTruth_tgtPDG = -999;
+  double GTruth_weight = -999;
+  double GTruth_probability = -999;
+  double GTruth_Xsec = -999;
+  double GTruth_DiffXsec = -999;
+  double GTruth_vertexX = -999;
+  double GTruth_vertexY = -999;
+  double GTruth_vertexZ = -999;
+  double GTruth_vertexT = -999;
+  int GTruth_Gscatter = -999;
+  int GTruth_Gint = -999;
+  int GTruth_ResNum = -999;
+  int GTruth_NumPiPlus = -999;
+  int GTruth_NumPi0 = -999;
+  int GTruth_NumPiMinus = -999;
+  int GTruth_NumProton = -999;
+  int GTruth_NumNeutron = -999;
+  bool GTruth_IsCharm = -999;
+  double GTruth_gX = -999;
+  double GTruth_gY = -999;
+  double GTruth_gT = -999;
+  double GTruth_gW = -999;
+  double GTruth_gQ2 = -999;
+  double GTruth_gq2 = -999;
+  int GTruth_ProbePDG = -999;
+  double GTruth_ProbeP4x = -999;
+  double GTruth_ProbeP4y = -999;
+  double GTruth_ProbeP4z = -999;
+  double GTruth_ProbeP4E = -999;
+  double GTruth_HitNucP4x = -999;
+  double GTruth_HitNucP4y = -999;
+  double GTruth_HitNucP4z = -999;
+  double GTruth_HitNucP4E = -999;
+  double GTruth_FShadSystP4x = -999;
+  double GTruth_FShadSystP4y = -999;
+  double GTruth_FShadSystP4z = -999;
+  double GTruth_FShadSystP4E = -999;
+
 };
 
 struct hists_2d {
