@@ -61,7 +61,7 @@ namespace numusel{
 
       // means we only run over 1000 events for sim, onbeam and offbeam
       bool QuickDev = false;
-      int QuickDevEvents = 1000;
+      int QuickDevEvents = 100;
 
       // there are four stages to the selection
       // * no cuts (pure UBXSec)
