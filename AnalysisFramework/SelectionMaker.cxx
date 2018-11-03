@@ -176,17 +176,23 @@ namespace numusel{
                 break;
 
             }
+            
             if (entry != -1 && infile != nullptr){
               infile->GetEntry(entry);
               outfile->Fill();
 
+              std::cout << "entry is " << entry << std::endl;
               if (ewin != nullptr){
-                int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event);
-                _treehandler.SetEWTreeVars(ewin, ewvars);
+                _treehandler.PrepareTreeForSearching(ewin);
+                int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event, entry);
+                //_treehandler.SetEWTreeVars(ewin, ewvars);
+                _treehandler.PrepareTreeForWriting(ewin);
                 ewin->GetEntry(thisEntry);
                 ewout->Fill();
               }
+
             }
+
           }
 
         }
@@ -545,6 +551,8 @@ namespace numusel{
       m_stagex->push_back(candNonLeadingProtonRangeEnergyPassmp);
       m_stagex->push_back(neutrinoReconstructedEnergyUncalib);
       m_stagex->push_back(neutrinoReconstructedEnergyCalib);
+
+      vars->reconstructedNeutrinoEnergy = neutrinoReconstructedEnergyCalib.at(0);
 
     }
 
