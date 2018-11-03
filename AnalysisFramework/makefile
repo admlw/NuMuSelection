@@ -11,10 +11,14 @@ DoProducePlots: DoProducePlots.cxx EventCategoriser.cxx SelectionMaker.cxx Analy
 DoEnergyRecoStudies: DoEnergyRecoStudies.cxx EnergyReco.cxx TreeHandler.cxx
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
-all: DoProducePlots DoEnergyRecoStudies
+SplitTree: SplitTree.cxx TreeHandler.cxx
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+
+all: DoProducePlots DoEnergyRecoStudies SplitTree
 
 clean:
 	rm DoProducePlots
 	rm DoEnergyRecoStudies
+	rm SplitTree
 	rm plots/*.png
 	rm plots/*.pdf
