@@ -9,9 +9,23 @@ int main(int argv, char** argc){
   initialiseTrees(event_info_tree, ew_tree);
 
   TFile * f_out = new TFile("numu_SBNFit.root", "RECREATE");
-  TTree* t_out = new TTree("numu_sbnfit", "numu sbnfit tree");
-  t_out->Branch("reconstructed_neutrino_energy", &out_reconstructed_neutrino_energy);
-  t_out->Branch("weights", "std::map<std::string, std::vector<double>>", &weights);
+  TTree* t_cosmic = new TTree("numu_sbnfit_cosmic", "numu sbnfit tree cosmic");
+  TTree* t_mixed = new TTree("numu_sbnfit_mixed", "numu sbnfit tree mixed");
+  TTree* t_oofv = new TTree("numu_sbnfit_oofv", "numu sbnfit tree oofv");
+  TTree* t_nc = new TTree("numu_sbnfit_nc", "numu sbnfit tree nc");
+  TTree* t_nue = new TTree("numu_sbnfit_nue", "numu sbnfit tree nue/anue");
+  TTree* t_anumu = new TTree("numu_sbnfit_anumu", "numu sbnfit tree anumu");
+  TTree* t_ccother = new TTree("numu_sbnfit_ccother", "numu sbnfit tree ccother");
+  TTree* t_cc0pinp = new TTree("numu_sbnfit_cc0pinp", "numu sbnfit tree cc0pinp");
+
+  setVariables(t_cosmic);
+  setVariables(t_mixed);
+  setVariables(t_oofv);
+  setVariables(t_nc);
+  setVariables(t_nue);
+  setVariables(t_anumu);
+  setVariables(t_ccother);
+  setVariables(t_cc0pinp);
 
   // input files
   std::vector<std::string> file_list;
@@ -54,11 +68,34 @@ int main(int argv, char** argc){
         if (nu_w == ew_nu_w && nu_x == ew_nu_x && nu_y == ew_nu_y && nu_qsqr == ew_nu_qsqr){
 
           event_info_tree->GetEntry(i);
-          
+ 
           out_reconstructed_neutrino_energy = sel_resconstructed_neutrino_energy;
           weights = evtwght.fWeight; 
-          t_out->Fill();
           
+          if (eventCat->at(7) == 1)
+            t_cosmic->Fill();
+          
+          else if (eventCat->at(6) == 1)
+            t_mixed->Fill();
+
+          else if (eventCat->at(5) == 1)
+            t_oofv->Fill();      
+
+          else if (eventCat->at(4) == 1)
+            t_nc->Fill();      
+          
+          else if (eventCat->at(3) == 1)
+            t_nue->Fill();      
+          
+          else if (eventCat->at(2) == 1)
+            t_anumu->Fill();      
+
+          else if (eventCat->at(1) == 1)
+            t_ccother->Fill();      
+          
+          else if (eventCat->at(0) == 1)
+            t_cc0pinp->Fill();      
+         
         }
 
       }
@@ -78,11 +115,13 @@ void initialiseTrees(TTree* sel, TTree* ew){
   sel->SetBranchStatus("subrun", 1);
   sel->SetBranchStatus("event", 1);
   sel->SetBranchStatus("reconstructed_neutrino_energy", 1);
+  sel->SetBranchStatus("event_cat", 1);
 
   sel->SetBranchAddress("run", &sel_run);
   sel->SetBranchAddress("subrun", &sel_subrun);
   sel->SetBranchAddress("event", &sel_event);
   sel->SetBranchAddress("reconstructed_neutrino_energy", &sel_resconstructed_neutrino_energy);
+  sel->SetBranchAddress("event_cat", &eventCat);
 
   ew->SetBranchStatus("*", 0);
   ew->SetBranchStatus("run", 1);
@@ -101,4 +140,9 @@ void initialiseTrees(TTree* sel, TTree* ew){
   ew->SetBranchAddress("MCTruth_neutrino_Y", &ew_nu_y);
   ew->SetBranchAddress("MCTruth_neutrino_QSqr", &ew_nu_qsqr);
 
+}
+
+void setVariables(TTree* t){
+  t->Branch("reconstructed_neutrino_energy", &out_reconstructed_neutrino_energy);
+  t->Branch("weights", "std::map<std::string, std::vector<double>>", &weights);
 }

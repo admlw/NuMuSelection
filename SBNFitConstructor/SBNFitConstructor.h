@@ -19,6 +19,7 @@ int sel_run;
 int sel_subrun;
 int sel_event;
 double sel_resconstructed_neutrino_energy;
+std::vector<bool>* eventCat = nullptr;
 
 int ew_run;
 int ew_subrun;
@@ -29,7 +30,10 @@ double ew_nu_y;
 double ew_nu_qsqr;
 
 double out_reconstructed_neutrino_energy;
+
 std::map<std::string, std::vector<double>> weights;
 
 void initialiseTrees(TTree* sel, TTree* ew);
+
+void setVariables(TTree* t);
 
