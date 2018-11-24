@@ -11,9 +11,11 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <bitset>
 
 // ROOT
 #include "TTree.h"
+#include "TGraph.h"
 
 namespace numusel{
 

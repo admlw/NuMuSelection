@@ -89,6 +89,7 @@ namespace numusel{
     numusel::AnalysisCuts _anacuts; 
     numusel::SelectionMaker _selmaker;
     numusel::TreeHandler _treehandler;
+    numusel::Configuration _config;
 
     switch(var_type){
       case HISTOGRAM_1D:
@@ -181,8 +182,7 @@ namespace numusel{
               infile->GetEntry(entry);
               outfile->Fill();
 
-              std::cout << "entry is " << entry << std::endl;
-              if (ewin != nullptr){
+              if (ewin != nullptr && _config.DoEventWeightMatching == true){
                 _treehandler.PrepareTreeForSearching(ewin);
                 int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event, entry);
                 //_treehandler.SetEWTreeVars(ewin, ewvars);
@@ -259,7 +259,6 @@ namespace numusel{
 
   void SelectionMaker::PushBack1DVectors(std::vector<std::vector<double>>* m_stagex, var_list* vars, bool isHasPID){
 
-
     // n.b. every time you add a variable here you need to
     // add the histogram name, title, and bin ranges in HistogramHandler.h
     // vectors
@@ -300,7 +299,20 @@ namespace numusel{
 
       if (lmip == -999)
         pid.push_back(-999);
-      else pid.push_back(std::log(lmip/lp));
+      else 
+      {
+        pid.push_back(std::log(lmip/lp));
+        //if (std::log(lmip/lp) > 1 && std::log(lmip/lp) < 3 && vars->pfp_pdgCode->at(i) == 11 && vars->true_match_pdg->at(i) == 2212){
+        //std::cout << vars->run << "." << vars->subrun << "." << vars->event << "   log(lmip/lp): " << log(lmip/lp) << " track start z: " << vars->track_startz->at(i) << " endz: " << vars->track_endz->at(i) << " truematchpurity: " << vars->true_match_purity->at(i) << std::endl;
+        //TFile *out_dedxs = new TFile("out_dedxs.root", "update");
+        //TGraph* h_tmp = new TGraph(vars->track_dedxperhit_smeared->at(i).size(), &vars->track_resrangeperhit->at(i)[0], &vars->track_dedxperhit_smeared->at(i)[0]);
+        //TString name = Form("run%isubrun%ievent%i", vars->run, vars->subrun, vars->event);
+        //h_tmp->SetName(name);
+        //if (out_dedxs->Get(name)) continue;
+        //h_tmp->Write();
+        //out_dedxs->Close();
+        //}
+      }
     }
     m_stagex->push_back(pid);
 

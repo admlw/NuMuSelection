@@ -7,6 +7,7 @@
 
 // cpp
 #include <iostream>
+#include <bitset>
 
 namespace numusel{
 

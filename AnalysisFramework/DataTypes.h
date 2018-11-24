@@ -3,6 +3,7 @@
 
 // cpp
 #include <vector>
+#include <bitset>
 #include <string>
 
 // ROOT
@@ -80,6 +81,7 @@ struct var_list {
   std::vector<int>* true_match_motherid = nullptr;
   std::vector<int>* true_match_trackid = nullptr;
   std::vector<std::string>* true_match_process = nullptr;
+  std::vector<double>* true_match_purity = nullptr;
   std::vector<double>* true_mcp_pdg = nullptr;
   std::vector<int>* true_mcp_trackid = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;
@@ -87,6 +89,7 @@ struct var_list {
   std::vector<double>* true_mcp_startp = nullptr;
 
   double reconstructedNeutrinoEnergy = -999;
+  std::vector<bool> eventCat;
 
 };
 

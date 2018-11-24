@@ -46,6 +46,7 @@ int main(){
   std::cout << "----- Do PID For Showers?      " << _config.DoPIDForShowers << std::endl;
   std::cout << "----- Make Track Plots?        " << _config.MakeTrackPlots << std::endl;
   std::cout << "----- Use Track Cut?           " << _config.UseTrackCut << std::endl;
+  std::cout << "----- Do EventWeight Matching? " << _config.DoEventWeightMatching << std::endl;
   std::cout << " " << std::endl;
   std::cout << "--- ANALYSIS CUT VALUES" << std::endl;
   std::cout << "----- nPFParticles LOW:        " << _anacuts.n_pfParticles_min_cut_val << std::endl; 
@@ -144,6 +145,11 @@ int main(){
 
     // get bitset
     std::bitset<8> eventCat = _evcat.CategoriseEvent(simulation_vars);
+    std::vector<bool>eventCat_vec;
+    for (int i = 0; i < 8; i++){
+      eventCat_vec.push_back(eventCat[i]);
+    }
+    simulation_vars->eventCat = eventCat_vec;
     
     std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY); 
 

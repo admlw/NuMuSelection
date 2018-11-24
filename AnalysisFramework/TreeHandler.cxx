@@ -18,7 +18,6 @@ namespace numusel{
 
   }
 
-
   void TreeHandler::SetEWTreeVars(TTree* tree, ew_list* varstoset){
 /*
     tree->SetBranchStatus("*", 0);
@@ -315,6 +314,7 @@ namespace numusel{
       tree->SetBranchStatus("true_match_motherid", 1);
       tree->SetBranchStatus("true_match_trackid", 1);
       tree->SetBranchStatus("true_match_process", 1);
+      tree->SetBranchStatus("true_match_purity", 1);
       tree->SetBranchStatus("true_mcp_pdg"     , 1);
       tree->SetBranchStatus("true_mcp_process" , 1);
       tree->SetBranchStatus("true_mcp_starte"  , 1);
@@ -334,15 +334,17 @@ namespace numusel{
       tree->SetBranchAddress("true_match_trackid", &(varstoset->true_match_trackid));
       tree->SetBranchAddress("true_match_motherid", &(varstoset->true_match_motherid));
       tree->SetBranchAddress("true_match_process", &(varstoset->true_match_process));
+      tree->SetBranchAddress("true_match_purity", &(varstoset->true_match_purity));
       tree->SetBranchAddress("true_mcp_pdg"     , &(varstoset->true_mcp_pdg));
       tree->SetBranchAddress("true_mcp_process" , &(varstoset->true_mcp_process));
       tree->SetBranchAddress("true_mcp_starte"  , &(varstoset->true_mcp_starte));
       tree->SetBranchAddress("true_mcp_startp"  , &(varstoset->true_mcp_startp));
       tree->SetBranchAddress("true_mcp_trackid", &(varstoset->true_mcp_trackid));
 
-      tree->Branch("reconstructed_neutrino_energy", &(varstoset->reconstructedNeutrinoEnergy));
+      tree->Branch("event_cat", "std::vector<bool>", &(varstoset->eventCat));
     }
 
+    tree->Branch("reconstructed_neutrino_energy", &(varstoset->reconstructedNeutrinoEnergy));
   };
 
   int TreeHandler::FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event, int startentry){
@@ -356,7 +358,6 @@ namespace numusel{
       if (ewvars->run == run && ewvars->subrun == subrun && ewvars->event == event){
 
         entry = i;
-        std::cout << "match at " << entry << std::endl; 
         break;
       
       }

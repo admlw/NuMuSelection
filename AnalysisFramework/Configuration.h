@@ -39,7 +39,7 @@ namespace numusel{
       // testBuildShowersAsTracks_3
       std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_onbeam.root";
       std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_offbeam.root";
-      std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_bnbcos.root";
+      std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_4/selectionInformation_bnbcos.root";
       std::string s_ew = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/ew_bnbcos.root";
 
       double bnbcosPOT = 1.97315e+20; //nominal
@@ -53,11 +53,13 @@ namespace numusel{
       bool DoPIDForShowers = true;
       bool DoPIDForTracks = true;
 
+      bool DoEventWeightMatching = false;
+
       // makes plots for track distributions separated by true pdg
-      bool MakeTrackPlots = false;
+      bool MakeTrackPlots = true;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
-      bool UseTrackCut = false;
+      bool UseTrackCut = true;
 
       // means we only run over 1000 events for sim, onbeam and offbeam
       bool QuickDev = false;
