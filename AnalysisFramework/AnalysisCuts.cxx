@@ -33,33 +33,18 @@ namespace numusel{
 
     numusel::Configuration _config;
 
-    int n_nohits = 0;
-    for (int j = 0; j < vars->track_dedxperhit_smeared->size(); j++){
-      if (vars->track_dedxperhit_smeared->at(j).size() == 0) n_nohits++; 
+    // do any tracks have fewer than 3 hits on the collection plane?
+    int n_lowhittracks = 0;
+    for (int j = 0; j < vars->track_ncaloobj_yplane->size(); j++){
+        if (vars->track_ncaloobj_yplane->at(j) == 0) 
+            n_lowhittracks++;
     }
 
     std::pair<bool, std::vector<int>> thisPair;
 
     // first perform quality checks
     if (((vars->nSelectedPfparticles != vars->bragg_fwd_p->size()) && vars->isUBXSecSelected)
-        || n_nohits !=0){
-      //|| (vars->nSelectedPfparticles != vars->bragg_fwd_p->size())){
-      /*
-         if ((vars->nSelectedPfparticles != vars->bragg_fwd_p->size())){
-
-         std::cout << "----" << std::endl;
-         std::cout << "npfps: " << vars->nSelectedPfparticles << std::endl;
-         std::cout << "ntracks: " << vars->nSelectedTracks << std::endl;
-         std::cout << "nshowers: " << vars->nSelectedShowers << std::endl;
-         std::cout << "npids: " << vars->bragg_fwd_p->size() << std::endl;
-         for (int j = 0; j < vars->track_dedxperhit_smeared->size(); j++){
-         std::cout << "track has " << vars->track_dedxperhit_smeared->at(j).size() << " dedx values" << std::endl; 
-         std::cout << "track has length " << vars->track_length->at(j) << std::endl;
-         std::cout << "track pid info: " << vars->bragg_fwd_p->at(j) << std::endl;
-         }  
-
-         }
-         */
+        || (n_lowhittracks != 0) ){
       thisPair.first = false;
       thisPair.second = {0};
 
@@ -89,15 +74,10 @@ namespace numusel{
       double proton_likelihood = std::max(vars->bragg_fwd_p->at(i), vars->bragg_bwd_p->at(i));
       double mip_likelihood = vars->noBragg_fwd_mip->at(i);
 
-      double loglmipoverp;
-
-      if (mip_likelihood == -999)
-        loglmipoverp = -999;
-      else
-        loglmipoverp = std::log(mip_likelihood/proton_likelihood);
+      double loglmipoverp = std::log(mip_likelihood/proton_likelihood);
 
       // muon candidate
-      if (loglmipoverp > cutval){
+      if (loglmipoverp > cutval && loglmipoverp != 0){
         n_muon_cand++;
         pidPdgCodes.push_back(13); 
       }
@@ -110,6 +90,8 @@ namespace numusel{
 
         // check proton quality, i.e. are more than 1/4 of the proton
         // dE/dx values MIP-like
+        //
+        // todo: compare depE versus rangeE to remove badly reco'd protons
         for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
 
           if (vars->track_dedxperhit_smeared->at(i).at(j) <= 2)
@@ -119,14 +101,15 @@ namespace numusel{
 
         }
 
-        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > 0.25 && vars->track_isCollectionPID->at(i) == true)
-          protons_quality = true;
+        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > 0.25 /*|| loglmipoverp == 0*/ || (vars->track_hit_nhits_uplane->at(i) <= 5 && vars->track_hit_nhits_vplane->at(i) <= 5 ))
+          protons_quality = false;
+        else protons_quality = true;
 
       }
 
     }
 
-    if (n_muon_cand == 1 && protons_contained == true &&  protons_quality == true){
+    if (n_muon_cand == 1 && protons_contained == true && protons_quality == true){
 
       thisPair.first = true;
       thisPair.second = pidPdgCodes;
@@ -135,7 +118,7 @@ namespace numusel{
     else{
 
       thisPair.first = false;
-      thisPair.second = pidPdgCodes;
+      thisPair.second = {0};
 
     }
 
