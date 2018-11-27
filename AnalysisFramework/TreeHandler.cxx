@@ -257,6 +257,15 @@ namespace numusel{
     tree->SetBranchStatus("track_dedxperhit_smeared", 1);
     tree->SetBranchStatus("track_resrangeperhit", 1);
     tree->SetBranchStatus("track_residualrms", 1);
+    tree->SetBranchStatus("track_hit_nhits_uplane", 1);
+    tree->SetBranchStatus("track_hit_nhits_vplane", 1);
+    tree->SetBranchStatus("track_hit_nhits_yplane", 1);
+    tree->SetBranchStatus("track_hit_median_peak_amplitude", 1);
+    tree->SetBranchStatus("track_hit_median_integral", 1);
+    tree->SetBranchStatus("track_hit_median_multiplicity", 1);
+    tree->SetBranchStatus("track_ncaloobj_uplane", 1);
+    tree->SetBranchStatus("track_ncaloobj_vplane", 1);
+    tree->SetBranchStatus("track_ncaloobj_yplane", 1);
 
     tree->SetBranchAddress("run",    &(varstoset->run));
     tree->SetBranchAddress("subrun", &(varstoset->subrun));
@@ -298,6 +307,15 @@ namespace numusel{
     tree->SetBranchAddress("track_dedxperhit_smeared", &(varstoset->track_dedxperhit_smeared));
     tree->SetBranchAddress("track_resrangeperhit", &(varstoset->track_resrangeperhit));
     tree->SetBranchAddress("track_residualrms", &(varstoset->track_residualrms));
+    tree->SetBranchAddress("track_hit_nhits_uplane", &(varstoset->track_hit_nhits_uplane));
+    tree->SetBranchAddress("track_hit_nhits_vplane", &(varstoset->track_hit_nhits_vplane));
+    tree->SetBranchAddress("track_hit_nhits_yplane", &(varstoset->track_hit_nhits_yplane));
+    tree->SetBranchAddress("track_hit_median_peak_amplitude", &(varstoset->track_hit_median_peak_amplitude));
+    tree->SetBranchAddress("track_hit_median_integral"      , &(varstoset->track_hit_median_integral));
+    tree->SetBranchAddress("track_hit_median_multiplicity"  , &(varstoset->track_hit_median_multiplicity));
+    tree->SetBranchAddress("track_ncaloobj_uplane", &(varstoset->track_ncaloobj_uplane));
+    tree->SetBranchAddress("track_ncaloobj_vplane", &(varstoset->track_ncaloobj_vplane));
+    tree->SetBranchAddress("track_ncaloobj_yplane", &(varstoset->track_ncaloobj_yplane));
 
     if (b_isSimulation){
 
@@ -315,6 +333,7 @@ namespace numusel{
       tree->SetBranchStatus("true_match_trackid", 1);
       tree->SetBranchStatus("true_match_process", 1);
       tree->SetBranchStatus("true_match_purity", 1);
+      tree->SetBranchStatus("true_match_completeness", 1);
       tree->SetBranchStatus("true_mcp_pdg"     , 1);
       tree->SetBranchStatus("true_mcp_process" , 1);
       tree->SetBranchStatus("true_mcp_starte"  , 1);
@@ -335,6 +354,7 @@ namespace numusel{
       tree->SetBranchAddress("true_match_motherid", &(varstoset->true_match_motherid));
       tree->SetBranchAddress("true_match_process", &(varstoset->true_match_process));
       tree->SetBranchAddress("true_match_purity", &(varstoset->true_match_purity));
+      tree->SetBranchAddress("true_match_completeness", &(varstoset->true_match_completeness));
       tree->SetBranchAddress("true_mcp_pdg"     , &(varstoset->true_mcp_pdg));
       tree->SetBranchAddress("true_mcp_process" , &(varstoset->true_mcp_process));
       tree->SetBranchAddress("true_mcp_starte"  , &(varstoset->true_mcp_starte));

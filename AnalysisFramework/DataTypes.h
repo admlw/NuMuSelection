@@ -26,20 +26,28 @@ enum kVarType {
  */
 struct var_list {
 
+  // ---
+  // reconstructed
+  // ---
+
+  // --- one number per event
   int run = -999;
   int subrun = -999;
   int event = -999;
-
   bool isUBXSecSelected = false;
   bool isSimulation = false;
   int nSelectedTracks = -999;
   int nSelectedShowers = -999;
   int nSelectedPfparticles = -999;
-  std::vector<double>* track_length = nullptr;
   double vertex_x = -999;
   double vertex_y = -999;
   double vertex_z = -999;
+
+  // --- pfp info
   std::vector<int>* pfp_pdgCode = nullptr;
+
+  // --- track info
+  std::vector<double>* track_length = nullptr;
   std::vector<double>* track_startx = nullptr;
   std::vector<double>* track_endx = nullptr;
   std::vector<double>* track_starty = nullptr;
@@ -49,9 +57,6 @@ struct var_list {
   std::vector<double>* track_theta = nullptr;
   std::vector<double>* track_costheta = nullptr;
   std::vector<double>* track_phi = nullptr;
-  std::vector<double>* bragg_fwd_p = nullptr;
-  std::vector<double>* bragg_bwd_p = nullptr;
-  std::vector<double>* noBragg_fwd_mip = nullptr;
   std::vector<double>* track_mcs_muassmp_fwd = nullptr;
   std::vector<double>* track_mcs_muassmp_bwd = nullptr;
   std::vector<double>* track_mcs_muassmp_fwd_loglikelihood = nullptr;
@@ -67,27 +72,57 @@ struct var_list {
   std::vector<bool>* track_isCollectionPID = nullptr;
   std::vector<std::vector<double>>* track_dedxperhit_smeared = nullptr;
   std::vector<std::vector<double>>* track_resrangeperhit = nullptr;
+  std::vector<double>* bragg_fwd_p = nullptr;
+  std::vector<double>* bragg_bwd_p = nullptr;
+  std::vector<double>* noBragg_fwd_mip = nullptr;
 
+  // --- track hit variables
+  std::vector<int>* track_hit_nhits_uplane = nullptr;
+  std::vector<int>* track_hit_nhits_vplane = nullptr;
+  std::vector<int>* track_hit_nhits_yplane = nullptr;
+  std::vector<double>* track_hit_median_peak_amplitude = nullptr;
+  std::vector<double>* track_hit_median_integral = nullptr;
+  std::vector<double>* track_hit_median_multiplicity = nullptr;
+  
+  // --- track calorimetry objects
+  std::vector<int>* track_ncaloobj_uplane = nullptr;
+  std::vector<int>* track_ncaloobj_vplane = nullptr;
+  std::vector<int>* track_ncaloobj_yplane = nullptr;
+
+  // ---
+  // trueth
+  // ---
+  
   bool isBeamNeutrino = false;
   bool isCosmic = false;
   bool isMixed = false;
   bool isInFV = false;
+
+  // --- genie information
   std::vector<double>* true_genie_starte = nullptr;
   std::vector<double>* true_genie_startp = nullptr;
   std::vector<double>* true_genie_pdg = nullptr;
   int true_nu_ccnc = -999;
-  std::vector<int>* true_match_pdg = nullptr;
-  std::vector<double>* true_match_starte = nullptr;
-  std::vector<int>* true_match_motherid = nullptr;
-  std::vector<int>* true_match_trackid = nullptr;
-  std::vector<std::string>* true_match_process = nullptr;
-  std::vector<double>* true_match_purity = nullptr;
+
+  // --- g4 information
   std::vector<double>* true_mcp_pdg = nullptr;
   std::vector<int>* true_mcp_trackid = nullptr;
   std::vector<std::string>* true_mcp_process = nullptr;
   std::vector<double>* true_mcp_starte = nullptr;
   std::vector<double>* true_mcp_startp = nullptr;
 
+  // --- truth match to g4 information
+  std::vector<int>* true_match_pdg = nullptr;
+  std::vector<double>* true_match_starte = nullptr;
+  std::vector<int>* true_match_motherid = nullptr;
+  std::vector<int>* true_match_trackid = nullptr;
+  std::vector<std::string>* true_match_process = nullptr;
+  std::vector<double>* true_match_purity = nullptr;
+  std::vector<double>* true_match_completeness = nullptr;
+
+  // ---
+  // other
+  // ---
   double reconstructedNeutrinoEnergy = -999;
   std::vector<bool> eventCat;
 
