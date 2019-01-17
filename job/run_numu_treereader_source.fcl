@@ -1,5 +1,5 @@
 #include "services_microboone.fcl"
-#include "eventweight_treereader.fcl"
+#include "numu_nue_common_eventweight.fcl"
 #include "seedservice_microboone.fcl"
 
 process_name: TreeReader
@@ -123,7 +123,7 @@ outputs: {
 
 physics: {
  producers: {
-   mcweight: @local::treereader_eventweight
+   mcweight: @local::numu_nue_common_eventweight
    rns: { module_type: "RandomNumberSaver" }
  }
 

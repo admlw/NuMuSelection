@@ -9,43 +9,18 @@ namespace numusel{
   class Configuration{
 
     public:
-/*
-      // vars
-      std::string s_onbeam     = "/uboone/data/users/alister1/numuSelection/18-08-20-NuMuSelection/numusel_onbeam_info.root";
-      std::string s_offbeam    = "/uboone/data/users/alister1/numuSelection/18-08-20-NuMuSelection/numusel_offbeam_info.root";
-      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/18-08-20-NuMuSelection/numusel_bnbcos_info.root";
 
-      // bnbcos POT 1.4708e20
-      // onbeam tor860_wcut 1.555e20
-      // onbeam E1DCNT_wcut 34627337
-      // offbeam EXT 33667849
+      std::string s_onbeam     = "/uboone/data/users/alister1/numuSelection/files/onbeam_selectionInformation.root";
+      std::string s_offbeam    = "/uboone/data/users/alister1/numuSelection/files/offbeam_selectionInformation.root";
+      //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_dic_devdataset_selectionInformation.root"; // dic
+      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_nominal_devdataset_selectionInformation.root";
+      std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_nominal_devdataset_eventweight.root";
 
-      double offbeamscaling = 1.028;
-      double simscaling = 1.06; 
-*/
-
-      /** testBuildShowersAsTracks_2
-      std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_onbeam.root";
-      std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_offbeam.root";
-      std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_2/selectionInformation_bnbcos.root";
-
-      double bnbcosPOT = 1.9715e+20; //nominal
-      //double bnbcosPOT = 9.34638e+19; // dic
-      double onbeam_tor860_wcut = 3.245e+19;
-      double onbeam_E1DCNT_wcut = 7244484;
-      double offbeam_EXT = 10946246;
-*/
-
-      // testBuildShowersAsTracks_3
-      std::string s_onbeam     = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_onbeam.root";
-      std::string s_offbeam    = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectionInformation_offbeam.root";
-      std::string s_simulation = "/uboone/data/users/alister1/testBuildShowersAsTracks_4/selectionInformation_bnbcos.root";
-      std::string s_ew = "/uboone/data/users/alister1/testBuildShowersAsTracks_3/ew_bnbcos.root";
-
-      double bnbcosPOT = 1.97315e+20; //nominal
-      double onbeam_tor860_wcut = 3.245e+19;
-      double onbeam_E1DCNT_wcut = 7244484;
-      double offbeam_EXT = 10946246;
+      double bnbcosPOT = 1.96673e+20; //nominal
+      //double bnbcosPOT = 1.95899e+20; // dic
+      double onbeam_tor860_wcut = 2.995e+19;
+      double onbeam_E1DCNT_wcut = 7074111;
+      double offbeam_EXT = 10199374;
 
       double offbeamscaling = onbeam_E1DCNT_wcut/offbeam_EXT;
       double simscaling = onbeam_tor860_wcut/bnbcosPOT;
@@ -59,7 +34,7 @@ namespace numusel{
       bool MakeTrackPlots = true;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
-      bool UseTrackCut = true;
+      bool UseTrackCut = false;
 
       // means we only run over 1000 events for sim, onbeam and offbeam
       bool QuickDev = false;

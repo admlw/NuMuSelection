@@ -260,9 +260,15 @@ namespace numusel{
     tree->SetBranchStatus("track_hit_nhits_uplane", 1);
     tree->SetBranchStatus("track_hit_nhits_vplane", 1);
     tree->SetBranchStatus("track_hit_nhits_yplane", 1);
-    tree->SetBranchStatus("track_hit_median_peak_amplitude", 1);
-    tree->SetBranchStatus("track_hit_median_integral", 1);
-    tree->SetBranchStatus("track_hit_median_multiplicity", 1);
+    tree->SetBranchStatus("track_hit_median_peak_amplitude_uplane", 1);
+    tree->SetBranchStatus("track_hit_median_peak_amplitude_vplane", 1);
+    tree->SetBranchStatus("track_hit_median_peak_amplitude_yplane", 1);
+    tree->SetBranchStatus("track_hit_median_integral_uplane", 1);
+    tree->SetBranchStatus("track_hit_median_integral_vplane", 1);
+    tree->SetBranchStatus("track_hit_median_integral_yplane", 1);
+    tree->SetBranchStatus("track_hit_median_multiplicity_uplane", 1);
+    tree->SetBranchStatus("track_hit_median_multiplicity_vplane", 1);
+    tree->SetBranchStatus("track_hit_median_multiplicity_yplane", 1);
     tree->SetBranchStatus("track_ncaloobj_uplane", 1);
     tree->SetBranchStatus("track_ncaloobj_vplane", 1);
     tree->SetBranchStatus("track_ncaloobj_yplane", 1);
@@ -310,9 +316,15 @@ namespace numusel{
     tree->SetBranchAddress("track_hit_nhits_uplane", &(varstoset->track_hit_nhits_uplane));
     tree->SetBranchAddress("track_hit_nhits_vplane", &(varstoset->track_hit_nhits_vplane));
     tree->SetBranchAddress("track_hit_nhits_yplane", &(varstoset->track_hit_nhits_yplane));
-    tree->SetBranchAddress("track_hit_median_peak_amplitude", &(varstoset->track_hit_median_peak_amplitude));
-    tree->SetBranchAddress("track_hit_median_integral"      , &(varstoset->track_hit_median_integral));
-    tree->SetBranchAddress("track_hit_median_multiplicity"  , &(varstoset->track_hit_median_multiplicity));
+    tree->SetBranchAddress("track_hit_median_peak_amplitude_uplane", &(varstoset->track_hit_median_peak_amplitude_uplane));
+    tree->SetBranchAddress("track_hit_median_peak_amplitude_vplane", &(varstoset->track_hit_median_peak_amplitude_vplane));
+    tree->SetBranchAddress("track_hit_median_peak_amplitude_yplane", &(varstoset->track_hit_median_peak_amplitude_yplane));
+    tree->SetBranchAddress("track_hit_median_integral_uplane"      , &(varstoset->track_hit_median_integral_uplane));
+    tree->SetBranchAddress("track_hit_median_integral_vplane"      , &(varstoset->track_hit_median_integral_vplane));
+    tree->SetBranchAddress("track_hit_median_integral_yplane"      , &(varstoset->track_hit_median_integral_yplane));
+    tree->SetBranchAddress("track_hit_median_multiplicity_uplane"  , &(varstoset->track_hit_median_multiplicity_uplane));
+    tree->SetBranchAddress("track_hit_median_multiplicity_vplane"  , &(varstoset->track_hit_median_multiplicity_vplane));
+    tree->SetBranchAddress("track_hit_median_multiplicity_yplane"  , &(varstoset->track_hit_median_multiplicity_yplane));
     tree->SetBranchAddress("track_ncaloobj_uplane", &(varstoset->track_ncaloobj_uplane));
     tree->SetBranchAddress("track_ncaloobj_vplane", &(varstoset->track_ncaloobj_vplane));
     tree->SetBranchAddress("track_ncaloobj_yplane", &(varstoset->track_ncaloobj_yplane));
@@ -365,6 +377,9 @@ namespace numusel{
     }
 
     tree->Branch("reconstructed_neutrino_energy", &(varstoset->reconstructedNeutrinoEnergy));
+    tree->Branch("track_isprotoncand", &(varstoset->track_isprotoncand));
+    tree->Branch("track_ismuoncand", &(varstoset->track_ismuoncand));
+
   };
 
   int TreeHandler::FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event, int startentry){

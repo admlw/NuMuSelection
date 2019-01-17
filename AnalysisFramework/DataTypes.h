@@ -80,10 +80,16 @@ struct var_list {
   std::vector<int>* track_hit_nhits_uplane = nullptr;
   std::vector<int>* track_hit_nhits_vplane = nullptr;
   std::vector<int>* track_hit_nhits_yplane = nullptr;
-  std::vector<double>* track_hit_median_peak_amplitude = nullptr;
-  std::vector<double>* track_hit_median_integral = nullptr;
-  std::vector<double>* track_hit_median_multiplicity = nullptr;
-  
+  std::vector<double>* track_hit_median_peak_amplitude_uplane = nullptr;
+  std::vector<double>* track_hit_median_peak_amplitude_vplane = nullptr;
+  std::vector<double>* track_hit_median_peak_amplitude_yplane = nullptr;
+  std::vector<double>* track_hit_median_integral_uplane = nullptr;
+  std::vector<double>* track_hit_median_integral_vplane = nullptr;
+  std::vector<double>* track_hit_median_integral_yplane = nullptr;
+  std::vector<double>* track_hit_median_multiplicity_uplane = nullptr;
+  std::vector<double>* track_hit_median_multiplicity_vplane = nullptr;
+  std::vector<double>* track_hit_median_multiplicity_yplane = nullptr;
+
   // --- track calorimetry objects
   std::vector<int>* track_ncaloobj_uplane = nullptr;
   std::vector<int>* track_ncaloobj_vplane = nullptr;
@@ -124,7 +130,11 @@ struct var_list {
   // other
   // ---
   double reconstructedNeutrinoEnergy = -999;
+  double reconstructedNeutrinoEnergyCalib = -999;
   std::vector<bool> eventCat;
+  std::vector<int> * track_isprotoncand =  nullptr;
+  std::vector<int> * track_ismuoncand = nullptr;
+
 
 };
 

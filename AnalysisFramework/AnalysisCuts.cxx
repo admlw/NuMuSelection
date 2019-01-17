@@ -44,7 +44,7 @@ namespace numusel{
 
     // first perform quality checks
     if (((vars->nSelectedPfparticles != vars->bragg_fwd_p->size()) && vars->isUBXSecSelected)
-        || (n_lowhittracks != 0) ){
+        /*|| (n_lowhittracks != 0)*/ ){
       thisPair.first = false;
       thisPair.second = {0};
 
@@ -101,7 +101,7 @@ namespace numusel{
 
         }
 
-        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > 0.25 /*|| loglmipoverp == 0*/ || (vars->track_hit_nhits_uplane->at(i) <= 5 && vars->track_hit_nhits_vplane->at(i) <= 5 ))
+        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > 0.25)
           protons_quality = false;
         else protons_quality = true;
 

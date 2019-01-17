@@ -1,0 +1,332 @@
+diff --git a/Modules/NuMuSelection1muNpAnalyser_module.cc b/Modules/NuMuSelection1muNpAnalyser_module.cc
+index a6aaa25..afe6974 100644
+--- a/Modules/NuMuSelection1muNpAnalyser_module.cc
++++ b/Modules/NuMuSelection1muNpAnalyser_module.cc
+@@ -190,7 +190,12 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
+         std::vector<int>* pfp_nassctracks     = nullptr;
+         std::vector<int>* pfp_nasscshowers    = nullptr;
+ 
+-        std::vector<double>* track_dep_energy = nullptr;
++        std::vector<double>* track_dep_energy_uplane = nullptr;
++        std::vector<double>* track_dep_energy_vplane = nullptr;
++        std::vector<double>* track_dep_energy_yplane = nullptr;
++
++        std::vector<double>* track_ebyrange_muassumption = nullptr;
++        std::vector<double>* track_ebyrange_passumption = nullptr;
+ 
+         // -- reco track
+         std::vector<double>* track_length    = nullptr;
+@@ -221,9 +226,15 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
+         std::vector<int>* track_hit_nhits_uplane = nullptr;
+         std::vector<int>* track_hit_nhits_vplane = nullptr;
+         std::vector<int>* track_hit_nhits_yplane = nullptr;
+-        std::vector<double>* track_hit_median_peak_amplitude = nullptr;
+-        std::vector<double>* track_hit_median_integral = nullptr;
+-        std::vector<double>* track_hit_median_multiplicity = nullptr;
++        std::vector<double>* track_hit_median_peak_amplitude_uplane = nullptr;
++        std::vector<double>* track_hit_median_integral_uplane = nullptr;
++        std::vector<double>* track_hit_median_multiplicity_uplane = nullptr;
++        std::vector<double>* track_hit_median_peak_amplitude_vplane = nullptr;
++        std::vector<double>* track_hit_median_integral_vplane = nullptr;
++        std::vector<double>* track_hit_median_multiplicity_vplane = nullptr;
++        std::vector<double>* track_hit_median_peak_amplitude_yplane = nullptr;
++        std::vector<double>* track_hit_median_integral_yplane = nullptr;
++        std::vector<double>* track_hit_median_multiplicity_yplane = nullptr;
+ 
+         // -- reco track mcs 
+         // n.b. the particle hypothesis is always a muon here
+@@ -233,7 +244,7 @@ class NuMuSelection1muNpAnalyser : public art::EDAnalyzer {
+         std::vector<double>* track_mcs_muassmp_energy_bwd = nullptr;
+         std::vector<double>* track_mcs_muassmp_fwd_uncertainty = nullptr;
+         std::vector<double>* track_mcs_muassmp_bwd_uncertainty = nullptr;
+-        std::vector<int>* track_mcs_muassmp_particlehypothesis = nullptr;
++        std::vector<int>*    track_mcs_muassmp_particlehypothesis = nullptr;
+         std::vector<double>* track_mcs_muassmp_fwd_loglikelihood = nullptr;
+         std::vector<double>* track_mcs_muassmp_bwd_loglikelihood = nullptr;
+         std::vector<double>* track_range_mom_muassumption = nullptr;
+@@ -402,7 +413,9 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+         << run << "." << subrun << "." << event << std::endl;
+ 
+     // resize vectors here to avoid any over-running memory issues
++    std::cout << "[NuMuSelection] resizing vectors" << std::endl;
+     NuMuSelection1muNpAnalyser::resizeVectors(isData);
++    std::cout << "[NuMuSelection] done" << std::endl;
+ 
+     // get selection information for this event
+     art::Handle< std::vector<ubana::SelectionResult> > selectionHandle;
+@@ -761,11 +774,15 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+ 
+             // get median hit integral, peak amplitude, multiplicity
+ 
+-            std::vector< art::Ptr< recob::Hit > > hits_yplane;
+-
+-            std::vector<double> hit_multiplicities;
+-            std::vector<double> hit_peakamps;
+-            std::vector<double> hit_integrals;
++            std::vector<double> hit_multiplicities_uplane;
++            std::vector<double> hit_multiplicities_vplane;
++            std::vector<double> hit_multiplicities_yplane;
++            std::vector<double> hit_peakamps_uplane;
++            std::vector<double> hit_peakamps_vplane;
++            std::vector<double> hit_peakamps_yplane;
++            std::vector<double> hit_integrals_uplane;
++            std::vector<double> hit_integrals_vplane;
++            std::vector<double> hit_integrals_yplane;
+ 
+             int n_hits_uplane = 0;
+             int n_hits_vplane = 0;
+@@ -774,18 +791,25 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+             for (size_t i_hit = 0; i_hit < hits.size(); i_hit++){
+                 art::Ptr< recob::Hit > thisHit = hits.at(i_hit); 
+ 
+-                if (thisHit->View() == 0)
++                if (thisHit->View() == 0){
+                     n_hits_uplane++;
++                    hit_peakamps_uplane.push_back(thisHit->PeakAmplitude());
++                    hit_integrals_uplane.push_back(thisHit->Integral());
++                    hit_multiplicities_uplane.push_back(thisHit->Multiplicity());
++                }
+ 
+-                if (thisHit->View() == 1)
++                if (thisHit->View() == 1){
+                     n_hits_vplane++;
++                    hit_peakamps_vplane.push_back(thisHit->PeakAmplitude());
++                    hit_integrals_vplane.push_back(thisHit->Integral());
++                    hit_multiplicities_vplane.push_back(thisHit->Multiplicity());
++                }
+ 
+                 if (thisHit->View() == 2){
+                     n_hits_yplane++;
+-                    hit_peakamps.push_back(thisHit->PeakAmplitude());
+-                    hit_integrals.push_back(thisHit->Integral());
+-                    hit_multiplicities.push_back(thisHit->Multiplicity());
+-                    hits_yplane.push_back(thisHit);
++                    hit_peakamps_yplane.push_back(thisHit->PeakAmplitude());
++                    hit_integrals_yplane.push_back(thisHit->Integral());
++                    hit_multiplicities_yplane.push_back(thisHit->Multiplicity());
+                 }
+ 
+             }
+@@ -793,9 +817,15 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+             track_hit_nhits_uplane->push_back(n_hits_uplane);
+             track_hit_nhits_vplane->push_back(n_hits_vplane);
+             track_hit_nhits_yplane->push_back(n_hits_yplane);
+-            track_hit_median_peak_amplitude->push_back(TMath::Median(hit_peakamps.size(), &hit_peakamps[0]));
+-            track_hit_median_integral->push_back(TMath::Median(hit_integrals.size(), &hit_integrals[0]));
+-            track_hit_median_multiplicity->push_back(TMath::Median(hit_multiplicities.size(), &hit_multiplicities[0]));
++            track_hit_median_peak_amplitude_uplane->push_back(TMath::Median(hit_peakamps_uplane.size(), &hit_peakamps_uplane[0]));
++            track_hit_median_integral_uplane->push_back(TMath::Median(hit_integrals_uplane.size(), &hit_integrals_uplane[0]));
++            track_hit_median_multiplicity_uplane->push_back(TMath::Median(hit_multiplicities_uplane.size(), &hit_multiplicities_uplane[0]));
++            track_hit_median_peak_amplitude_vplane->push_back(TMath::Median(hit_peakamps_vplane.size(), &hit_peakamps_vplane[0]));
++            track_hit_median_integral_vplane->push_back(TMath::Median(hit_integrals_vplane.size(), &hit_integrals_vplane[0]));
++            track_hit_median_multiplicity_vplane->push_back(TMath::Median(hit_multiplicities_vplane.size(), &hit_multiplicities_vplane[0]));
++            track_hit_median_peak_amplitude_yplane->push_back(TMath::Median(hit_peakamps_yplane.size(), &hit_peakamps_yplane[0]));
++            track_hit_median_integral_yplane->push_back(TMath::Median(hit_integrals_yplane.size(), &hit_integrals_yplane[0]));
++            track_hit_median_multiplicity_yplane->push_back(TMath::Median(hit_multiplicities_yplane.size(), &hit_multiplicities_yplane[0]));
+ 
+             // get PID information
+             std::vector< anab::sParticleIDAlgScores > algScoresVec = pids.at(0)->ParticleIDAlgScores();
+@@ -830,17 +860,30 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+ 
+                 }
+ 
+-                if (algScore.fAlgName == "DepEvsRangeE"
+-                        && anab::kVariableType(algScore.fVariableType) == anab::kEdeposited
+-                        && UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){
+-
+-                    std::cout << "Found anab::ParticleID on collection plane" << std::endl;
+-
+-                    track_dep_energy->push_back(algScore.fValue / 1000.);
+-
+-
++                if (algScore.fAlgName == "DepEvsRangeE"){
++                    if (anab::kVariableType(algScore.fVariableType) == anab::kEdeposited){
++                        if(UBPID::uB_getSinglePlane(algScore.fPlaneID) == 0){
++                            std::cout << "Found anab::ParticleID on U plane" << std::endl;
++                            track_dep_energy_uplane->push_back(algScore.fValue / 1000.);
++                        }
++                        if(UBPID::uB_getSinglePlane(algScore.fPlaneID) == 1){
++                            std::cout << "Found anab::ParticleID on V plane" << std::endl;
++                            track_dep_energy_vplane->push_back(algScore.fValue / 1000.);
++                        }
++                        if(UBPID::uB_getSinglePlane(algScore.fPlaneID) == 2){
++                            std::cout << "Found anab::ParticleID on collection plane" << std::endl;
++                            track_dep_energy_yplane->push_back(algScore.fValue / 1000.);
++                        }
++                    }
++                    if (anab::kVariableType(algScore.fVariableType) == anab::kEbyRange){
++                        if(algScore.fAssumedPdg == 13){
++                            track_ebyrange_muassumption->push_back(algScore.fValue);
++                        }
++                        if(algScore.fAssumedPdg == 2212){
++                            track_ebyrange_passumption->push_back(algScore.fValue);
++                        }
++                    }
+                 }
+-
+             }
+ 
+             track_isCollectionPID->push_back(isPIDOnCollection);
+@@ -906,7 +949,11 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
+                 bragg_bwd_pi->push_back(-999);   
+                 bragg_bwd_k->push_back(-999);   
+                 noBragg_fwd_mip->push_back(-999);   
+-                track_dep_energy->push_back(-999);
++                track_dep_energy_uplane->push_back(-999);
++                track_dep_energy_vplane->push_back(-999);
++                track_dep_energy_yplane->push_back(-999);
++                track_ebyrange_muassumption->push_back(-999);
++                track_ebyrange_passumption->push_back(-999);
+ 
+                 std::vector<double> defaultVec = {999.};
+                 track_dedxperhit_unsmeared->push_back(defaultVec);
+@@ -1112,7 +1159,11 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
+     tree->Branch("track_ncaloobj_uplane"        , "std::vector<int>"                                   , &track_ncaloobj_uplane);
+     tree->Branch("track_ncaloobj_vplane"        , "std::vector<int>"                                   , &track_ncaloobj_vplane);
+     tree->Branch("track_ncaloobj_yplane"        , "std::vector<int>"                                   , &track_ncaloobj_yplane);
+-    tree->Branch("track_dep_energy"             , "std::vector<double>"                                , &track_dep_energy  );
++    tree->Branch("track_dep_energy_uplane"             , "std::vector<double>"                                , &track_dep_energy_uplane  );
++    tree->Branch("track_dep_energy_vplane"             , "std::vector<double>"                                , &track_dep_energy_vplane  );
++    tree->Branch("track_dep_energy_yplane"             , "std::vector<double>"                                , &track_dep_energy_yplane  );
++    tree->Branch("track_ebyrange_muassumption"  , "std::vector<double>"                                , &track_ebyrange_muassumption);
++    tree->Branch("track_ebyrange_passumption"   , "std::vector<double>"                                , &track_ebyrange_passumption);
+     tree->Branch("track_length"                 , "std::vector<double>"                                , &track_length   );
+     tree->Branch("track_theta"                  , "std::vector<double>"                                , &track_theta    );
+     tree->Branch("track_costheta"               , "std::vector<double>"                                , &track_costheta );
+@@ -1133,9 +1184,15 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
+     tree->Branch("track_hit_nhits_uplane"       , "std::vector<int>"                                   , &track_hit_nhits_uplane);
+     tree->Branch("track_hit_nhits_vplane"       , "std::vector<int>"                                   , &track_hit_nhits_vplane);
+     tree->Branch("track_hit_nhits_yplane"       , "std::vector<int>"                                   , &track_hit_nhits_yplane);
+-    tree->Branch("track_hit_median_peak_amplitude", "std::vector<double>"                              , &track_hit_median_peak_amplitude);
+-    tree->Branch("track_hit_median_integral"      , "std::vector<double>"                              , &track_hit_median_integral);
+-    tree->Branch("track_hit_median_multiplicity"  , "std::vector<double>"                              , &track_hit_median_multiplicity);
++    tree->Branch("track_hit_median_peak_amplitude_uplane", "std::vector<double>"                              , &track_hit_median_peak_amplitude_uplane);
++    tree->Branch("track_hit_median_integral_uplane"      , "std::vector<double>"                              , &track_hit_median_integral_uplane);
++    tree->Branch("track_hit_median_multiplicity_uplane"  , "std::vector<double>"                              , &track_hit_median_multiplicity_uplane);
++    tree->Branch("track_hit_median_peak_amplitude_vplane", "std::vector<double>"                              , &track_hit_median_peak_amplitude_vplane);
++    tree->Branch("track_hit_median_integral_vplane"      , "std::vector<double>"                              , &track_hit_median_integral_vplane);
++    tree->Branch("track_hit_median_multiplicity_vplane"  , "std::vector<double>"                              , &track_hit_median_multiplicity_vplane);
++    tree->Branch("track_hit_median_peak_amplitude_yplane", "std::vector<double>"                              , &track_hit_median_peak_amplitude_yplane);
++    tree->Branch("track_hit_median_integral_yplane"      , "std::vector<double>"                              , &track_hit_median_integral_yplane);
++    tree->Branch("track_hit_median_multiplicity_yplane"  , "std::vector<double>"                              , &track_hit_median_multiplicity_yplane);
+     tree->Branch("vertex_x"                     , &vertex_x);
+     tree->Branch("vertex_y"                     , &vertex_y);
+     tree->Branch("vertex_z"                     , &vertex_z);
+@@ -1259,6 +1316,7 @@ void NuMuSelection1muNpAnalyser::initialiseAnalysisTree(TTree *tree, bool fIsDat
+ 
+ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
+ 
++    std::cout << "1" << std::endl;
+     noBragg_fwd_mip->resize(0);
+     bragg_fwd_mu->resize(0);
+     bragg_fwd_p->resize(0);
+@@ -1277,7 +1335,12 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
+     track_ncaloobj_uplane->resize(0);
+     track_ncaloobj_vplane->resize(0);
+     track_ncaloobj_yplane->resize(0);
+-    track_dep_energy->resize(0);
++    track_dep_energy_uplane->resize(0);
++    track_dep_energy_vplane->resize(0);
++    track_dep_energy_yplane->resize(0);
++    track_ebyrange_muassumption->resize(0);
++    track_ebyrange_passumption->resize(0);
++    std::cout << "2" << std::endl;
+     track_length->resize(0);
+     track_theta->resize(0);
+     track_costheta->resize(0);
+@@ -1298,9 +1361,16 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
+     track_hit_nhits_uplane->resize(0);
+     track_hit_nhits_vplane->resize(0);
+     track_hit_nhits_yplane->resize(0);
+-    track_hit_median_peak_amplitude->resize(0);
+-    track_hit_median_integral->resize(0);
+-    track_hit_median_multiplicity->resize(0);
++    track_hit_median_peak_amplitude_uplane->resize(0);
++    track_hit_median_integral_uplane->resize(0);
++    track_hit_median_multiplicity_uplane->resize(0);
++    track_hit_median_peak_amplitude_vplane->resize(0);
++    track_hit_median_integral_vplane->resize(0);
++    track_hit_median_multiplicity_vplane->resize(0);
++    track_hit_median_peak_amplitude_yplane->resize(0);
++    track_hit_median_integral_yplane->resize(0);
++    track_hit_median_multiplicity_yplane->resize(0);
++    std::cout << "3" << std::endl;
+     track_mcs_muassmp_fwd->resize(0);
+     track_mcs_muassmp_bwd->resize(0);
+     track_mcs_muassmp_energy_fwd->resize(0);
+@@ -1314,6 +1384,8 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
+     track_range_mom_passumption->resize(0);
+     track_range_energy_muassumption->resize(0);
+     track_range_energy_passumption->resize(0);
++    std::cout << "4" << std::endl;
++
+     if (!isData){
+         true_genie_pdg->resize(0);
+         true_genie_statuscode->resize(0);
+@@ -1399,6 +1471,7 @@ void NuMuSelection1muNpAnalyser::resizeVectors(bool isData){
+         true_match_endpz->resize(0);
+         true_match_rescatter->resize(0);
+     }
++    std::cout << "5" << std::endl;
+ 
+ }
+ 
+@@ -1422,7 +1495,11 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
+     track_ncaloobj_uplane->resize(1, -999);
+     track_ncaloobj_vplane->resize(1, -999);
+     track_ncaloobj_yplane->resize(1, -999);
+-    track_dep_energy->resize(1,-999);
++    track_dep_energy_uplane->resize(1,-999);
++    track_dep_energy_vplane->resize(1,-999);
++    track_dep_energy_yplane->resize(1,-999);
++    track_ebyrange_muassumption->resize(1, -999);
++    track_ebyrange_passumption->resize(1, -999);
+     track_length->resize(1, -999);
+     track_theta->resize(1, -999);
+     track_costheta->resize(1, -999);
+@@ -1443,9 +1520,15 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
+     track_hit_nhits_uplane->resize(1, -999);
+     track_hit_nhits_vplane->resize(1, -999);
+     track_hit_nhits_yplane->resize(1, -999);
+-    track_hit_median_peak_amplitude->resize(1, -999);
+-    track_hit_median_integral->resize(1, -999);
+-    track_hit_median_multiplicity->resize(1, -999);
++    track_hit_median_peak_amplitude_uplane->resize(1, -999);
++    track_hit_median_integral_uplane->resize(1, -999);
++    track_hit_median_multiplicity_uplane->resize(1, -999);
++    track_hit_median_peak_amplitude_vplane->resize(1, -999);
++    track_hit_median_integral_vplane->resize(1, -999);
++    track_hit_median_multiplicity_vplane->resize(1, -999);
++    track_hit_median_peak_amplitude_yplane->resize(1, -999);
++    track_hit_median_integral_yplane->resize(1, -999);
++    track_hit_median_multiplicity_yplane->resize(1, -999);
+     track_mcs_muassmp_fwd->resize(1, -999);
+     track_mcs_muassmp_bwd->resize(1, -999);
+     track_mcs_muassmp_energy_fwd->resize(1, -999);
+@@ -1503,7 +1586,7 @@ void NuMuSelection1muNpAnalyser::emplaceDummyVars(){
+ 
+ std::pair< const simb::MCParticle*, std::pair< double, double > > NuMuSelection1muNpAnalyser::GetAssociatedMCParticle(std::vector< art::Ptr< recob::Hit > > hits, art::FindMany<simb::MCParticle, anab::BackTrackerHitMatchingData> particlesPerHit)
+ {
+-    
++
+     std::unordered_map<int, double> trkide;
+     std::unordered_map<int, double> trkide_yplane;
+     double maxe = -1, tote = 0;
+@@ -1535,7 +1618,7 @@ std::pair< const simb::MCParticle*, std::pair< double, double > > NuMuSelection1
+                 //keep track of maximum
+                 maxe = trkide[ particle_vec[i_p]->TrackId() ];
+                 maxp_me = particle_vec[i_p];
+-               
++
+                 if (hits[i_h]->Channel() >= 4800)
+                     maxe_yplane = trkide_yplane[ particle_vec[i_p]->TrackId() ];
+             }
+@@ -1553,7 +1636,7 @@ std::pair< const simb::MCParticle*, std::pair< double, double > > NuMuSelection1
+ 
+     // completeness:
+     // how much of the energy from the matched particle are we missing?
+-  
++
+     double completeness_yplane = maxe_yplane/((maxp_me->E() - maxp_me->Mass()) * 1000);
+ 
+     std::pair<double, double> p_c_pair(purity, completeness_yplane);

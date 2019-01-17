@@ -162,9 +162,11 @@ namespace numusel{
           // passes fourth cut
           // PID cut and proton quality cuts
           if (_anacuts.isPassParticleIDSelection(vars, cutval).first){
+            bool hasPid = false;
             switch(var_type){
               case HISTOGRAM_1D:
-                _selmaker.PushBack1DVectors(s_stage4, vars, true);
+                hasPid = true;
+                _selmaker.PushBack1DVectors(s_stage4, vars, hasPid);
                 break;
               case EFFICIENCY:
                 _selmaker.PushBackEPVectors(s_stage4, vars); 
@@ -178,7 +180,7 @@ namespace numusel{
 
             }
             
-            if (entry != -1 && infile != nullptr){
+            if (entry != -1 && infile != nullptr && hasPid == true){
               infile->GetEntry(entry);
               outfile->Fill();
 
@@ -390,12 +392,18 @@ namespace numusel{
 
       std::vector<std::pair<int, float>> leadingProtonFinder;
 
+      vars->track_ismuoncand->resize(0);
+      vars->track_isprotoncand->resize(0);
+
       for (int i = 0; i < pid.size(); i++){
 
         // get muon candidate
         // if the pid value is 0, then this indicated there was no calorimetry information
         // in the collection plane
         if (pid.at(i) > _anacuts.pid_cutvalue){
+
+          vars->track_ismuoncand->push_back(1);
+          vars->track_isprotoncand->push_back(0);
 
           candMuonLength.push_back(vars->track_length->at(i));
           candMuonTheta.push_back(vars->track_theta->at(i));
@@ -423,8 +431,7 @@ namespace numusel{
 
             neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_muassumption->at(i);
             neutrinoReconstructedEnergyCalib.at(0)+=muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
-
-
+            
           }
           else{
             candMuonLength_uncontained.push_back(vars->track_length->at(i));
@@ -455,6 +462,9 @@ namespace numusel{
         }
         // else they're proton candidates
         else{
+
+          vars->track_ismuoncand->push_back(0);
+          vars->track_isprotoncand->push_back(1);
 
           candProtonLength.push_back(vars->track_length->at(i));
           candProtonTheta.push_back(vars->track_theta->at(i));
@@ -564,7 +574,8 @@ namespace numusel{
       m_stagex->push_back(neutrinoReconstructedEnergyUncalib);
       m_stagex->push_back(neutrinoReconstructedEnergyCalib);
 
-      vars->reconstructedNeutrinoEnergy = neutrinoReconstructedEnergyCalib.at(0);
+      vars->reconstructedNeutrinoEnergy = neutrinoReconstructedEnergyUncalib.at(0);
+      vars->reconstructedNeutrinoEnergyCalib = neutrinoReconstructedEnergyCalib.at(0);
 
     }
 

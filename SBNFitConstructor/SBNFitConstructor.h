@@ -18,7 +18,7 @@
 int sel_run;
 int sel_subrun;
 int sel_event;
-double sel_resconstructed_neutrino_energy;
+double sel_reconstructed_neutrino_energy_calib;
 std::vector<bool>* eventCat = nullptr;
 
 int ew_run;
@@ -29,7 +29,7 @@ double ew_nu_x;
 double ew_nu_y;
 double ew_nu_qsqr;
 
-double out_reconstructed_neutrino_energy;
+double out_reconstructed_neutrino_energy_calib;
 
 std::map<std::string, std::vector<double>> weights;
 

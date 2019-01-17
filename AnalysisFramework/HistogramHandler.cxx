@@ -461,16 +461,18 @@ namespace numusel{
         pt2->Draw("same");
 
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.95);
-        leg_1->AddEntry(thisHistSet->h_muon,   Form("Muon, %g entries", thisHistSet->h_muon->Integral()));
-        leg_1->AddEntry(thisHistSet->h_proton, Form("Proton, %g entries", thisHistSet->h_proton->Integral()));
-        leg_1->AddEntry(thisHistSet->h_pion,   Form("Pion, %g entries", thisHistSet->h_pion->Integral()));
-        leg_1->AddEntry(thisHistSet->h_kaon,   Form("Kaon, %g entries", thisHistSet->h_kaon->Integral()));
+        leg_1->AddEntry(thisHistSet->h_muon,   Form("Muon, %g entries"  , std::floor(10*thisHistSet->h_muon->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_proton, Form("Proton, %g entries", std::floor(10*thisHistSet->h_proton->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_pion,   Form("Pion, %g entries"  , std::floor(10*thisHistSet->h_pion->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_kaon,   Form("Kaon, %g entries"  , std::floor(10*thisHistSet->h_kaon->Integral())/10.));
+        leg_1->SetTextSize(0.035);
 
         TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.95);
-        leg_2->AddEntry(thisHistSet->h_electron, Form("Electron, %g entries", thisHistSet->h_electron->Integral()));
-        leg_2->AddEntry(thisHistSet->h_other,    Form("Other, %g entries", thisHistSet->h_other->Integral()));
-        leg_2->AddEntry(thisHistSet->h_offbeam,  Form("Off-beam Data, %g entries", thisHistSet->h_offbeam->Integral()));
-        leg_2->AddEntry(thisHistSet->h_onbeam,   Form("On-beam Data, %g entries", thisHistSet->h_onbeam->Integral()));
+        leg_2->AddEntry(thisHistSet->h_electron, Form("Electron, %g entries"     , std::floor(10*thisHistSet->h_electron->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_other,    Form("Other, %g entries"        , std::floor(10*thisHistSet->h_other->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_offbeam,  Form("Off-beam Data, %g entries", std::floor(10*thisHistSet->h_offbeam->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_onbeam,   Form("On-beam Data, %g entries" , std::floor(10*thisHistSet->h_onbeam->Integral())/10.));
+        leg_2->SetTextSize(0.035);
 
         leg_1->SetLineWidth(0);
         leg_1->SetFillStyle(0);
@@ -650,18 +652,23 @@ namespace numusel{
         pt2->Draw("same");
 
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.98);
-        leg_1->AddEntry(thisHistSet->h_mccosmic, Form("Cosmic, %g entries", thisHistSet->h_mccosmic->Integral()));
-        leg_1->AddEntry(thisHistSet->h_mcmixed, Form("Mixed, %g entries", thisHistSet->h_mcmixed->Integral()));
-        leg_1->AddEntry(thisHistSet->h_mcoofv, Form("OOFV, %g entries", thisHistSet->h_mcoofv->Integral()));
-        leg_1->AddEntry(thisHistSet->h_mcnc, Form("NC, %g entries", thisHistSet->h_mcnc->Integral()));
-        leg_1->AddEntry(thisHistSet->h_mcnuenuebar, Form("#nu_{e}/#bar{#nu_{e}}, %g entries", thisHistSet->h_mcnuenuebar->Integral()));
+
+        leg_1->AddEntry(thisHistSet->h_mccosmic    , Form("Cosmic, %g entries" , std::floor(10*thisHistSet->h_mccosmic->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcmixed     , Form("Mixed, %g entries" , std::floor(10*thisHistSet->h_mcmixed->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcoofv      , Form("OOFV, %g entries" , std::floor(10*thisHistSet->h_mcoofv->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcnc        , Form("NC, %g entries" , std::floor(10*thisHistSet->h_mcnc->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcnuenuebar , Form("#nu_{e}/#bar{#nu_{e}}, %g entries" , std::floor(10*thisHistSet->h_mcnuenuebar->Integral())/10.));
+        leg_1->SetTextSize(0.035);
+
 
         TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.98);
-        leg_2->AddEntry(thisHistSet->h_mcnumubar, Form("#bar{#nu_{#mu}}, %g entries", thisHistSet->h_mcnumubar->Integral()));
-        leg_2->AddEntry(thisHistSet->h_mcnumuccother, Form("#nu_{#mu}CC-Other, %g entries", thisHistSet->h_mcnumuccother->Integral()));
-        leg_2->AddEntry(thisHistSet->h_mcnumucc0pinp, Form("#nu_{#mu}CC0#piNP, %g entries", thisHistSet->h_mcnumucc0pinp->Integral()));
-        leg_2->AddEntry(thisHistSet->h_offbeam, Form("Off-beam Data, %g entries", thisHistSet->h_offbeam->Integral()));
-        leg_2->AddEntry(thisHistSet->h_onbeam, Form("On-beam Data, %g entries", thisHistSet->h_onbeam->Integral()));
+        
+        leg_2->AddEntry(thisHistSet->h_mcnumubar     , Form("#bar{#nu_{#mu}}, %g entries" , std::floor(10*thisHistSet->h_mcnumubar->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_mcnumuccother , Form("#nu_{#mu}CC-Other, %g entries" , std::floor(10*thisHistSet->h_mcnumuccother->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_mcnumucc0pinp , Form("#nu_{#mu}CC0#piNP, %g entries" , std::floor(10*thisHistSet->h_mcnumucc0pinp->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_offbeam       , Form("Off-beam Data, %g entries" , std::floor(10*thisHistSet->h_offbeam->Integral())/10.));
+        leg_2->AddEntry(thisHistSet->h_onbeam        , Form("On-beam Data, %g entries" , std::floor(10*thisHistSet->h_onbeam->Integral())/10.));
+        leg_2->SetTextSize(0.035);
 
         leg_1->SetLineWidth(0);
         leg_1->SetFillStyle(0);

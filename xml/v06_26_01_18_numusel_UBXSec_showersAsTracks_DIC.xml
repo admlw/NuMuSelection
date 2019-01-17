@@ -3,7 +3,7 @@
 <!-- project details -->
 <!DOCTYPE project [
 <!ENTITY release "v06_26_01_18">
-<!ENTITY name "showersAsTracks">
+<!ENTITY name "showersAsTracks_DIC">
 <!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/TEST/numusel_showersAsTracks_DIC">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/TEST/numusel_showersAsTracks_DIC">
 <!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/TEST/numusel_UBXSec_showersAsTracks_DIC">
@@ -30,16 +30,18 @@
 
     <!-- NuMu Selection Stage -->
     <stage name="numusel">
-        <inputlist>/pnfs/uboone/resilient/users/alister1/inputdic.list</inputlist>
+        <inputlist>dic.list</inputlist>
         <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>473</numjobs>
+<!--        <numjobs>977</numjobs>
+        <numevents>200</numevents>-->
+        <numjobs>1000</numjobs>
         <numevents>200</numevents>
-        <maxfilesperjob>4</maxfilesperjob>
-        <memory>3000</memory>
+        <maxfilesperjob>1</maxfilesperjob>
+        <memory>6000</memory>
         <datatier>pid</datatier>
         <schema>root</schema>
    </stage>

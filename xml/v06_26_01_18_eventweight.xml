@@ -30,16 +30,16 @@
 
     <!-- NuMu Selection Stage -->
     <stage name="ew">
-        <inputlist>/pnfs/uboone/scratch/users/alister1/split_tree/split_tree.list</inputlist>
+        <inputlist>/pnfs/uboone/scratch/users/alister1/split_tree/split_tree.txt</inputlist>
         <fcl>run_numu_treereader_source.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>120</numjobs>
+        <numjobs>115</numjobs>
         <numevents>50</numevents>
         <maxfilesperjob>1</maxfilesperjob>
-        <memory>3000</memory>
+        <memory>4000</memory>
         <datatier>eventweight</datatier>
         <schema>gridftp</schema>
    </stage>

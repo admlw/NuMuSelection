@@ -3,7 +3,7 @@
 int main(int argv, char** argc){
 
   // read in selected events trees
-  TFile *f_selevents = new TFile("/uboone/data/users/alister1/testBuildShowersAsTracks_3/selectedEvents_sim.root", "read");
+  TFile *f_selevents = new TFile("/uboone/app/users/alister1/numuSelection/ubcode_v06_26_01_18/srcs/uboonecode/uboone/NuMuSelection/AnalysisFramework/selectedEvents_sim.root", "read");
   TTree* event_info_tree = (TTree*)f_selevents->Get("simulation");
   TTree* ew_tree = (TTree*)f_selevents->Get("ew");
   initialiseTrees(event_info_tree, ew_tree);
@@ -69,7 +69,7 @@ int main(int argv, char** argc){
 
           event_info_tree->GetEntry(i);
  
-          out_reconstructed_neutrino_energy = sel_resconstructed_neutrino_energy;
+          out_reconstructed_neutrino_energy_calib = sel_reconstructed_neutrino_energy_calib;
           weights = evtwght.fWeight; 
           
           if (eventCat->at(7) == 1)
@@ -114,13 +114,13 @@ void initialiseTrees(TTree* sel, TTree* ew){
   sel->SetBranchStatus("run", 1);
   sel->SetBranchStatus("subrun", 1);
   sel->SetBranchStatus("event", 1);
-  sel->SetBranchStatus("reconstructed_neutrino_energy", 1);
+  sel->SetBranchStatus("reconstructed_neutrino_energy_calib", 1);
   sel->SetBranchStatus("event_cat", 1);
 
   sel->SetBranchAddress("run", &sel_run);
   sel->SetBranchAddress("subrun", &sel_subrun);
   sel->SetBranchAddress("event", &sel_event);
-  sel->SetBranchAddress("reconstructed_neutrino_energy", &sel_resconstructed_neutrino_energy);
+  sel->SetBranchAddress("reconstructed_neutrino_energy_calib", &sel_reconstructed_neutrino_energy_calib);
   sel->SetBranchAddress("event_cat", &eventCat);
 
   ew->SetBranchStatus("*", 0);
@@ -143,6 +143,6 @@ void initialiseTrees(TTree* sel, TTree* ew){
 }
 
 void setVariables(TTree* t){
-  t->Branch("reconstructed_neutrino_energy", &out_reconstructed_neutrino_energy);
+  t->Branch("reconstructed_neutrino_energy_calib", &out_reconstructed_neutrino_energy_calib);
   t->Branch("weights", "std::map<std::string, std::vector<double>>", &weights);
 }

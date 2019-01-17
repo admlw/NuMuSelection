@@ -38,6 +38,8 @@
         <logdir>&scratch_dir;</logdir>
         <numjobs>1080</numjobs>
         <numevents>200</numevents>
+        <numjobs>10</numjobs>
+        <numevents>10</numevents>
         <maxfilesperjob>1</maxfilesperjob>
         <memory>3000</memory>
         <datatier>pid</datatier>

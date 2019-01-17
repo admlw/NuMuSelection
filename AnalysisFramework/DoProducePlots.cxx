@@ -85,15 +85,20 @@ int main(){
   TFile *outfile_sim = new TFile("selectedEvents_sim.root", "RECREATE");
   outfile_sim->cd();
   TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
+  t_simulation_out->Branch("reconstructed_neutrino_energy_calib", &simulation_vars->reconstructedNeutrinoEnergyCalib);
   TTree *t_ew_out = (TTree*)t_ew->CloneTree(0);  
   
   TFile *outfile_onbeam = new TFile("selectedEvents_onbeam.root", "RECREATE");
   outfile_onbeam->cd();
   TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
+  t_onbeam_out->Branch("reconstructed_neutrino_energy_calib", &onbeam_vars->reconstructedNeutrinoEnergyCalib);
+
 
   TFile *outfile_offbeam = new TFile("selectedEvents_offbeam.root", "RECREATE");
   outfile_offbeam->cd();
   TTree *t_offbeam_out = (TTree*)t_offbeam->CloneTree(0);
+  t_offbeam_out->Branch("reconstructed_neutrino_energy_calib", &offbeam_vars->reconstructedNeutrinoEnergyCalib);
+
 
   t_onbeam_out->SetName("onbeam");
   t_offbeam_out->SetName("offbeam");
@@ -151,7 +156,7 @@ int main(){
     }
     simulation_vars->eventCat = eventCat_vec;
     
-    std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY); 
+    std::vector<std::vector<std::vector<double>>> effVariables = _selmaker.GetPlottingVariables(simulation_vars, EFFICIENCY, nullptr, nullptr, i); 
 
     for (size_t i_st = 0; i_st < effVariables.size(); i_st++){
 
