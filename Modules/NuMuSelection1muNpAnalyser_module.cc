@@ -1062,8 +1062,8 @@ void NuMuSelection1muNpAnalyser::analyze(art::Event const & e)
         }
 
     }
+    // this is probably fine
     else if (nSelectedTPCObjects == 0){
-        // this is probably fine
 
         std::cout << "[NuMuSelection] Event is not UBXSec selected" << std::endl;
         isUBXSecSelected = false;

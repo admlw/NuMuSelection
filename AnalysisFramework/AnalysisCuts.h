@@ -22,6 +22,9 @@ namespace numusel{
       int n_showers_min_cut_val = 0;
       int n_showers_max_cut_val = 100;
       float pid_cutvalue = -1.0;
+      int min_no_calo_hits = 5;
+      float low_dedx_definition = 2.0;
+      float max_frac_low_dedx_calo_hits = 0.10;
 
       /**
        * Does event meet number of PFPs specification?

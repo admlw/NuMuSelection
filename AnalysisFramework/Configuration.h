@@ -10,17 +10,18 @@ namespace numusel{
 
     public:
 
-      std::string s_onbeam     = "/uboone/data/users/alister1/numuSelection/files/onbeam_selectionInformation.root";
-      std::string s_offbeam    = "/uboone/data/users/alister1/numuSelection/files/offbeam_selectionInformation.root";
+      std::string s_onbeam     = "/uboone/data/users/alister1/numuSelection/files/190125/onbeam_selectionInformation.root";
+      std::string s_offbeam    = "/uboone/data/users/alister1/numuSelection/files/190125/offbeam_selectionInformation.root";
       //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_dic_devdataset_selectionInformation.root"; // dic
-      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_nominal_devdataset_selectionInformation.root";
-      std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/BNBCOS_nominal_devdataset_eventweight.root";
+      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/bnbcos_selectionInformation.root";
+      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/dirt_selectionInformation.root";
+      std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/old/BNBCOS_nominal_devdataset_eventweight.root";
 
-      double bnbcosPOT = 1.96673e+20; //nominal
+      double bnbcosPOT = 2.5083e+19; //nominal
       //double bnbcosPOT = 1.95899e+20; // dic
-      double onbeam_tor860_wcut = 2.995e+19;
-      double onbeam_E1DCNT_wcut = 7074111;
-      double offbeam_EXT = 10199374;
+      double onbeam_tor860_wcut = 4.89e+19;
+      double onbeam_E1DCNT_wcut = 10905211;
+      double offbeam_EXT = 77219137;
 
       double offbeamscaling = onbeam_E1DCNT_wcut/offbeam_EXT;
       double simscaling = onbeam_tor860_wcut/bnbcosPOT;
@@ -34,7 +35,7 @@ namespace numusel{
       bool MakeTrackPlots = true;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
-      bool UseTrackCut = false;
+      bool UseTrackCut = true;
 
       // means we only run over 1000 events for sim, onbeam and offbeam
       bool QuickDev = false;

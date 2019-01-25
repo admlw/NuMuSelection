@@ -3,10 +3,10 @@
 <!-- project details -->
 <!DOCTYPE project [
 <!ENTITY release "v06_26_01_28">
-<!ENTITY name "numusel_showersAsTracks_bnbcos">
-<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;">
+<!ENTITY name "ubxsec_showersAsTracks_altdeadchannels">
+<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/ubxsec/&name;">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/">
-<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;_data">
+<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/ubxsec/&name;_data">
 ]>
 
 <job>
@@ -29,18 +29,21 @@
     </larsoft>
 
     <!-- ubxsec -->
-    <stage name="numusel">
-        <inputdef>prodgenie_bnb_nu_cosmic_uboone_mcc8.7_reco2_mcc8.23_ccinfilter</inputdef>
-        <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
+    <stage name="ubxsec">
+        <inputdef>prodgenie_bnb_nu_cosmic_uboone_detsyst_altDeadChannels_mcc8.17_reco2</inputdef>
+        <fcl>run_ubxsecfilter_ccinclusivetruthfilter_showerastrack_on.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;&name;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>496</numjobs>
-        <numevents>50</numevents>
-        <maxfilesperjob>1</maxfilesperjob>
+        <!--<numjobs>10</numjobs>
+        <numevents>10</numevents>
+        <maxfilesperjob>1</maxfilesperjob>-->
+        <numjobs>1000</numjobs>
+        <numevents>200</numevents>
+        <maxfilesperjob>4</maxfilesperjob>
         <memory>6000</memory>
-        <datatier>numusel</datatier>
+        <datatier>ubxsec</datatier>
         <schema>root</schema>
    </stage>
 

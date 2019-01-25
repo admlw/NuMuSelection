@@ -3,7 +3,7 @@
 <!-- project details -->
 <!DOCTYPE project [
 <!ENTITY release "v06_26_01_28">
-<!ENTITY name "numusel_showersAsTracks_bnbcos">
+<!ENTITY name "numusel_showersAsTracks_dirt">
 <!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/">
 <!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;_data">
@@ -30,13 +30,13 @@
 
     <!-- ubxsec -->
     <stage name="numusel">
-        <inputdef>prodgenie_bnb_nu_cosmic_uboone_mcc8.7_reco2_mcc8.23_ccinfilter</inputdef>
+        <inputdef>prodgenie_bnb_dirt_nu_cosmic_uboone_mcc8_reco_mcc8.23_ccinfilter</inputdef>
         <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;&name;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>496</numjobs>
+        <numjobs>504</numjobs>
         <numevents>50</numevents>
         <maxfilesperjob>1</maxfilesperjob>
         <memory>6000</memory>

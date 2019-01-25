@@ -3,7 +3,7 @@
 <!-- project details -->
 <!DOCTYPE project [
 <!ENTITY release "v06_26_01_28">
-<!ENTITY name "numusel_showersAsTracks_bnbcos">
+<!ENTITY name "numusel_showersAsTracks_onbeam_v5swizzle">
 <!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;">
 <!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/">
 <!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;_data">
@@ -30,15 +30,18 @@
 
     <!-- ubxsec -->
     <stage name="numusel">
-        <inputdef>prodgenie_bnb_nu_cosmic_uboone_mcc8.7_reco2_mcc8.23_ccinfilter</inputdef>
-        <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
+        <inputdef>MCC8.23-CCinclusive_bnb_v5swizzle</inputdef>
+        <fcl>run_numu_analyser_withcalibration_withparticleid_data.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
         <workdir>&resilient_dir;&name;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>496</numjobs>
+        <!--<numjobs>10</numjobs>
+        <numevents>10</numevents>
+        <maxfilesperjob>1</maxfilesperjob>-->
+        <numjobs>960</numjobs>
         <numevents>50</numevents>
-        <maxfilesperjob>1</maxfilesperjob>
+        <maxfilesperjob>4</maxfilesperjob>
         <memory>6000</memory>
         <datatier>numusel</datatier>
         <schema>root</schema>

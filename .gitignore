@@ -5,6 +5,7 @@ plots/
 .*swo
 *.root
 *.png
+*.list
 DoEnergyRecoStudies
 DoProducePlots
 SplitTree

@@ -36,7 +36,7 @@ namespace numusel{
     // do any tracks have fewer than 3 hits on the collection plane?
     int n_lowhittracks = 0;
     for (int j = 0; j < vars->track_ncaloobj_yplane->size(); j++){
-        if (vars->track_ncaloobj_yplane->at(j) == 0) 
+        if (vars->track_ncaloobj_yplane->at(j) < min_no_calo_hits) 
             n_lowhittracks++;
     }
 
@@ -44,7 +44,7 @@ namespace numusel{
 
     // first perform quality checks
     if (((vars->nSelectedPfparticles != vars->bragg_fwd_p->size()) && vars->isUBXSecSelected)
-        /*|| (n_lowhittracks != 0)*/ ){
+        || (n_lowhittracks != 0) ){
       thisPair.first = false;
       thisPair.second = {0};
 
@@ -94,14 +94,14 @@ namespace numusel{
         // todo: compare depE versus rangeE to remove badly reco'd protons
         for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
 
-          if (vars->track_dedxperhit_smeared->at(i).at(j) <= 2)
+          if (vars->track_dedxperhit_smeared->at(i).at(j) <= low_dedx_definition)
             n_dedx_lt2++;
           else
             n_dedx_gt2++;
 
         }
 
-        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > 0.25)
+        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > max_frac_low_dedx_calo_hits)
           protons_quality = false;
         else protons_quality = true;
 
