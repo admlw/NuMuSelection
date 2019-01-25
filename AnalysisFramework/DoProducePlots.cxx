@@ -62,22 +62,26 @@ int main(){
   TTree* t_onbeam     = (TTree*)(new TFile(_config.s_onbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_offbeam    = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
+  TTree* t_dirt       = (TTree*)(new TFile(_config.s_dirt.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_ew         = (TTree*)(new TFile(_config.s_ew.c_str(), "read"))->Get("ew_tree");
 
   // initialise variables and trees
   var_list onbeam_vars_tmp;
   var_list offbeam_vars_tmp;
   var_list simulation_vars_tmp;
+  var_list dirt_vars_tmp;
   ew_list ew_vars_tmp;
 
   var_list* onbeam_vars = &onbeam_vars_tmp;
   var_list* offbeam_vars = &offbeam_vars_tmp;
   var_list* simulation_vars = &simulation_vars_tmp;
+  var_list* dirt_vars = &dirt_vars_tmp;
   ew_list* ew_vars = &ew_vars_tmp;
 
   _treeHandler.SetTreeVars(t_onbeam, &onbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
+  _treeHandler.SetTreeVars(t_dirt, &dirt_vars_tmp, true);
   _treeHandler.SetEWTreeVars(t_ew, &ew_vars_tmp);
 
   // initialise output trees
@@ -205,6 +209,41 @@ int main(){
 
     }
   }
+
+  //------------------------------------
+  // loop dirt
+  //------------------------------------
+
+  std::cout << "[MDSCP] Beginning dirt loop..." << std::endl;
+  for (int i = 0; i < t_dirt->GetEntries(); i++){
+
+    if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
+
+    t_dirt->GetEntry(i);
+
+    if (dirt_vars->isUBXSecSelected){
+
+      // get plots for data/MC comparisons
+      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(dirt_vars, HISTOGRAM_1D, t_dirt, t_simulation_out, i, ew_vars, t_ew, t_ew_out);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesPDG = _selmaker.GetPlottingVariables(dirt_vars, PDG, nullptr, nullptr,  i);
+      std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(dirt_vars, TRACKCUTVAR, nullptr, nullptr, i);
+
+      for (size_t i_st = 0; i_st < plottingVariables.size(); i_st++){ 
+
+        for (size_t i_pl = 0; i_pl < plottingVariables.at(i_st).size(); i_pl++){
+
+          _histoHandler.FillHistDirt(plots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl));
+
+          if (_histoHandler.histoMakeTrackPlot.at(i_pl) == true) {
+
+            _histoHandler.FillTrackHistMC(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesPDG.at(i_st).at(0), plottingVariablesTrackCut.at(i_st).at(0));
+
+          }
+        }
+      }
+    }
+  }
+
 
   //------------------------------------
   // loop onbeam

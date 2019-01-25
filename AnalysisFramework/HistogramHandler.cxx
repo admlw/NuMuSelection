@@ -90,6 +90,14 @@ namespace numusel{
 
   };
 
+  void HistogramHandler::FillHistDirt(hists_1d* h1d, std::vector<double> variable){
+
+    for (int i = 0; i < variable.size(); i++){
+        h1d->h_dirt->Fill(variable.at(i));
+    }
+  };
+
+
   void HistogramHandler::FillHistOnBeam(hists_1d* h1d, std::vector<double> variable){
 
     for (int i = 0; i < variable.size(); i++){
@@ -252,6 +260,7 @@ namespace numusel{
     hists->h_mccosmic->SetFillColor(TColor::GetColor(8,64,129));
     hists->h_mcmixed->SetFillColor(TColor::GetColor(8,104,172));
     hists->h_mcoofv->SetFillColor(TColor::GetColor(78,179,211));
+    hists->h_dirt->SetFillColor(TColor::GetColor(128,0,0));
     hists->h_mcnc->SetFillColor(TColor::GetColor(113,1,98));
     hists->h_mcnuenuebar->SetFillColor(TColor::GetColor(166,217,106));
     hists->h_mcnumubar->SetFillColor(TColor::GetColor(0,104,55));
@@ -261,6 +270,7 @@ namespace numusel{
     hists->h_mccosmic->SetMarkerColor(TColor::GetColor(8,64,129));
     hists->h_mcmixed->SetMarkerColor(TColor::GetColor(8,104,172));
     hists->h_mcoofv->SetMarkerColor(TColor::GetColor(78,179,211));
+    hists->h_dirt->SetMarkerColor(TColor::GetColor(128,0,0));
     hists->h_mcnc->SetMarkerColor(TColor::GetColor(113,1,98));
     hists->h_mcnuenuebar->SetMarkerColor(TColor::GetColor(166,217,106));
     hists->h_mcnumubar->SetMarkerColor(TColor::GetColor(0,104,55));
@@ -270,6 +280,7 @@ namespace numusel{
     hists->h_mccosmic->SetLineWidth(0);
     hists->h_mcmixed->SetLineWidth(0);
     hists->h_mcoofv->SetLineWidth(0);
+    hists->h_dirt->SetLineWidth(0);
     hists->h_mcnc->SetLineWidth(0);
     hists->h_mcnuenuebar->SetLineWidth(0);
     hists->h_mcnumubar->SetLineWidth(0);
@@ -327,6 +338,7 @@ namespace numusel{
         thisHistSet->h_mccosmic->Sumw2();
         thisHistSet->h_mcmixed->Sumw2();
         thisHistSet->h_mcoofv->Sumw2();
+        thisHistSet->h_dirt->Sumw2();
         thisHistSet->h_mcnc->Sumw2();
         thisHistSet->h_mcnuenuebar->Sumw2();
         thisHistSet->h_mcnumubar->Sumw2();
@@ -337,6 +349,7 @@ namespace numusel{
         thisHistSet->h_mccosmic->Scale(_config.simscaling);
         thisHistSet->h_mcmixed->Scale(_config.simscaling);
         thisHistSet->h_mcoofv->Scale(_config.simscaling);
+        thisHistSet->h_dirt->Scale(_config.dirtscaling);
         thisHistSet->h_mcnc->Scale(_config.simscaling);
         thisHistSet->h_mcnuenuebar->Scale(_config.simscaling);
         thisHistSet->h_mcnumubar->Scale(_config.simscaling);
@@ -599,16 +612,29 @@ namespace numusel{
         hs->Add(thisHistSet->h_mccosmic);
         hs->Add(thisHistSet->h_mcmixed);
         hs->Add(thisHistSet->h_mcoofv);
+        hs->Add(thisHistSet->h_dirt);
         hs->Add(thisHistSet->h_mcnc);
         hs->Add(thisHistSet->h_mcnuenuebar);
         hs->Add(thisHistSet->h_mcnumubar);
         hs->Add(thisHistSet->h_mcnumuccother);
         hs->Add(thisHistSet->h_mcnumucc0pinp);
 
+        std::cout << "size: offbeam: " << thisHistSet->h_offbeam->Integral() << std::endl;
+        std::cout << "size: cosmic: " << thisHistSet->h_mccosmic->Integral() << std::endl;
+        std::cout << "size: mixed: " << thisHistSet->h_mcmixed->Integral() << std::endl;
+        std::cout << "size: oofv: " << thisHistSet->h_mcoofv->Integral() << std::endl;
+        std::cout << "size: dirt: " << thisHistSet->h_dirt->Integral() << std::endl;
+        std::cout << "size: nc: " << thisHistSet->h_mcnc->Integral() << std::endl;
+        std::cout << "size: nuenuebar: " << thisHistSet->h_mcnuenuebar->Integral() << std::endl;
+        std::cout << "size: numubar: " << thisHistSet->h_mcnumubar->Integral() << std::endl;
+        std::cout << "size: numuccother: " << thisHistSet->h_mcnumuccother->Integral() << std::endl;
+        std::cout << "size: signal: " << thisHistSet->h_mcnumucc0pinp->Integral() << std::endl;
+
         TH1D *h_tot = (TH1D*)thisHistSet->h_offbeam->Clone("h_tot");
         h_tot->Add(thisHistSet->h_mccosmic);
         h_tot->Add(thisHistSet->h_mcmixed);
         h_tot->Add(thisHistSet->h_mcoofv);
+        h_tot->Add(thisHistSet->h_dirt);
         h_tot->Add(thisHistSet->h_mcnc);
         h_tot->Add(thisHistSet->h_mcnuenuebar);
         h_tot->Add(thisHistSet->h_mcnumubar);

@@ -459,6 +459,11 @@ namespace numusel{
       void FillHistMC(hists_1d* h1d, std::vector<double> variable, std::bitset<8> eventCat);
 
       /**
+       * Fill Dirt histograms
+       */
+      void FillHistDirt(hists_1d* h1d, std::vector<double> variable);
+
+      /**
        * Fill On-beam histograms
        */
       void FillHistOnBeam(hists_1d* h1d, std::vector<double> variable);

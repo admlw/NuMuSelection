@@ -261,6 +261,7 @@ struct hists_1d {
   TH1D* h_mccosmic;
   TH1D* h_mcmixed;
   TH1D* h_mcoofv;
+  TH1D* h_dirt;
   TH1D* h_mcnc;
   TH1D* h_mcnuenuebar;
   TH1D* h_mcnumubar;
@@ -273,6 +274,7 @@ struct hists_1d {
     h_mccosmic = new TH1D(std::string(name+"cosmic").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcmixed = new TH1D(std::string(name+"mixed").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcoofv = new TH1D(std::string(name+"oofv").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
+    h_dirt = new TH1D(std::string(name+"dirt").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcnc = new TH1D(std::string(name+"nc").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcnuenuebar = new TH1D(std::string(name+"nuenuebar").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
     h_mcnumubar = new TH1D(std::string(name+"numubar").c_str(), title.c_str(), nbinsx, binlowx, binhighx);
