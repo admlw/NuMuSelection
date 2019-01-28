@@ -260,7 +260,7 @@ namespace numusel{
     hists->h_mccosmic->SetFillColor(TColor::GetColor(8,64,129));
     hists->h_mcmixed->SetFillColor(TColor::GetColor(8,104,172));
     hists->h_mcoofv->SetFillColor(TColor::GetColor(78,179,211));
-    hists->h_dirt->SetFillColor(TColor::GetColor(128,0,0));
+    hists->h_dirt->SetFillColor(TColor::GetColor(63, 17, 24));
     hists->h_mcnc->SetFillColor(TColor::GetColor(113,1,98));
     hists->h_mcnuenuebar->SetFillColor(TColor::GetColor(166,217,106));
     hists->h_mcnumubar->SetFillColor(TColor::GetColor(0,104,55));
@@ -270,7 +270,7 @@ namespace numusel{
     hists->h_mccosmic->SetMarkerColor(TColor::GetColor(8,64,129));
     hists->h_mcmixed->SetMarkerColor(TColor::GetColor(8,104,172));
     hists->h_mcoofv->SetMarkerColor(TColor::GetColor(78,179,211));
-    hists->h_dirt->SetMarkerColor(TColor::GetColor(128,0,0));
+    hists->h_dirt->SetMarkerColor(TColor::GetColor(63, 17, 24));
     hists->h_mcnc->SetMarkerColor(TColor::GetColor(113,1,98));
     hists->h_mcnuenuebar->SetMarkerColor(TColor::GetColor(166,217,106));
     hists->h_mcnumubar->SetMarkerColor(TColor::GetColor(0,104,55));
@@ -619,17 +619,6 @@ namespace numusel{
         hs->Add(thisHistSet->h_mcnumuccother);
         hs->Add(thisHistSet->h_mcnumucc0pinp);
 
-        std::cout << "size: offbeam: " << thisHistSet->h_offbeam->Integral() << std::endl;
-        std::cout << "size: cosmic: " << thisHistSet->h_mccosmic->Integral() << std::endl;
-        std::cout << "size: mixed: " << thisHistSet->h_mcmixed->Integral() << std::endl;
-        std::cout << "size: oofv: " << thisHistSet->h_mcoofv->Integral() << std::endl;
-        std::cout << "size: dirt: " << thisHistSet->h_dirt->Integral() << std::endl;
-        std::cout << "size: nc: " << thisHistSet->h_mcnc->Integral() << std::endl;
-        std::cout << "size: nuenuebar: " << thisHistSet->h_mcnuenuebar->Integral() << std::endl;
-        std::cout << "size: numubar: " << thisHistSet->h_mcnumubar->Integral() << std::endl;
-        std::cout << "size: numuccother: " << thisHistSet->h_mcnumuccother->Integral() << std::endl;
-        std::cout << "size: signal: " << thisHistSet->h_mcnumucc0pinp->Integral() << std::endl;
-
         TH1D *h_tot = (TH1D*)thisHistSet->h_offbeam->Clone("h_tot");
         h_tot->Add(thisHistSet->h_mccosmic);
         h_tot->Add(thisHistSet->h_mcmixed);
@@ -680,14 +669,15 @@ namespace numusel{
         TLegend *leg_1 = new TLegend(0.1, 0.75, 0.5, 0.98);
 
         leg_1->AddEntry(thisHistSet->h_mccosmic    , Form("Cosmic, %g entries" , std::floor(10*thisHistSet->h_mccosmic->Integral())/10.));
-        leg_1->AddEntry(thisHistSet->h_mcmixed     , Form("Mixed, %g entries" , std::floor(10*thisHistSet->h_mcmixed->Integral())/10.));
-        leg_1->AddEntry(thisHistSet->h_mcoofv      , Form("OOFV, %g entries" , std::floor(10*thisHistSet->h_mcoofv->Integral())/10.));
-        leg_1->AddEntry(thisHistSet->h_mcnc        , Form("NC, %g entries" , std::floor(10*thisHistSet->h_mcnc->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcmixed     , Form("Mixed, %g entries"  , std::floor(10*thisHistSet->h_mcmixed->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcoofv      , Form("OOFV, %g entries"   , std::floor(10*thisHistSet->h_mcoofv->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_dirt        , Form("Dirt, %g entries"   , std::floor(10*thisHistSet->h_dirt->Integral())/10.));
+        leg_1->AddEntry(thisHistSet->h_mcnc        , Form("NC, %g entries"     , std::floor(10*thisHistSet->h_mcnc->Integral())/10.));
         leg_1->AddEntry(thisHistSet->h_mcnuenuebar , Form("#nu_{e}/#bar{#nu_{e}}, %g entries" , std::floor(10*thisHistSet->h_mcnuenuebar->Integral())/10.));
         leg_1->SetTextSize(0.035);
 
 
-        TLegend *leg_2 = new TLegend(0.5, 0.75, 0.9, 0.98);
+        TLegend *leg_2 = new TLegend(0.5, 0.7883, 0.9, 0.98);
         
         leg_2->AddEntry(thisHistSet->h_mcnumubar     , Form("#bar{#nu_{#mu}}, %g entries" , std::floor(10*thisHistSet->h_mcnumubar->Integral())/10.));
         leg_2->AddEntry(thisHistSet->h_mcnumuccother , Form("#nu_{#mu}CC-Other, %g entries" , std::floor(10*thisHistSet->h_mcnumuccother->Integral())/10.));

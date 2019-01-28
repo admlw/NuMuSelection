@@ -95,6 +95,9 @@ namespace numusel{
         "track_range_mom_passumption",
         "track_range_energy_muassumption",
         "track_range_energy_passumption",
+        "track_dep_energy_yplane",
+        "track_dep_energy_yplane_minus_range_energy_muassmp",
+        "track_dep_energy_yplane_minus_range_energy_passmp",
         "track_residualrms",
         "muoncand_track_length",
         "muoncand_track_theta",
@@ -106,6 +109,9 @@ namespace numusel{
         "muoncand_track_mcs_energy_bwd",
         "muoncand_track_range_momentum_muassmp",
         "muoncand_track_range_energy_muassmp",
+        "muoncand_track_dep_energy_yplane",
+        "muoncand_track_dep_energy_yplane_minus_range_energy_muassmp",
+        "muoncand_track_dep_energy_yplane_minus_range_energy_passmp",
         "muoncand_track_contained_length",
         "muoncand_track_contained_theta",
         "muoncand_track_contained_costheta",
@@ -116,6 +122,9 @@ namespace numusel{
         "muoncand_track_contained_mcs_energy_bwd",
         "muoncand_track_contained_range_momentum_muassmp",
         "muoncand_track_contained_range_energy_muassmp",
+        "muoncand_track_contained_dep_energy_yplane",
+        "muoncand_track_contained_dep_energy_yplane_minus_range_energy_muassmp",
+        "muoncand_track_contained_dep_energy_yplane_minus_range_energy_passmp",
         "muoncand_track_uncontained_length",
         "muoncand_track_uncontained_theta",
         "muoncand_track_uncontained_costheta",
@@ -126,6 +135,9 @@ namespace numusel{
         "muoncand_track_uncontained_mcs_energy_bwd",
         "muoncand_track_uncontained_range_momentum_muassmp",
         "muoncand_track_uncontained_range_energy_muassmp",
+        "muoncand_track_uncontained_dep_energy_yplane",
+        "muoncand_track_uncontained_dep_energy_yplane_minus_range_energy_muassmp",
+        "muoncand_track_uncontained_dep_energy_yplane_minus_range_energy_passmp",
         "protoncand_track_length",
         "protoncand_track_theta",
         "protoncand_track_costheta",
@@ -134,6 +146,9 @@ namespace numusel{
         "protoncand_track_mcs_bwd",
         "protoncand_track_range_mom",
         "protoncand_track_range_energy",
+        "protoncand_track_dep_energy_yplane",
+        "protoncand_track_dep_energy_yplane_minus_range_energy_muassmp",
+        "protoncand_track_dep_energy_yplane_minus_range_energy_passmp",
         "protoncand_leading_track_length",
         "protoncand_leading_track_theta",
         "protoncand_leading_track_costheta",
@@ -142,6 +157,9 @@ namespace numusel{
         "protoncand_leading_track_mcs_bwd",
         "protoncand_leading_track_range_mom",
         "protoncand_leading_track_range_energy",
+        "protoncand_leading_track_dep_energy_yplane",
+        "protoncand_leading_track_dep_energy_yplane_minus_range_energy_muassmp",
+        "protoncand_leading_track_dep_energy_yplane_minus_range_energy_passmp",
         "protoncand_nonleading_track_length",
         "protoncand_nonleading_track_theta",
         "protoncand_nonleading_track_costheta",
@@ -150,6 +168,9 @@ namespace numusel{
         "protoncand_nonleading_track_mcs_bwd",
         "protoncand_nonleading_track_range_mom",
         "protoncand_nonleading_track_range_energy",
+        "protoncand_nonleading_track_dep_energy_yplane",
+        "protoncand_nonleading_track_dep_energy_yplane_minus_range_energy_muassmp",
+        "protoncand_nonleading_track_dep_energy_yplane_minus_range_energy_passmp",
         "reconstructed_neutrino_energy_uncalib",
         "reconstructed_neutrino_energy_calib"
       };
@@ -181,6 +202,9 @@ namespace numusel{
         ";Track range momentum (GeV, proton assumption);",
         ";Track range energy (GeV, muon assumption);",
         ";Track range energy (GeV, proton assumption);",
+        ";Track deposited energy (GeV, Y plane);",
+        ";Track E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Track E_{dep}^{Y}-E_{range}^{p};",
         ";Track residual (cm);",
         ";Muon candidate track length (cm);",
         ";Muon candidate track #theta (rad);",
@@ -192,6 +216,9 @@ namespace numusel{
         ";Muon candidate track MCS energy (GeV, backward);",
         ";Muon candidate momentum (GeV, range, muon assumption);",
         ";Muon candidate energy (GeV, range, muon assumption);",
+        ";Muon candidate deposited energy (GeV, Y plane);",
+        ";Muon candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Muon candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Contained muon candidate track length (cm);",
         ";Contained muon candidate track #theta (rad);",
         ";Contained muon candidate track cos(#theta);",
@@ -202,6 +229,9 @@ namespace numusel{
         ";Contained muon candidate track MCS energy (GeV, backward);",
         ";Contained muon candidate momentum (GeV, range, muon assumption);",
         ";Contained muon candidate energy (GeV, range, muon assumption);",
+        ";Contained muon candidate deposited energy (GeV, Y plane);",
+        ";Contained muon candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Contained muon candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Uncontained muon candidate track length (cm);",
         ";Uncontained muon candidate track #theta (rad);",
         ";Uncontained muon candidate track cos(#theta);",
@@ -212,6 +242,9 @@ namespace numusel{
         ";Uncontained muon candidate track MCS energy (GeV, backward);",
         ";Uncontained muon candidate momentum (GeV, range, muon assumption);",
         ";Uncontained muon candidate energy (GeV, range, muon assumption);",
+        ";Uncontained muon candidate deposited energy (GeV, Y plane);",
+        ";Uncontained muon candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Uncontained muon candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Proton candidate track length (cm);",
         ";Proton candidate track #theta (rad);",
         ";Proton candidate track cos(#theta);",
@@ -220,6 +253,9 @@ namespace numusel{
         ";Proton candidate track MCS (GeV, backward);",
         ";Proton candidate track momentum (GeV, range);",
         ";Proton candidate track energy (GeV, range);",
+        ";Proton candidate deposited energy (GeV, Y plane);",
+        ";Proton candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Proton candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Leading proton candidate track length (cm);",
         ";Leading proton candidate track #theta (rad);",
         ";Leading proton candidate track cos(#theta);",
@@ -228,6 +264,9 @@ namespace numusel{
         ";Leading proton candidate track MCS (GeV, backward);",
         ";Leading proton candidate track momentum (GeV, range);",
         ";Leading proton candidate track energy (GeV, range);",
+        ";Leading proton candidate deposited energy (GeV, Y plane);",
+        ";Leading proton candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Leading proton candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Non-leading proton candidate track length (cm);",
         ";Non-leading proton candidate track #theta (rad);",
         ";Non-leading proton candidate track cos(#theta);",
@@ -236,6 +275,9 @@ namespace numusel{
         ";Non-leading proton candidate track MCS (GeV, backward);",
         ";Non-leading proton candidate track momentum (GeV, range);",
         ";Non-leading proton candidate track energy (GeV, range);",
+        ";Non-leading proton candidate deposited energy (GeV, Y plane);",
+        ";Non-leading proton candidate E_{dep}^{Y}-E_{range}^{#mu};",
+        ";Non-leading proton candidate E_{dep}^{Y}-E_{range}^{p};",
         ";Total deposited energy (GeV);",
         ";Total deposited energy (GeV);"
       };
@@ -245,12 +287,12 @@ namespace numusel{
         {10, 0, 10},          // number of tracks
         {10, 0, 10},          // number of showers
         {10, 0, 10},          // number of pfparticles
-        {40, 0, 256},         // vertex x
+        {40, 0, 256.7},         // vertex x
         {40, -116.5, 116.5},  // vertex y
         {40, 0, 1040},        // vertex z
         {50, 0, 700},         // track length
-        {40, 0, 256},         // track start x
-        {40, 0, 256},         // track end x
+        {40, 0, 256.7},       // track start x
+        {40, 0, 256.7},       // track end x
         {40, -116.5, 116.5},  // track start y
         {40, -116.5, 116.5},  // track end y
         {40, 0, 1040},        // track start z
@@ -261,12 +303,15 @@ namespace numusel{
         {50, -10, 10},        // log(lmip/lp)
         {50, 0, 3},           // track mcs fwd
         {50, 0, 3},           // track mcs bwd
-        {50, 0, 0.000015},    // track mcs energy fwd
-        {50, 0, 0.000015},    // track mcs energy bwd
+        {50, 0, 3},           // track mcs energy fwd
+        {50, 0, 3},           // track mcs energy bwd
         {50, 0, 3},           // track range momentum muon
         {50, 0, 3},           // track range momentum proton
         {50, 0, 3},           // track range energy muon
         {50, 0, 3},           // track range energy proton
+        {50, 0, 1},           // track deposited energy y plane
+        {50, -0.4, 0.4},      // track dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // track dep energy yplane minus range energy passmp
         {50, 0, 5},           // track_residualrms
         {25, 0, 700},         // muon cand length
         {20, 0, 3.15},        // muon cand theta
@@ -278,6 +323,9 @@ namespace numusel{
         {25, 0, 2},           // muon candidate mc energy backward
         {25, 0, 3},           // muon candidate momentum from range
         {25, 0, 2},           // muon candidate energy from range
+        {50, 0, 1},           // muon candidate deposited energy y plane
+        {50, -0.4, 0.4},      // muon candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // muon candidate dep energy yplane minus range energy passmp
         {25, 0, 700},         // contained muon cand length
         {20, 0, 3.15},        // contained muon cand theta
         {20, -1, 1},          // contained muon cand cos(theta)
@@ -288,6 +336,9 @@ namespace numusel{
         {25, 0, 2},           // contained muon candidate mc energy backward
         {25, 0, 3},           // contained muon candidate momentum from range
         {25, 0, 2},           // contained muon candidate energy from range
+        {50, 0, 1},           // contained muon candidate deposited energy y plane
+        {50, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy passmp
         {25, 0, 700},         // uncontained muon cand length
         {20, 0, 3.15},        // uncontained muon cand theta
         {20, -1, 1},          // uncontained muon cand cos(theta)
@@ -298,6 +349,9 @@ namespace numusel{
         {25, 0, 2},           // uncontained muon candidate mc energy backward
         {25, 0, 3},           // uncontained muon candidate momentum from range
         {25, 0, 2},           // uncontained muon candidate energy from range
+        {50, 0, 1},           // uncontained muon candidate deposited energy y plane
+        {50, -0.4, 0.4},      // uncontained muon candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // uncontained muon candidate dep energy yplane minus range energy passmp
         {25, 0, 300},         // proton cand length
         {20, 0, 3.15},        // proton cand theta
         {20, -1, 1},          // proton cand cos(theta)
@@ -306,6 +360,9 @@ namespace numusel{
         {25, 0, 3},           // proton candidate mcs bwd
         {25, 0, 3.0},         // proton candidate range momentum
         {25, 0, 0.7},         // proton candidate range energy
+        {50, 0, 1},           // proton candidate deposited energy y plane
+        {50, -0.4, 0.4},      // proton candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // proton candidate dep energy yplane minus range energy passmp
         {25, 0, 300},         // leading proton cand length
         {20, 0, 3.15},        // leading proton cand theta
         {20, -1, 1},          // leading proton cand cos(theta)
@@ -314,6 +371,9 @@ namespace numusel{
         {25, 0, 3},           // leading proton candidate mcs bwd
         {25, 0, 3.0},         // leading proton candidate range momentum
         {25, 0, 0.7},         // leading proton candidate range energy
+        {50, 0, 1},           // leading proton candidate deposited energy y plane
+        {50, -0.4, 0.4},      // leading proton candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // leading proton candidate dep energy yplane minus range energy passmp
         {25, 0, 300},         // non-leading proton cand length
         {20, 0, 3.15},        // non-leading proton cand theta
         {20, -1, 1},          // non-leading proton cand cos(theta)
@@ -322,6 +382,9 @@ namespace numusel{
         {25, 0, 3},           // non-leading proton candidate mcs bwd
         {25, 0, 3.0},         // non-leading proton candidate range momentum
         {25, 0, 0.7},         // non-leading proton candidate range energy
+        {50, 0, 1},           // non-leading proton candidate deposited energy y plane
+        {50, -0.4, 0.4},      // non-leading proton candidate dep energy yplane minus range energy muassmp
+        {50, -0.4, 0.4},      // non-leading proton candidate dep energy yplane minus range energy passmp
         {25, 0, 3},           // reconstructed neutrino energy
         {25, 0, 3}            // calibrated reconstructed neutrino energy                  
       };
@@ -353,6 +416,9 @@ namespace numusel{
         true,                 // track range momentum proton
         true,                 // track range energy muon
         true,                 // track range energy proton
+        true,                 // track dep energy yplane
+        true,                 // track dep energy yplane minus range energy muassmp
+        true,                 // track dep energy yplane minus range energy passmp
         true,                 // track residualrms
         false,                // muon cand length
         false,                // muon cand theta
@@ -364,6 +430,9 @@ namespace numusel{
         false,                // muon candidate mc energy backward
         false,                // muon candidate momentum from range
         false,                // muon candidate energy from range
+        false,                // muon candidate dep energy yplane
+        false,                // muon candidate dep energy yplane minus range energy muassmp
+        false,                // muon candidate dep energy yplane minus range energy passmp
         false,                // contained muon cand length
         false,                // contained muon cand theta
         false,                // contained muon cand cos(theta)
@@ -374,6 +443,9 @@ namespace numusel{
         false,                // contained muon candidate mc energy backward
         false,                // contained muon candidate momentum from range
         false,                // contained muon candidate energy from range
+        false,                // contained muon candidate dep energy yplane
+        false,                // contained muon candidate dep energy yplane minus range energy muassmp
+        false,                // contained muon candidate dep energy yplane minus range energy passmp
         false,                // uncontained muon cand length
         false,                // uncontained muon cand theta
         false,                // uncontained muon cand cos(theta)
@@ -384,6 +456,9 @@ namespace numusel{
         false,                // uncontained muon candidate mc energy backward
         false,                // uncontained muon candidate momentum from range
         false,                // uncontained muon candidate energy from range
+        false,                // uncontained muon candidate dep energy yplane
+        false,                // uncontained muon candidate dep energy yplane minus range energy muassmp
+        false,                // uncontained muon candidate dep energy yplane minus range energy passmp
         false,                // proton cand length
         false,                // proton cand theta
         false,                // proton cand cos(theta)
@@ -392,6 +467,9 @@ namespace numusel{
         false,                // proton candidate mcs bwd
         false,                // proton candidate range momentum
         false,                // proton candidate range energy
+        false,                // proton candidate dep energy yplane
+        false,                // proton candidate dep energy yplane minus range energy muassmp
+        false,                // proton candidate dep energy yplane minus range energy passmp
         false,                // leading proton cand length
         false,                // leading proton cand theta
         false,                // leading proton cand cos(theta)
@@ -400,6 +478,9 @@ namespace numusel{
         false,                // leading proton candidate mcs bwd
         false,                // leading proton candidate range momentum
         false,                // leading proton candidate range energy
+        false,                // leading proton candidate dep energy yplane
+        false,                // leading proton candidate dep energy yplane minus range energy muassmp
+        false,                // leading proton candidate dep energy yplane minus range energy passmp
         false,                // non-leading proton cand length
         false,                // non-leading proton cand theta
         false,                // non-leading proton cand cos(theta)
@@ -408,6 +489,9 @@ namespace numusel{
         false,                // non-leading proton candidate mcs bwd
         false,                // non-leading proton candidate range momentum
         false,                // non-leading proton candidate range energy
+        false,                // non-leading proton candidate dep energy yplane
+        false,                // non-leading proton candidate dep energy yplane minus range energy muassmp
+        false,                // non-leading proton candidate dep energy yplane minus range energy passmp
         false,                // reconstructed neutrino energy
         false,                // calibrated reconstructed neutrino energy                  
       };

@@ -67,6 +67,9 @@ struct var_list {
   std::vector<double>* track_range_mom_passumption = nullptr;
   std::vector<double>* track_range_energy_muassumption = nullptr;
   std::vector<double>* track_range_energy_passumption = nullptr;
+  std::vector<double>* track_dep_energy_uplane = nullptr;
+  std::vector<double>* track_dep_energy_vplane = nullptr;
+  std::vector<double>* track_dep_energy_yplane = nullptr;
   std::vector<double>* track_residualrms = nullptr;
   std::vector<bool>* track_isContained = nullptr;
   std::vector<bool>* track_isCollectionPID = nullptr;

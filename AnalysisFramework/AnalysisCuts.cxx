@@ -34,17 +34,18 @@ namespace numusel{
     numusel::Configuration _config;
 
     // do any tracks have fewer than 3 hits on the collection plane?
-    int n_lowhittracks = 0;
-    for (int j = 0; j < vars->track_ncaloobj_yplane->size(); j++){
-        if (vars->track_ncaloobj_yplane->at(j) < min_no_calo_hits) 
-            n_lowhittracks++;
+    /*int n_lowyplanehittracks = 0;
+    for (int j = 0; j < vars->track_hit_nhits_yplane->size(); j++){
+        if (vars->track_hit_nhits_yplane->at(j) < min_no_calo_hits) 
+            if (vars->track_hit_nhits_uplane->at(j) < 2 || vars->track_hit_nhits_vplane->at(j) < 2)
+                n_lowyplanehittracks++;
     }
+*/
 
     std::pair<bool, std::vector<int>> thisPair;
 
     // first perform quality checks
-    if (((vars->nSelectedPfparticles != vars->bragg_fwd_p->size()) && vars->isUBXSecSelected)
-        || (n_lowhittracks != 0) ){
+    if (((vars->nSelectedPfparticles != vars->bragg_fwd_p->size()) && vars->isUBXSecSelected)){
       thisPair.first = false;
       thisPair.second = {0};
 
@@ -53,11 +54,10 @@ namespace numusel{
     }
 
     int n_muon_cand = 0;
+    bool muon_quality = true;
     bool protons_contained = true;
     bool protons_quality = true;
     std::vector<int> pidPdgCodes;
-    int n_dedx_lt2=0;
-    int n_dedx_gt2=0;
 
     // calculate PID variables of interest
     for (int i = 0; i < vars->bragg_fwd_p->size(); i++){
@@ -78,6 +78,10 @@ namespace numusel{
 
       // muon candidate
       if (loglmipoverp > cutval && loglmipoverp != 0){
+         if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < -0.15 
+                || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > 0.1)
+        muon_quality = false;
+
         n_muon_cand++;
         pidPdgCodes.push_back(13); 
       }
@@ -88,28 +92,14 @@ namespace numusel{
         if (vars->track_isContained->at(i) == 0)
           protons_contained = false;
 
-        // check proton quality, i.e. are more than 1/4 of the proton
-        // dE/dx values MIP-like
-        //
-        // todo: compare depE versus rangeE to remove badly reco'd protons
-        for (int j = 0; j < vars->track_dedxperhit_smeared->at(i).size(); j++){
-
-          if (vars->track_dedxperhit_smeared->at(i).at(j) <= low_dedx_definition)
-            n_dedx_lt2++;
-          else
-            n_dedx_gt2++;
-
-        }
-
-        if ((float)n_dedx_lt2 / (n_dedx_lt2+n_dedx_gt2) > max_frac_low_dedx_calo_hits)
-          protons_quality = false;
-        else protons_quality = true;
-
+        if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) < -0.15 
+                || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) > 0.1)
+        protons_quality = false;
       }
 
     }
 
-    if (n_muon_cand == 1 && protons_contained == true && protons_quality == true){
+    if (n_muon_cand == 1 && muon_quality == true && protons_contained == true && protons_quality == true){
 
       thisPair.first = true;
       thisPair.second = pidPdgCodes;

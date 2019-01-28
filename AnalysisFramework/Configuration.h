@@ -26,7 +26,7 @@ namespace numusel{
 
       double offbeamscaling = onbeam_E1DCNT_wcut/offbeam_EXT;
       double simscaling = onbeam_tor860_wcut/bnbcosPOT;
-      double dirtscaling = bnbcosPOT/dirtPOT;
+      double dirtscaling = onbeam_tor860_wcut/dirtPOT;
 
       bool DoPIDForShowers = true;
       bool DoPIDForTracks = true;
@@ -37,7 +37,7 @@ namespace numusel{
       bool MakeTrackPlots = true;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
-      bool UseTrackCut = true;
+      bool UseTrackCut = false;
 
       // means we only run over 1000 events for sim, onbeam and offbeam
       bool QuickDev = false;

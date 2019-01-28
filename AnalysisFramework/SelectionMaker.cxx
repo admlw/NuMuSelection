@@ -318,6 +318,14 @@ namespace numusel{
     }
     m_stagex->push_back(pid);
 
+    std::vector<double> depErangeE_mu_Y = {};
+    std::vector<double> depErangeE_p_Y = {};
+
+    for (int i = 0; i < vars->track_range_energy_muassumption->size(); i++){
+       depErangeE_mu_Y.push_back(vars->track_dep_energy_yplane->at(i) - vars->track_range_energy_muassumption->at(i)); 
+       depErangeE_p_Y.push_back(vars->track_dep_energy_yplane->at(i) - vars->track_range_energy_passumption->at(i)); 
+    }
+
     m_stagex->push_back(*vars->track_mcs_muassmp_fwd);
     m_stagex->push_back(*vars->track_mcs_muassmp_bwd);
     m_stagex->push_back(*vars->track_mcs_muassmp_energy_fwd);
@@ -326,6 +334,9 @@ namespace numusel{
     m_stagex->push_back(*vars->track_range_mom_passumption);
     m_stagex->push_back(*vars->track_range_energy_muassumption);
     m_stagex->push_back(*vars->track_range_energy_passumption);
+    m_stagex->push_back(*vars->track_dep_energy_yplane);
+    m_stagex->push_back(depErangeE_mu_Y);
+    m_stagex->push_back(depErangeE_p_Y);
     m_stagex->push_back(*vars->track_residualrms);
 
     if (isHasPID == true){
@@ -341,6 +352,9 @@ namespace numusel{
       std::vector<double> candMuonMCSBwdEnergy;
       std::vector<double> candMuonRangeMomentumMuassmp;
       std::vector<double> candMuonRangeEnergyMuassmp;
+      std::vector<double> candMuonEdep;
+      std::vector<double> candMuonEdepMinusErange_mu;
+      std::vector<double> candMuonEdepMinusErange_p;
       std::vector<double> candMuonLength_contained;
       std::vector<double> candMuonTheta_contained;
       std::vector<double> candMuonCosTheta_contained;
@@ -351,6 +365,9 @@ namespace numusel{
       std::vector<double> candMuonMCSBwdEnergy_contained;
       std::vector<double> candMuonRangeMomentumMuassmp_contained;
       std::vector<double> candMuonRangeEnergyMuassmp_contained;
+      std::vector<double> candMuonEdep_contained;
+      std::vector<double> candMuonEdepMinusErange_mu_contained;
+      std::vector<double> candMuonEdepMinusErange_p_contained;
       std::vector<double> candMuonLength_uncontained;
       std::vector<double> candMuonTheta_uncontained;
       std::vector<double> candMuonCosTheta_uncontained;
@@ -361,6 +378,9 @@ namespace numusel{
       std::vector<double> candMuonMCSBwdEnergy_uncontained;
       std::vector<double> candMuonRangeMomentumMuassmp_uncontained;
       std::vector<double> candMuonRangeEnergyMuassmp_uncontained;
+      std::vector<double> candMuonEdep_uncontained;
+      std::vector<double> candMuonEdepMinusErange_mu_uncontained;
+      std::vector<double> candMuonEdepMinusErange_p_uncontained;
 
       // candidate proton variables
       std::vector<double> candProtonLength;
@@ -371,6 +391,9 @@ namespace numusel{
       std::vector<double> candProtonMCSBwd;
       std::vector<double> candProtonRangeMomentumPassmp;
       std::vector<double> candProtonRangeEnergyPassmp;
+      std::vector<double> candProtonEdep;
+      std::vector<double> candProtonEdepMinusErange_mu;
+      std::vector<double> candProtonEdepMinusErange_p;
       std::vector<double> candLeadingProtonLength;
       std::vector<double> candLeadingProtonTheta;
       std::vector<double> candLeadingProtonCosTheta;
@@ -379,6 +402,9 @@ namespace numusel{
       std::vector<double> candLeadingProtonMCSBwd;
       std::vector<double> candLeadingProtonRangeMomentumPassmp;
       std::vector<double> candLeadingProtonRangeEnergyPassmp;
+      std::vector<double> candLeadingProtonEdep;
+      std::vector<double> candLeadingProtonEdepMinusErange_mu;
+      std::vector<double> candLeadingProtonEdepMinusErange_p;
       std::vector<double> candNonLeadingProtonLength;
       std::vector<double> candNonLeadingProtonTheta;
       std::vector<double> candNonLeadingProtonCosTheta;
@@ -387,6 +413,9 @@ namespace numusel{
       std::vector<double> candNonLeadingProtonMCSBwd;
       std::vector<double> candNonLeadingProtonRangeMomentumPassmp;
       std::vector<double> candNonLeadingProtonRangeEnergyPassmp;
+      std::vector<double> candNonLeadingProtonEdep;
+      std::vector<double> candNonLeadingProtonEdepMinusErange_mu;
+      std::vector<double> candNonLeadingProtonEdepMinusErange_p;
       std::vector<double> neutrinoReconstructedEnergyUncalib = {0.};
       std::vector<double> neutrinoReconstructedEnergyCalib = {0.};
 
@@ -415,6 +444,9 @@ namespace numusel{
           candMuonMCSBwdEnergy.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
           candMuonRangeMomentumMuassmp.push_back(vars->track_range_mom_muassumption->at(i));
           candMuonRangeEnergyMuassmp.push_back(vars->track_range_energy_muassumption->at(i));
+          candMuonEdep.push_back(vars->track_dep_energy_yplane->at(i));
+          candMuonEdepMinusErange_mu.push_back(depErangeE_mu_Y.at(i));
+          candMuonEdepMinusErange_p.push_back(depErangeE_p_Y.at(i));
 
           if (vars->track_isContained->at(i) == true){
 
@@ -428,6 +460,9 @@ namespace numusel{
             candMuonMCSBwdEnergy_contained.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
             candMuonRangeMomentumMuassmp_contained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_contained.push_back(vars->track_range_energy_muassumption->at(i));
+            candMuonEdep_contained.push_back(vars->track_dep_energy_yplane->at(i));
+            candMuonEdepMinusErange_mu_contained.push_back(depErangeE_mu_Y.at(i));
+            candMuonEdepMinusErange_p_contained.push_back(depErangeE_p_Y.at(i));
 
             neutrinoReconstructedEnergyUncalib.at(0)+=vars->track_range_energy_muassumption->at(i);
             neutrinoReconstructedEnergyCalib.at(0)+=muon_range_energy_func->Eval(vars->track_range_energy_muassumption->at(i));
@@ -444,6 +479,9 @@ namespace numusel{
             candMuonMCSBwdEnergy_uncontained.push_back(vars->track_mcs_muassmp_energy_bwd->at(i));
             candMuonRangeMomentumMuassmp_uncontained.push_back(vars->track_range_mom_muassumption->at(i));
             candMuonRangeEnergyMuassmp_uncontained.push_back(vars->track_range_energy_muassumption->at(i));
+            candMuonEdep_uncontained.push_back(vars->track_dep_energy_yplane->at(i));
+            candMuonEdepMinusErange_mu_uncontained.push_back(depErangeE_mu_Y.at(i));
+            candMuonEdepMinusErange_p_uncontained.push_back(depErangeE_p_Y.at(i));
 
             float mcs_energy = 0;
 
@@ -453,7 +491,6 @@ namespace numusel{
             else {
               mcs_energy = vars->track_mcs_muassmp_energy_bwd->at(i);
             }
-
             neutrinoReconstructedEnergyUncalib.at(0)+=mcs_energy;
             neutrinoReconstructedEnergyCalib.at(0)+=muon_mcs_energy_func->Eval(mcs_energy);
 
@@ -474,6 +511,9 @@ namespace numusel{
           candProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(i));
           candProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(i));
           candProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(i));
+          candProtonEdep.push_back(vars->track_dep_energy_yplane->at(i));
+          candProtonEdepMinusErange_mu.push_back(depErangeE_mu_Y.at(i));
+          candProtonEdepMinusErange_p.push_back(depErangeE_p_Y.at(i));
 
           std::pair<int, float> thisProtonInformation;
           thisProtonInformation.first = i;
@@ -502,6 +542,9 @@ namespace numusel{
         candLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(0).first));
         candLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(0).first));
         candLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonEdep.push_back(vars->track_dep_energy_yplane->at(leadingProtonFinder.at(0).first));
+        candLeadingProtonEdepMinusErange_mu.push_back(depErangeE_mu_Y.at(leadingProtonFinder.at(0).first));
+        candLeadingProtonEdepMinusErange_p.push_back(depErangeE_p_Y.at(leadingProtonFinder.at(0).first));
       }
 
       //and non-leading proton information
@@ -515,6 +558,9 @@ namespace numusel{
         candNonLeadingProtonMCSBwd.push_back(vars->track_mcs_muassmp_bwd->at(leadingProtonFinder.at(i).first));
         candNonLeadingProtonRangeMomentumPassmp.push_back(vars->track_range_mom_passumption->at(leadingProtonFinder.at(i).first));
         candNonLeadingProtonRangeEnergyPassmp.push_back(vars->track_range_energy_passumption->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonEdep.push_back(vars->track_dep_energy_yplane->at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonEdepMinusErange_mu.push_back(depErangeE_mu_Y.at(leadingProtonFinder.at(i).first));
+        candNonLeadingProtonEdepMinusErange_p.push_back(depErangeE_p_Y.at(leadingProtonFinder.at(i).first));
       }
 
       m_stagex->push_back(candMuonLength);
@@ -527,6 +573,9 @@ namespace numusel{
       m_stagex->push_back(candMuonMCSBwdEnergy);
       m_stagex->push_back(candMuonRangeMomentumMuassmp);
       m_stagex->push_back(candMuonRangeEnergyMuassmp);
+      m_stagex->push_back(candMuonEdep);
+      m_stagex->push_back(candMuonEdepMinusErange_mu);
+      m_stagex->push_back(candMuonEdepMinusErange_p);
       m_stagex->push_back(candMuonLength_contained);
       m_stagex->push_back(candMuonTheta_contained);
       m_stagex->push_back(candMuonCosTheta_contained);
@@ -537,6 +586,9 @@ namespace numusel{
       m_stagex->push_back(candMuonMCSBwdEnergy_contained);
       m_stagex->push_back(candMuonRangeMomentumMuassmp_contained);
       m_stagex->push_back(candMuonRangeEnergyMuassmp_contained);
+      m_stagex->push_back(candMuonEdep_contained);
+      m_stagex->push_back(candMuonEdepMinusErange_mu_contained);
+      m_stagex->push_back(candMuonEdepMinusErange_p_contained);
       m_stagex->push_back(candMuonLength_uncontained);
       m_stagex->push_back(candMuonTheta_uncontained);
       m_stagex->push_back(candMuonCosTheta_uncontained);
@@ -547,6 +599,9 @@ namespace numusel{
       m_stagex->push_back(candMuonMCSBwdEnergy_uncontained);
       m_stagex->push_back(candMuonRangeMomentumMuassmp_uncontained);
       m_stagex->push_back(candMuonRangeEnergyMuassmp_uncontained);
+      m_stagex->push_back(candMuonEdep_uncontained);
+      m_stagex->push_back(candMuonEdepMinusErange_mu_uncontained);
+      m_stagex->push_back(candMuonEdepMinusErange_p_uncontained);
       m_stagex->push_back(candProtonLength);
       m_stagex->push_back(candProtonTheta);
       m_stagex->push_back(candProtonCosTheta);
@@ -555,6 +610,9 @@ namespace numusel{
       m_stagex->push_back(candProtonMCSBwd);
       m_stagex->push_back(candProtonRangeMomentumPassmp);
       m_stagex->push_back(candProtonRangeEnergyPassmp);
+      m_stagex->push_back(candProtonEdep);
+      m_stagex->push_back(candProtonEdepMinusErange_mu);
+      m_stagex->push_back(candProtonEdepMinusErange_p);
       m_stagex->push_back(candLeadingProtonLength);
       m_stagex->push_back(candLeadingProtonTheta);
       m_stagex->push_back(candLeadingProtonCosTheta);
@@ -563,6 +621,9 @@ namespace numusel{
       m_stagex->push_back(candLeadingProtonMCSBwd);
       m_stagex->push_back(candLeadingProtonRangeMomentumPassmp);
       m_stagex->push_back(candLeadingProtonRangeEnergyPassmp);
+      m_stagex->push_back(candLeadingProtonEdep);
+      m_stagex->push_back(candLeadingProtonEdepMinusErange_mu);
+      m_stagex->push_back(candLeadingProtonEdepMinusErange_p);
       m_stagex->push_back(candNonLeadingProtonLength);
       m_stagex->push_back(candNonLeadingProtonTheta);
       m_stagex->push_back(candNonLeadingProtonCosTheta);
@@ -571,6 +632,9 @@ namespace numusel{
       m_stagex->push_back(candNonLeadingProtonMCSBwd);
       m_stagex->push_back(candNonLeadingProtonRangeMomentumPassmp);
       m_stagex->push_back(candNonLeadingProtonRangeEnergyPassmp);
+      m_stagex->push_back(candNonLeadingProtonEdep);
+      m_stagex->push_back(candNonLeadingProtonEdepMinusErange_mu);
+      m_stagex->push_back(candNonLeadingProtonEdepMinusErange_p);
       m_stagex->push_back(neutrinoReconstructedEnergyUncalib);
       m_stagex->push_back(neutrinoReconstructedEnergyCalib);
 

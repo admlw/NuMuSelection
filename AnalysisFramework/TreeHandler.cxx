@@ -254,6 +254,9 @@ namespace numusel{
     tree->SetBranchStatus("track_range_mom_passumption", 1);
     tree->SetBranchStatus("track_range_energy_muassumption", 1);
     tree->SetBranchStatus("track_range_energy_passumption", 1);
+    tree->SetBranchStatus("track_dep_energy_uplane", 1);
+    tree->SetBranchStatus("track_dep_energy_vplane", 1);
+    tree->SetBranchStatus("track_dep_energy_yplane", 1);
     tree->SetBranchStatus("track_dedxperhit_smeared", 1);
     tree->SetBranchStatus("track_resrangeperhit", 1);
     tree->SetBranchStatus("track_residualrms", 1);
@@ -310,6 +313,9 @@ namespace numusel{
     tree->SetBranchAddress("track_range_mom_passumption", &(varstoset->track_range_mom_passumption));
     tree->SetBranchAddress("track_range_energy_muassumption", &(varstoset->track_range_energy_muassumption));
     tree->SetBranchAddress("track_range_energy_passumption", &(varstoset->track_range_energy_passumption));
+    tree->SetBranchAddress("track_dep_energy_uplane", &(varstoset->track_dep_energy_uplane));
+    tree->SetBranchAddress("track_dep_energy_vplane", &(varstoset->track_dep_energy_vplane));
+    tree->SetBranchAddress("track_dep_energy_yplane", &(varstoset->track_dep_energy_yplane));
     tree->SetBranchAddress("track_dedxperhit_smeared", &(varstoset->track_dedxperhit_smeared));
     tree->SetBranchAddress("track_resrangeperhit", &(varstoset->track_resrangeperhit));
     tree->SetBranchAddress("track_residualrms", &(varstoset->track_residualrms));
