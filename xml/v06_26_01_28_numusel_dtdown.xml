@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<!-- project details -->
+<!DOCTYPE project [
+<!ENTITY release "v06_26_01_28">
+<!ENTITY name "numusel_showersAsTracks_dtdown">
+<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;">
+<!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/">
+<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;_data">
+]>
+
+<job>
+
+<project name="&name;">
+
+    <!-- project size -->
+    <numevents>100000</numevents>
+
+    <!-- batchOS -->
+    <os>SL6</os>
+
+    <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+    <!-- larsoft info -->
+    <larsoft>
+        <tag>&release;</tag>
+        <qual>e10:prof</qual>
+        <local>/pnfs/uboone/resilient/users/alister1/ubcode_v06_26_01_28.tar</local>
+    </larsoft>
+
+    <!-- ubxsec -->
+    <stage name="numusel">
+        <inputdef>prodgenie_bnb_nu_cosmic_uboone_detsyst_DTdown_mcc8.17_reco2_ubxsec</inputdef>
+        <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
+        <bookdir>&data_dir;</bookdir>
+        <workdir>&resilient_dir;&name;</workdir>
+        <outdir>&scratch_dir;</outdir>
+        <logdir>&scratch_dir;</logdir>
+        <!--<numjobs>10</numjobs>
+        <numevents>10</numevents>
+        <maxfilesperjob>1</maxfilesperjob>-->
+        <numjobs>1000</numjobs>
+        <numevents>200</numevents>
+        <maxfilesperjob>1</maxfilesperjob>
+        <memory>6000</memory>
+        <datatier>numusel</datatier>
+        <schema>root</schema>
+   </stage>
+
+</project>
+
+</job>
