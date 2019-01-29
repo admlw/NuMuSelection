@@ -851,6 +851,13 @@ namespace numusel{
               +std::to_string(i_st)
               +std::string("_simulation.png")).c_str());
 
+        c_mc->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_simulation.pdf")).c_str());
+
         TCanvas *c_onbeam = new TCanvas();
         hists.at(i_st).at(i_pl)->h_onbeam->Draw("colz");
 
@@ -861,6 +868,13 @@ namespace numusel{
               +std::to_string(i_st)
               +std::string("_onbeam.png")).c_str());
 
+        c_onbeam->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_onbeam.pdf")).c_str());
+
         TCanvas *c_offbeam = new TCanvas();
         hists.at(i_st).at(i_pl)->h_offbeam->Draw("colz");
 
@@ -870,6 +884,13 @@ namespace numusel{
               +std::string("_stage")
               +std::to_string(i_st)
               +std::string("_offbeam.png")).c_str());
+
+        c_offbeam->SaveAs(std::string(
+              std::string("plots/")
+              +_histohandler.histoNames_2D.at(i_pl)
+              +std::string("_stage")
+              +std::to_string(i_st)
+              +std::string("_offbeam.pdf")).c_str());
       }
     }
   };
