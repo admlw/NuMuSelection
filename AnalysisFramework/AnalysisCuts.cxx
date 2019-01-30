@@ -76,10 +76,31 @@ namespace numusel{
           //      muon_quality = false;
 
           //}
-          if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < muon_low_qc 
-                  || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > muon_high_qc)
-              muon_quality = false;
 
+          double mcs = 0;
+          if (vars->track_mcs_muassmp_fwd_loglikelihood->at(i) < vars->track_mcs_muassmp_bwd_loglikelihood->at(i))
+              mcs = vars->track_mcs_muassmp_fwd->at(i);
+          else mcs = vars->track_mcs_muassmp_bwd->at(i);
+
+          if (vars->track_isContained->at(i) == 1){
+            if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < muon_low_qc 
+                    || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > muon_high_qc){
+
+                double range_mcs_diff = std::abs((mcs-vars->track_range_energy_muassumption->at(i))/vars->track_range_energy_muassumption->at(i));
+                if ( range_mcs_diff > 0.2){
+                    std::cout << "muq: false, mcs: " << mcs << " range: " << vars->track_range_energy_muassumption->at(i) << " diff: " << range_mcs_diff << std::endl;
+                    muon_quality = false;
+                }
+                else{
+                    std::cout << "muq: true, mcs: " << mcs << " range: " << vars->track_range_energy_muassumption->at(i) << " diff: " << range_mcs_diff << std::endl;
+                    muon_quality = true;
+                }
+            }
+            else {
+                muon_quality = true;
+            }
+
+          }
           else muon_quality = true;
 
         n_muon_cand++;
