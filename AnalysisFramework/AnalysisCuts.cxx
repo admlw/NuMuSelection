@@ -33,15 +33,6 @@ namespace numusel{
 
     numusel::Configuration _config;
 
-    // do any tracks have fewer than 3 hits on the collection plane?
-    /*int n_lowyplanehittracks = 0;
-    for (int j = 0; j < vars->track_hit_nhits_yplane->size(); j++){
-        if (vars->track_hit_nhits_yplane->at(j) < min_no_calo_hits) 
-            if (vars->track_hit_nhits_uplane->at(j) < 2 || vars->track_hit_nhits_vplane->at(j) < 2)
-                n_lowyplanehittracks++;
-    }
-*/
-
     std::pair<bool, std::vector<int>> thisPair;
 
     // first perform quality checks
@@ -78,9 +69,18 @@ namespace numusel{
 
       // muon candidate
       if (loglmipoverp > cutval && loglmipoverp != 0){
-         if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < -0.15 
-                || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > 0.1)
-        muon_quality = false;
+
+          //if (vars->track_isContained->at(i) == 1){
+          //  if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < muon_low_qc 
+          //          || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > muon_high_qc)
+          //      muon_quality = false;
+
+          //}
+          if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) < muon_low_qc 
+                  || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_muassumption->at(i) > muon_high_qc)
+              muon_quality = false;
+
+          else muon_quality = true;
 
         n_muon_cand++;
         pidPdgCodes.push_back(13); 
@@ -92,8 +92,8 @@ namespace numusel{
         if (vars->track_isContained->at(i) == 0)
           protons_contained = false;
 
-        if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) < -0.15 
-                || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) > 0.1)
+        if (vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) < proton_low_qc 
+                || vars->track_dep_energy_yplane->at(i)-vars->track_range_energy_passumption->at(i) > proton_high_qc)
         protons_quality = false;
       }
 

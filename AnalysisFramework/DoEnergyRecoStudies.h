@@ -34,22 +34,25 @@
 numusel::Configuration    _config;
 numusel::TreeHandler      _treeHandler;
 
+double proton_binVals_arr[8] = {0.0, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 1.0};
+double muon_binVals_arr[8] = {0.0, 0.2, 0.3, 0.4, 0.6, 0.80, 1.2};
+
 std::vector<std::vector<double>> proton_binVals {
-    {0.00, 0.05},
-    {0.05, 0.10},
-    {0.10, 0.15},
-    {0.15, 0.20},
-    {0.20, 0.30},
-    {0.30, 0.40},
-    {0.40, 1.00}
+    {proton_binVals_arr[0], proton_binVals_arr[1]},
+    {proton_binVals_arr[1], proton_binVals_arr[2]},
+    {proton_binVals_arr[2], proton_binVals_arr[3]},
+    {proton_binVals_arr[3], proton_binVals_arr[4]},
+    {proton_binVals_arr[4], proton_binVals_arr[5]},
+    {proton_binVals_arr[5], proton_binVals_arr[6]},
+    {proton_binVals_arr[6], proton_binVals_arr[7]}
 };
 
 std::vector<std::vector<double>> muon_binVals {
-    {0.00, 0.20},
-    {0.20, 0.30},
-    {0.30, 0.40},
-    {0.40, 0.60},
-    {0.60, 0.80},
-    {0.80, 1.20}
+    {muon_binVals_arr[0], muon_binVals_arr[1]},
+    {muon_binVals_arr[1], muon_binVals_arr[2]},
+    {muon_binVals_arr[2], muon_binVals_arr[3]},
+    {muon_binVals_arr[3], muon_binVals_arr[4]},
+    {muon_binVals_arr[4], muon_binVals_arr[5]},
+    {muon_binVals_arr[5], muon_binVals_arr[6]}
 };
 

@@ -179,7 +179,11 @@ namespace numusel{
                 break;
 
             }
-            
+           
+/*
+            if (vars->isSimulation == 0) 
+                std::cout << "event " << vars->run << "." << vars->subrun << "." << vars->event << " x,z" << vars->vertex_x << ", " << vars->vertex_z << " nPFP: " << vars->nSelectedPfparticles <<  std::endl; 
+*/
             if (entry != -1 && infile != nullptr && hasPid == true){
               infile->GetEntry(entry);
               outfile->Fill();
@@ -247,7 +251,7 @@ namespace numusel{
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
-      if (std::abs(vars->pfp_pdgCode->at(i)) == 11)
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 13)
         val = 1;
       else val = 0;
 

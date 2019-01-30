@@ -173,19 +173,25 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
     resolutions[i] = (resolution*100);
     err_y[i] = resolution_err*100;
 
+    c_res->SaveAs((std::string("plots/")+std::string(input_histograms.at(i)->GetName())+".pdf").c_str());
     c_res->SaveAs((std::string("plots/")+std::string(input_histograms.at(i)->GetName())+".png").c_str());
 
   }
 
   TCanvas *c_gr = new TCanvas();
   TGraphErrors *gr = new TGraphErrors(input_histograms.size(), resolutions_x, resolutions, err_x, err_y);
-  gr->SetTitle(";True Proton Energy;Resolution (%)");
+  
+  if (pdg == 2212)
+    gr->SetTitle(";True Proton Energy;Resolution (%)");
+  else if (pdg == 13)
+    gr->SetTitle(";True Muon Energy;Resolution (%)");
+
   gr->SetMarkerStyle(20);
   gr->GetYaxis()->SetRangeUser(0,100);
   gr->Draw("ap");
 
+  c_gr->SaveAs((std::string("plots/")+std::string(input_histograms.at(0)->GetName())+"_resolutions.pdf").c_str());
   c_gr->SaveAs((std::string("plots/")+std::string(input_histograms.at(0)->GetName())+"_resolutions.png").c_str());
-
 
 };
 
@@ -194,7 +200,7 @@ int main(){
 
   // pull out TTrees from provided TFiles
   // input trees are set in Configuration.h
-  TFile* inputfile = new TFile("selectedEvents.root", "READ");
+  TFile* inputfile = new TFile("selectedEvents_sim.root", "READ");
   TTree* t_simulation = (TTree*)inputfile->Get("simulation");
 
   // initialise variables and trees
@@ -235,12 +241,12 @@ int main(){
   for (int i = 0; i < muon_binVals.size(); i++){
 
     TString binRange = Form("%fto%f", muon_binVals.at(i).at(0), muon_binVals.at(i).at(1));
-    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
-    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
-    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
-    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
-    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
-    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 15, -0.5, 0.5));
+    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.755));
+    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
 
   }
 
@@ -252,6 +258,9 @@ int main(){
     for (int j = 0; j < simulation_vars->true_match_starte->size(); j++){
 
 
+      //
+      // protons
+      //
       if (simulation_vars->true_match_pdg->at(j) == 2212){
 
 
@@ -271,11 +280,17 @@ int main(){
 
       }
 
+      //
+      // muons
+      //
       if (simulation_vars->true_match_pdg->at(j) == 13){
         float true_energy = simulation_vars->true_match_starte->at(j) - 0.105;
 
         float range_mom = simulation_vars->track_range_mom_muassumption->at(j);
         float range_energy = simulation_vars->track_range_energy_muassumption->at(j);
+
+
+        // get mcs stuff
         float mcs_mom = 0;
         float mcs_energy = 0;
 
@@ -303,6 +318,7 @@ int main(){
 
         }
 
+        // contained muons
         if (simulation_vars->track_isContained->at(j)){
           true_energy_range_energy_muon_contained->Fill(true_energy, range_energy);
           true_energy_mcs_energy_muon_contained->Fill(true_energy, mcs_energy);
@@ -320,6 +336,7 @@ int main(){
 
 
         }
+        // uncontained muons
         else{
           true_energy_range_energy_muon_uncontained->Fill(true_energy, range_energy);
           true_energy_mcs_energy_muon_uncontained->Fill(true_energy, mcs_energy);
@@ -347,58 +364,64 @@ int main(){
   gStyle->SetOptStat(0);
 
   doFit(proton_resolution_histograms, 2212);
-  doFit(muon_range_resolution_histograms, 13);
+  //doFit(muon_range_resolution_histograms, 13);
   doFit(muon_range_contained_resolution_histograms, 13);
-  doFit(muon_range_uncontained_resolution_histograms, 13);
-  doFit(muon_mcs_resolution_histograms, 13);
-  doFit(muon_mcs_contained_resolution_histograms, 13);
+  //doFit(muon_range_uncontained_resolution_histograms, 13);
+  //doFit(muon_mcs_resolution_histograms, 13);
+  //doFit(muon_mcs_contained_resolution_histograms, 13);
   doFit(muon_mcs_uncontained_resolution_histograms, 13);
 
   TCanvas *c1 = new TCanvas();
+  true_energy_range_energy_proton->GetZaxis()->SetRangeUser(-0.0001, true_energy_range_energy_proton->GetMaximum());
+  true_energy_range_energy_proton->SetContour(1000);
   true_energy_range_energy_proton->Draw("colz");
   leastSquaresFitToMedian(true_energy_range_energy_proton, 0.05, 0.30);
 
+  c1->SaveAs("plots/true_energy_range_energy_proton.pdf");
   c1->SaveAs("plots/true_energy_range_energy_proton.png");
 
   TCanvas *c2 = new TCanvas();
+  true_energy_range_energy_muon->GetZaxis()->SetRangeUser(-0.0001, true_energy_range_energy_muon->GetMaximum());
+  true_energy_range_energy_muon->SetContour(1000);
   true_energy_range_energy_muon->Draw("colz");
   leastSquaresFitToMedian(true_energy_range_energy_muon, 0.05, 0.6);
 
+  c2->SaveAs("plots/true_energy_range_energy_muon.pdf");
   c2->SaveAs("plots/true_energy_range_energy_muon.png");
 
   TCanvas *c3 = new TCanvas();
+  true_energy_range_energy_muon_contained->GetZaxis()->SetRangeUser(-0.0001, true_energy_range_energy_muon_contained->GetMaximum());
+  true_energy_range_energy_muon_contained->SetContour(1000);
   true_energy_range_energy_muon_contained->Draw("colz");
   leastSquaresFitToMedian(true_energy_range_energy_muon_contained, 0.05, 0.6);
 
+  c3->SaveAs("plots/true_energy_range_energy_muon_contained.pdf");
   c3->SaveAs("plots/true_energy_range_energy_muon_contained.png");
 
-  TCanvas *c4 = new TCanvas();
-  true_energy_range_energy_muon_uncontained->Draw("colz");
-  leastSquaresFitToMedian(true_energy_range_energy_muon_uncontained, 0.05, 0.6);
-
-  c4->SaveAs("plots/true_energy_range_energy_muon_uncontained.png");
-
   TCanvas *c5 = new TCanvas();
+  true_energy_mcs_energy_muon->GetZaxis()->SetRangeUser(-0.0001, true_energy_mcs_energy_muon->GetMaximum());
+  true_energy_mcs_energy_muon->SetContour(1000);
   true_energy_mcs_energy_muon->Draw("colz");
   leastSquaresFitToMedian(true_energy_mcs_energy_muon, 0.05, 0.6);
 
+  c5->SaveAs("plots/true_energy_mcs_energy_muon.pdf");
   c5->SaveAs("plots/true_energy_mcs_energy_muon.png");
 
-  TCanvas *c6 = new TCanvas();
-  true_energy_mcs_energy_muon_contained->Draw("colz");
-  leastSquaresFitToMedian(true_energy_mcs_energy_muon_contained, 0.05, 0.6);
-
-  c6->SaveAs("plots/true_energy_mcs_energy_muon_contained.png");
-
   TCanvas *c7 = new TCanvas();
+  true_energy_mcs_energy_muon_uncontained->GetZaxis()->SetRangeUser(-0.0001, true_energy_mcs_energy_muon_uncontained->GetMaximum());
+  true_energy_mcs_energy_muon_uncontained->SetContour(1000);
   true_energy_mcs_energy_muon_uncontained->Draw("colz");
   leastSquaresFitToMedian(true_energy_mcs_energy_muon_uncontained, 0.1, 0.9);
 
+  c7->SaveAs("plots/true_energy_mcs_energy_muon_uncontained.pdf");
   c7->SaveAs("plots/true_energy_mcs_energy_muon_uncontained.png");
 
   TCanvas *c8 = new TCanvas();
+  range_mom_mcs_mom_contained->GetZaxis()->SetRangeUser(-0.0001, range_mom_mcs_mom_contained->GetMaximum());
+  range_mom_mcs_mom_contained->SetContour(1000);
   range_mom_mcs_mom_contained->Draw("colz");
 
+  c8->SaveAs("plots/range_mom_mcs_mom_contained.pdf");
   c8->SaveAs("plots/range_mom_mcs_mom_contained.png");
 
   return 0;

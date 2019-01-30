@@ -287,12 +287,12 @@ namespace numusel{
         {10, 0, 10},          // number of tracks
         {10, 0, 10},          // number of showers
         {10, 0, 10},          // number of pfparticles
-        {40, 0, 256.7},         // vertex x
+        {40, 0, 260},         // vertex x
         {40, -116.5, 116.5},  // vertex y
         {40, 0, 1040},        // vertex z
         {50, 0, 700},         // track length
-        {40, 0, 256.7},       // track start x
-        {40, 0, 256.7},       // track end x
+        {40, 0, 260},       // track start x
+        {40, 0, 260},       // track end x
         {40, -116.5, 116.5},  // track start y
         {40, -116.5, 116.5},  // track end y
         {40, 0, 1040},        // track start z
@@ -303,12 +303,12 @@ namespace numusel{
         {50, -10, 10},        // log(lmip/lp)
         {50, 0, 3},           // track mcs fwd
         {50, 0, 3},           // track mcs bwd
-        {50, 0, 3},           // track mcs energy fwd
-        {50, 0, 3},           // track mcs energy bwd
+        {50, 0, 1.5},           // track mcs energy fwd
+        {50, 0, 1.5},           // track mcs energy bwd
         {50, 0, 3},           // track range momentum muon
         {50, 0, 3},           // track range momentum proton
-        {50, 0, 3},           // track range energy muon
-        {50, 0, 3},           // track range energy proton
+        {50, 0, 1.5},           // track range energy muon
+        {50, 0, 1.5},           // track range energy proton
         {50, 0, 1},           // track deposited energy y plane
         {50, -0.4, 0.4},      // track dep energy yplane minus range energy muassmp
         {50, -0.4, 0.4},      // track dep energy yplane minus range energy passmp
@@ -319,40 +319,40 @@ namespace numusel{
         {20, -3.15, 3.15},    // muon cand phi
         {25, 0, 3},           // muon candidate mcs fwd
         {25, 0, 3},           // muon candidate mcs bwd
-        {25, 0, 2},           // muon candidate mc energy forward
-        {25, 0, 2},           // muon candidate mc energy backward
+        {25, 0, 1.5},           // muon candidate mc energy forward
+        {25, 0, 1.5},           // muon candidate mc energy backward
         {25, 0, 3},           // muon candidate momentum from range
-        {25, 0, 2},           // muon candidate energy from range
+        {25, 0, 1.5},           // muon candidate energy from range
         {50, 0, 1},           // muon candidate deposited energy y plane
         {50, -0.4, 0.4},      // muon candidate dep energy yplane minus range energy muassmp
         {50, -0.4, 0.4},      // muon candidate dep energy yplane minus range energy passmp
-        {25, 0, 700},         // contained muon cand length
-        {20, 0, 3.15},        // contained muon cand theta
-        {20, -1, 1},          // contained muon cand cos(theta)
-        {20, -3.15, 3.15},    // contained muon cand phi
-        {25, 0, 3},           // contained muon candidate mcs fwd
-        {25, 0, 3},           // contained muon candidate mcs bwd
-        {25, 0, 2},           // contained muon candidate mc energy forward
-        {25, 0, 2},           // contained muon candidate mc energy backward
-        {25, 0, 3},           // contained muon candidate momentum from range
-        {25, 0, 2},           // contained muon candidate energy from range
+        {20, 0, 700},         // contained muon cand length
+        {10, 0, 3.15},        // contained muon cand theta
+        {10, -1, 1},          // contained muon cand cos(theta)
+        {10, -3.15, 3.15},    // contained muon cand phi
+        {20, 0, 3},           // contained muon candidate mcs fwd
+        {20, 0, 3},           // contained muon candidate mcs bwd
+        {20, 0, 1.5},           // contained muon candidate mc energy forward
+        {20, 0, 1.5},           // contained muon candidate mc energy backward
+        {20, 0, 3},           // contained muon candidate momentum from range
+        {20, 0, 1.5},           // contained muon candidate energy from range
         {50, 0, 1},           // contained muon candidate deposited energy y plane
-        {50, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy muassmp
-        {50, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy passmp
+        {20, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy muassmp
+        {20, -0.4, 0.4},      // contained muon candidate dep energy yplane minus range energy passmp
         {25, 0, 700},         // uncontained muon cand length
         {20, 0, 3.15},        // uncontained muon cand theta
         {20, -1, 1},          // uncontained muon cand cos(theta)
         {20, -3.15, 3.15},    // uncontained muon cand phi
         {25, 0, 3},           // uncontained muon candidate mcs fwd
         {25, 0, 3},           // uncontained muon candidate mcs bwd
-        {25, 0, 2},           // uncontained muon candidate mc energy forward
-        {25, 0, 2},           // uncontained muon candidate mc energy backward
+        {25, 0, 1.5},           // uncontained muon candidate mc energy forward
+        {25, 0, 1.5},           // uncontained muon candidate mc energy backward
         {25, 0, 3},           // uncontained muon candidate momentum from range
-        {25, 0, 2},           // uncontained muon candidate energy from range
+        {25, 0, 1.5},           // uncontained muon candidate energy from range
         {50, 0, 1},           // uncontained muon candidate deposited energy y plane
         {50, -0.4, 0.4},      // uncontained muon candidate dep energy yplane minus range energy muassmp
         {50, -0.4, 0.4},      // uncontained muon candidate dep energy yplane minus range energy passmp
-        {25, 0, 300},         // proton cand length
+        {25, 0, 150},         // proton cand length
         {20, 0, 3.15},        // proton cand theta
         {20, -1, 1},          // proton cand cos(theta)
         {20, -3.15, 3.15},    // proton cand phi
@@ -363,7 +363,7 @@ namespace numusel{
         {50, 0, 1},           // proton candidate deposited energy y plane
         {50, -0.4, 0.4},      // proton candidate dep energy yplane minus range energy muassmp
         {50, -0.4, 0.4},      // proton candidate dep energy yplane minus range energy passmp
-        {25, 0, 300},         // leading proton cand length
+        {25, 0, 150},         // leading proton cand length
         {20, 0, 3.15},        // leading proton cand theta
         {20, -1, 1},          // leading proton cand cos(theta)
         {20, -3.15, 3.15},    // leading proton cand phi
@@ -374,10 +374,10 @@ namespace numusel{
         {50, 0, 1},           // leading proton candidate deposited energy y plane
         {50, -0.4, 0.4},      // leading proton candidate dep energy yplane minus range energy muassmp
         {50, -0.4, 0.4},      // leading proton candidate dep energy yplane minus range energy passmp
-        {25, 0, 300},         // non-leading proton cand length
-        {20, 0, 3.15},        // non-leading proton cand theta
-        {20, -1, 1},          // non-leading proton cand cos(theta)
-        {20, -3.15, 3.15},    // non-leading proton cand phi
+        {25, 0, 150},         // non-leading proton cand length
+        {10, 0, 3.15},        // non-leading proton cand theta
+        {10, -1, 1},          // non-leading proton cand cos(theta)
+        {10, -3.15, 3.15},    // non-leading proton cand phi
         {25, 0, 3},           // non-leading proton candidate mcs fwd
         {25, 0, 3},           // non-leading proton candidate mcs bwd
         {25, 0, 3.0},         // non-leading proton candidate range momentum
