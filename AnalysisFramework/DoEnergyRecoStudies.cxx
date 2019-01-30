@@ -87,8 +87,9 @@ void leastSquaresFitToMedian(TH2D* input_histogram, float min_fit, float max_fit
   }
 
   TGraph* mpvs = new TGraph(input_histogram->GetNbinsX(), xs, ys);
-  mpvs->SetMarkerStyle(2);
+  mpvs->SetMarkerStyle(20);
   mpvs->SetMarkerColor(kBlack);
+  mpvs->SetMarkerSize(0.6);
   mpvs->SetLineWidth(2);
   mpvs->Draw("psame");
 
@@ -99,13 +100,15 @@ void leastSquaresFitToMedian(TH2D* input_histogram, float min_fit, float max_fit
   pol1->SetParameter(1,mandc.second);
   pol1->Draw("same");
 
-  TString fitRange = Form("Fit Range: %f - %f GeV", min_fit, max_fit);
-  TString fitResult = Form("Fit Result: E_{k}^{Reco} = %f #times E_{k}^{True} + %f", pol1->GetParameter(0), pol1->GetParameter(1));
+  TString fitRange = Form("Fit Range: %0.2f - %0.2f GeV", min_fit, max_fit);
+  TString fitResult = Form("Fit Result: E_{k}^{Reco} = %0.3f #times E_{k}^{True} + %0.3f", pol1->GetParameter(0), pol1->GetParameter(1));
 
   TPaveText *pt = new TPaveText(0.11, 0.75, 0.7, 0.85, "NDC");
   pt->AddText(fitRange);
   pt->AddText(fitResult);
-  pt->SetFillColor(kWhite);
+  pt->SetTextColor(kWhite);
+  pt->SetBorderSize(0);
+  pt->SetFillStyle(0);
   pt->Draw("same");
 
   std::cout << "PRINTING SUMMARY OF ENERGY RECO STUDIES" << std::endl;
