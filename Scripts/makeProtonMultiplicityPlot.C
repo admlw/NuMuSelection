@@ -1,5 +1,8 @@
 void makeProtonMultiplicityPlot(){
 
+  int chosenpdg = 2212;
+  string species = "Proton";
+
   TCanvas *c1 = new TCanvas("c1", "c1", 600, 600);
   TPad *topPad = new TPad("topPad", "", 0.005, 0.3, 0.995, 0.995);
   TPad *bottomPad = new TPad("bottomPad", "", 0.005, 0.005, 0.995, 0.3);
@@ -32,7 +35,7 @@ void makeProtonMultiplicityPlot(){
     int nprotons = 0;
 
     for (int j = 0; j < true_match_pdg_nom->size(); j++){
-      if (std::abs(true_match_pdg_nom->at(j)) == 11)
+      if (std::abs(true_match_pdg_nom->at(j)) == chosenpdg)
         nprotons++;
 
     }
@@ -50,7 +53,7 @@ void makeProtonMultiplicityPlot(){
     int nprotons = 0;
 
     for (int j = 0; j < true_match_pdg_dic->size(); j++){
-      if (std::abs(true_match_pdg_dic->at(j)) == 11)
+      if (std::abs(true_match_pdg_dic->at(j)) == chosenpdg)
         nprotons++;
 
     }
@@ -65,7 +68,7 @@ void makeProtonMultiplicityPlot(){
   h_protonmult_nom->SetLineColor(kAzure+1);
   h_protonmult_nom->SetLineWidth(2);
   h_protonmult_nom->Sumw2();
-  h_protonmult_nom->Scale(9.34/19.6);
+  h_protonmult_nom->Scale(1.0);
   h_protonmult_nom->SetLabelOffset(10000);
   h_protonmult_nom->GetYaxis()->SetRangeUser(0.1, std::max(h_protonmult_nom->GetMaximum(), h_protonmult_dic->GetMaximum()) *1.25);
   h_protonmult_nom->Draw("hist");
@@ -73,6 +76,7 @@ void makeProtonMultiplicityPlot(){
   h_protonmult_dic->SetLineColor(kGreen+1);
   h_protonmult_dic->SetLineWidth(2);
   h_protonmult_dic->Sumw2();
+  h_protonmult_dic->Scale(0.99);
   h_protonmult_dic->Draw("hist same");
 
   TLegend *leg = new TLegend(0.5, 0.75, 0.8, 0.85);
@@ -84,7 +88,7 @@ void makeProtonMultiplicityPlot(){
   TH1D* protonratio = (TH1D*)h_protonmult_dic->Clone("protonratio");
   protonratio->Divide(h_protonmult_nom);
   protonratio->SetLineColor(kBlack);
-  protonratio->SetTitle(";Electron Multiplicity;DIC/NOM");
+  protonratio->SetTitle(std::string(";"+species+" Multiplicity;DIC/NOM").c_str());
   protonratio->GetYaxis()->SetTitleSize(0.1);
   protonratio->GetXaxis()->SetTitleSize(0.1);
   protonratio->GetYaxis()->SetLabelSize(0.1);
@@ -104,6 +108,6 @@ void makeProtonMultiplicityPlot(){
   std::cout << "dic ratio protons/total: " << (double)dicnonzero/dictotal << std::endl;
   std::cout << "dic nonzer/nom nonzero: " << (double)dicnonzero/nomnonzero << std::endl;
 
-  c1->SaveAs("electron_multiplicity.pdf");
+  c1->SaveAs(std::string(species+"_multiplicity.pdf").c_str());
 
 }

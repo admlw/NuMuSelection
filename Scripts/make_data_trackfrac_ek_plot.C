@@ -14,7 +14,10 @@ void make_data_trackfrac_ek_plot(){
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dlup.root"),
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dldown.root"),
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dtup.root"),
-        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dtdown.root")
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dtdown.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_noiseampup.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_noiseampdown.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dic.root")
     };
 
     TTree* t_data = (TTree*)f_data->Get("numuselection/analysis_tree");
@@ -56,8 +59,8 @@ void make_data_trackfrac_ek_plot(){
        TH1D* h_nom = new TH1D("h_nom", ";;", nbins, bins);
        TH1D* h_denom = new TH1D("h_denom", ";;", nbins, bins);
        
-       t_cv->Draw(std::string(varToPlot+">> h_nom").c_str(), "log(noBragg_fwd_mip/max(bragg_fwd_p, bragg_bwd_p)) < -1 && pfp_pdgCode == 13");
-       t_cv->Draw(std::string(varToPlot+">> h_denom").c_str(), "log(noBragg_fwd_mip/max(bragg_fwd_p, bragg_bwd_p)) < -1");
+       detvarstrees.at(i)->Draw(std::string(varToPlot+">> h_nom").c_str(), "log(noBragg_fwd_mip/max(bragg_fwd_p, bragg_bwd_p)) < -1 && pfp_pdgCode == 13");
+       detvarstrees.at(i)->Draw(std::string(varToPlot+">> h_denom").c_str(), "log(noBragg_fwd_mip/max(bragg_fwd_p, bragg_bwd_p)) < -1");
        
        h_nom->Sumw2();
        h_denom->Sumw2();
@@ -75,6 +78,7 @@ void make_data_trackfrac_ek_plot(){
     for (int i = 0; i < detvarstrees.size(); i++){
 
        for (int j = 0; j < num_cv->GetNbinsX(); j++){
+
            errors[j] += std::pow(num_cv->GetBinContent(j)-ratioHistos.at(i)->GetBinContent(j), 2);
        }
 
@@ -85,6 +89,7 @@ void make_data_trackfrac_ek_plot(){
     }
 
     TCanvas *c1 = new TCanvas();
+    c1->cd();
 
     num_cv->SetLineColor(kGreen+1);
     num_cv->SetFillColor(kGreen-6);
