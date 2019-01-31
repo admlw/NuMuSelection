@@ -88,11 +88,9 @@ namespace numusel{
 
                 double range_mcs_diff = std::abs((mcs-vars->track_range_energy_muassumption->at(i))/vars->track_range_energy_muassumption->at(i));
                 if ( range_mcs_diff > 0.2){
-                    std::cout << "muq: false, mcs: " << mcs << " range: " << vars->track_range_energy_muassumption->at(i) << " diff: " << range_mcs_diff << std::endl;
                     muon_quality = false;
                 }
                 else{
-                    std::cout << "muq: true, mcs: " << mcs << " range: " << vars->track_range_energy_muassumption->at(i) << " diff: " << range_mcs_diff << std::endl;
                     muon_quality = true;
                 }
             }

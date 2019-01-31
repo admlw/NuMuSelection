@@ -185,7 +185,7 @@ namespace numusel{
                 std::cout << "event " << vars->run << "." << vars->subrun << "." << vars->event << " x,z" << vars->vertex_x << ", " << vars->vertex_z << " nPFP: " << vars->nSelectedPfparticles <<  std::endl; 
 */
             if (entry != -1 && infile != nullptr && hasPid == true){
-              infile->GetEntry(entry);
+              //infile->GetEntry(entry);
               outfile->Fill();
 
               if (ewin != nullptr && _config.DoEventWeightMatching == true){

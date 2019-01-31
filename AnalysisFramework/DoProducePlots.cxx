@@ -64,6 +64,7 @@ int main(){
   TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_dirt       = (TTree*)(new TFile(_config.s_dirt.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_ew         = (TTree*)(new TFile(_config.s_ew.c_str(), "read"))->Get("ew_tree");
+  TTree* t_ew_dirt    = (TTree*)(new TFile(_config.s_ew_dirt.c_str(), "read"))->Get("ew_tree");
 
   // initialise variables and trees
   var_list onbeam_vars_tmp;
@@ -71,18 +72,21 @@ int main(){
   var_list simulation_vars_tmp;
   var_list dirt_vars_tmp;
   ew_list ew_vars_tmp;
+  ew_list ew_dirt_vars_tmp;
 
   var_list* onbeam_vars = &onbeam_vars_tmp;
   var_list* offbeam_vars = &offbeam_vars_tmp;
   var_list* simulation_vars = &simulation_vars_tmp;
   var_list* dirt_vars = &dirt_vars_tmp;
   ew_list* ew_vars = &ew_vars_tmp;
+  ew_list* ew_dirt_vars = &ew_dirt_vars_tmp;
 
   _treeHandler.SetTreeVars(t_onbeam, &onbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_offbeam, &offbeam_vars_tmp, false);
   _treeHandler.SetTreeVars(t_simulation, &simulation_vars_tmp, true);
   _treeHandler.SetTreeVars(t_dirt, &dirt_vars_tmp, true);
   _treeHandler.SetEWTreeVars(t_ew, &ew_vars_tmp);
+  _treeHandler.SetEWTreeVars(t_ew_dirt, &ew_dirt_vars_tmp);
 
   // initialise output trees
 
@@ -91,12 +95,17 @@ int main(){
   TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
   t_simulation_out->Branch("reconstructed_neutrino_energy_calib", &simulation_vars->reconstructedNeutrinoEnergyCalib);
   TTree *t_ew_out = (TTree*)t_ew->CloneTree(0);  
+
+  TFile *outfile_dirt = new TFile("selectedEvents_dirt.root", "RECREATE");
+  outfile_dirt->cd();
+  TTree *t_dirt_out = (TTree*)t_dirt->CloneTree(0);
+  t_dirt_out->Branch("reconstructed_neutrino_energy_calib", &dirt_vars->reconstructedNeutrinoEnergyCalib);
+  TTree *t_ew_dirt_out = (TTree*)t_ew_dirt->CloneTree(0);  
   
   TFile *outfile_onbeam = new TFile("selectedEvents_onbeam.root", "RECREATE");
   outfile_onbeam->cd();
   TTree *t_onbeam_out = (TTree*)t_onbeam->CloneTree(0);
   t_onbeam_out->Branch("reconstructed_neutrino_energy_calib", &onbeam_vars->reconstructedNeutrinoEnergyCalib);
-
 
   TFile *outfile_offbeam = new TFile("selectedEvents_offbeam.root", "RECREATE");
   outfile_offbeam->cd();
@@ -107,7 +116,9 @@ int main(){
   t_onbeam_out->SetName("onbeam");
   t_offbeam_out->SetName("offbeam");
   t_simulation_out->SetName("simulation");
+  t_dirt_out->SetName("simulation");
   t_ew_out->SetName("ew");
+  t_ew_dirt_out->SetName("ew");
 
   // debugging
   std::cout << "histoNames size: " << _histoHandler.histoNames.size() << std::endl;
@@ -224,7 +235,7 @@ int main(){
     if (dirt_vars->isUBXSecSelected){
 
       // get plots for data/MC comparisons
-      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(dirt_vars, HISTOGRAM_1D, t_dirt, t_simulation_out, i, ew_vars, t_ew, t_ew_out);
+      std::vector<std::vector<std::vector<double>>> plottingVariables = _selmaker.GetPlottingVariables(dirt_vars, HISTOGRAM_1D, t_dirt, t_dirt_out, i, ew_vars, t_ew_dirt, t_ew_dirt_out);
       std::vector<std::vector<std::vector<double>>> plottingVariablesPDG = _selmaker.GetPlottingVariables(dirt_vars, PDG, nullptr, nullptr,  i);
       std::vector<std::vector<std::vector<double>>> plottingVariablesTrackCut = _selmaker.GetPlottingVariables(dirt_vars, TRACKCUTVAR, nullptr, nullptr, i);
 
@@ -355,6 +366,7 @@ int main(){
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mccosmic);
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcmixed);
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcoofv);
+  h_tot->Add(plots_to_make.at(finalStage).at(0)->h_dirt);
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnc);
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnuenuebar);
   h_tot->Add(plots_to_make.at(finalStage).at(0)->h_mcnumubar);
@@ -372,6 +384,10 @@ int main(){
   outfile_sim->cd();  
   t_simulation_out->Write();
   t_ew_out->Write();
+
+  outfile_dirt->cd();
+  t_dirt_out->Write();
+  t_ew_dirt_out->Write();
 
   return 0;
 

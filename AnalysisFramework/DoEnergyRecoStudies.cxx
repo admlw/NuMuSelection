@@ -64,8 +64,8 @@ std::pair<float,float> leastSquaresFitForMandC(TGraph* input_graph, TF1 *lin, fl
 
 void leastSquaresFitToMedian(TH2D* input_histogram, float min_fit, float max_fit){
 
-  float xs[input_histogram->GetNbinsX()];
-  float ys[input_histogram->GetNbinsY()];
+  std::vector<float> xs_v;
+  std::vector<float> ys_v;
 
   for (int i = 0; i < input_histogram->GetNbinsX(); i++){
 
@@ -81,12 +81,19 @@ void leastSquaresFitToMedian(TH2D* input_histogram, float min_fit, float max_fit
 
     }
 
-    xs[i] = input_histogram->GetXaxis()->GetBinCenter(i);
-    ys[i] = mpv;
+    float bin_center = input_histogram->GetXaxis()->GetBinCenter(i);
+
+    if ( bin_center > min_fit && bin_center < max_fit){
+        xs_v.push_back(input_histogram->GetXaxis()->GetBinCenter(i));
+        ys_v.push_back(mpv);
+    }
 
   }
 
-  TGraph* mpvs = new TGraph(input_histogram->GetNbinsX(), xs, ys);
+  float *xs = &xs_v[0];
+  float *ys = &ys_v[0];
+
+  TGraph* mpvs = new TGraph((int)xs_v.size(), xs, ys);
   mpvs->SetMarkerStyle(20);
   mpvs->SetMarkerColor(kBlack);
   mpvs->SetMarkerSize(0.6);
@@ -236,20 +243,20 @@ int main(){
 
   for (int i = 0; i < proton_binVals.size(); i++){
 
-    TString binRange = Form("%fto%f", proton_binVals.at(i).at(0), proton_binVals.at(i).at(1));
-    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.5, 0.5));
+    TString binRange = Form("%0.2fto%0.2f", proton_binVals.at(i).at(0), proton_binVals.at(i).at(1));
+    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";(E_k^{range}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.5, 0.5));
 
   }
 
   for (int i = 0; i < muon_binVals.size(); i++){
 
-    TString binRange = Form("%fto%f", muon_binVals.at(i).at(0), muon_binVals.at(i).at(1));
+    TString binRange = Form("%0.2fto%0.2f", muon_binVals.at(i).at(0), muon_binVals.at(i).at(1));
     muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.755));
-    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";(E_k^{range}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.75, 0.75));
     muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
     muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
     muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
-    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
+    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";(E_k^{MCS}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.75, 0.75));
 
   }
 

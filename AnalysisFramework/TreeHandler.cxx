@@ -382,7 +382,7 @@ namespace numusel{
       tree->Branch("event_cat", "std::vector<bool>", &(varstoset->eventCat));
     }
 
-    tree->Branch("reconstructed_neutrino_energy", &(varstoset->reconstructedNeutrinoEnergy));
+    tree->Branch("reconstructed_neutrino_energy", &(varstoset->reconstructedNeutrinoEnergyCalib));
     tree->Branch("track_isprotoncand", &(varstoset->track_isprotoncand));
     tree->Branch("track_ismuoncand", &(varstoset->track_ismuoncand));
 
