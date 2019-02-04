@@ -251,7 +251,7 @@ namespace numusel{
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
-      if (std::abs(vars->pfp_pdgCode->at(i)) == 13)
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 11)
         val = 1;
       else val = 0;
 

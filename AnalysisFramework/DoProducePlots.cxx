@@ -34,12 +34,14 @@ int main(){
   // print configuration information
   std::cout << "--- POT INFORMATION" << std::endl;
   std::cout << "----- simulation POT:          " << _config.bnbcosPOT << std::endl;
+  std::cout << "----- dirt POT:                " << _config.dirtPOT << std::endl;
   std::cout << "----- onbeam tor860_wcut:      " << _config.onbeam_tor860_wcut << std::endl;
   std::cout << "----- onbeam E1DCNT_wcut:      " << _config.onbeam_E1DCNT_wcut << std::endl;
   std::cout << "----- offbeam EXT:             " << _config.offbeam_EXT << std::endl;
   std::cout << "-----" << std::endl;
   std::cout << "----- simulation scale factor: " << _config.simscaling << std::endl;
   std::cout << "----- offbeam scale factor:    " << _config.offbeamscaling << std::endl;
+  std::cout << "----- dirt scale factor:       " << _config.dirtscaling << std::endl;
   std::cout << " " << std::endl;
   std::cout << "--- CONFIGURATION" << std::endl;
   std::cout << "----- Do PID For Tracks?       " << _config.DoPIDForTracks << std::endl;
@@ -247,7 +249,7 @@ int main(){
 
           if (_histoHandler.histoMakeTrackPlot.at(i_pl) == true) {
 
-            _histoHandler.FillTrackHistMC(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesPDG.at(i_st).at(0), plottingVariablesTrackCut.at(i_st).at(0));
+            _histoHandler.FillTrackHistDirtMC(trackplots_to_make.at(i_st).at(i_pl), plottingVariables.at(i_st).at(i_pl), plottingVariablesPDG.at(i_st).at(0), plottingVariablesTrackCut.at(i_st).at(0), _config.dirtscaling * 1./(_config.simscaling));
 
           }
         }

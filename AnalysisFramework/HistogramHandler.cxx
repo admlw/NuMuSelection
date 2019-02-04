@@ -147,6 +147,40 @@ namespace numusel{
 
   };
 
+  void HistogramHandler::FillTrackHistDirtMC(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> pid, std::vector<double> isCutPassed, float weight){
+
+    HistogramHandler _histoHandler;
+    Configuration _config;
+
+    if (_config.MakeTrackPlots == false) return;
+
+    for (int i = 0; i < variable.size(); i++){
+
+      if ((_config.UseTrackCut == true && isCutPassed.at(i) == 1) || (_config.UseTrackCut == false)){
+
+        if (pid.at(i) == 13)
+          h1d->h_muon->Fill(variable.at(i), weight);
+  
+        else if (pid.at(i) == 2212)
+          h1d->h_proton->Fill(variable.at(i), weight);
+  
+        else if (pid.at(i) == 211)
+          h1d->h_pion->Fill(variable.at(i), weight);
+  
+        else if (pid.at(i) == 321)
+          h1d->h_kaon->Fill(variable.at(i), weight);
+  
+        else if (pid.at(i) == 11)
+          h1d->h_electron->Fill(variable.at(i), weight);
+  
+        else
+          h1d->h_other->Fill(variable.at(i), weight);
+      }
+    }
+
+  };
+
+
   void HistogramHandler::FillTrackHistOnBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> isCutPassed){
 
     HistogramHandler _histoHandler;

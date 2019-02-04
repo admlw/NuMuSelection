@@ -20,8 +20,8 @@ namespace numusel{
       //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/bnbcos_selectionInformation.root";
       //double bnbcosPOT = 2.5083e+19; 
       
-      //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_cv.root";
-      //double bnbcosPOT = 1.93572e+20;
+      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_cv.root";
+      double bnbcosPOT = 1.93572e+20;
  
       //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_sce.root";
       //double bnbcosPOT = 3.92382e+20;
@@ -32,8 +32,8 @@ namespace numusel{
       //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dlup.root";
       //double bnbcosPOT = 1.94757e+20;
     
-      std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dldown.root";
-      double bnbcosPOT = 1.96824e+20;
+      //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dldown.root";
+      //double bnbcosPOT = 1.96824e+20;
 
       //std::string s_simulation = "/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dtup.root";
       //double bnbcosPOT = 1.9537e+20;
@@ -54,7 +54,7 @@ namespace numusel{
       //double bnbcosPOT = 1.95567e+20;
        
       std::string s_dirt       = "/uboone/data/users/alister1/numuSelection/files/190125/dirt_selectionInformation.root";
-      double dirtPOT = 4.50955e+19;
+      double dirtPOT = 1.68796e+21;
       
       std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/old/BNBCOS_nominal_devdataset_eventweight.root";
 
@@ -95,12 +95,12 @@ namespace numusel{
       // and then filling in these variables.
       // I know it's not clean.
 
-      float proton_range_m = 1.00946;
-      float proton_range_c = -0.00399997;
-      float muon_range_contained_m = 0.999954;
-      float muon_range_contained_c = 2.5331e-8;
-      float muon_mcs_uncontained_m = 0.97469;
-      float muon_mcs_uncontained_c = -0.016;
+      float proton_range_m = 1.017;
+      float proton_range_c = -0.004;
+      float muon_range_contained_m = 1.00;
+      float muon_range_contained_c = 0.00;
+      float muon_mcs_uncontained_m = 1.004;
+      float muon_mcs_uncontained_c = -0.019;
 
   };
 

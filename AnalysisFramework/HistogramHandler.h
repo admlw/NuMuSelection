@@ -563,6 +563,11 @@ namespace numusel{
       void FillTrackHistMC(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> pid, std::vector<double> cut);
 
       /**
+       * Fill MC dirt trackhistos
+       */
+      void FillTrackHistDirtMC(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> pid, std::vector<double> cut, float weight);
+
+      /**
        * Fill On-beam trackhistos
        */
       void FillTrackHistOnBeam(trackhists_1d* h1d, std::vector<double> variable, std::vector<double> cut);
