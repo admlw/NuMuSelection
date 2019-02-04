@@ -17,7 +17,16 @@ void make_data_trackfrac_ek_plot(){
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dtdown.root"),
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_noiseampup.root"),
         new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_noiseampdown.root"),
-        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dic.root")
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_penoiseup.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_penoisedown.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_dic.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_squeezeresp.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_stretchresp.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_altdeadchannels.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_deadsaturatechannels.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_lifetime10ms.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_birks.root"),
+        new TFile("/uboone/data/users/alister1/numuSelection/files/190125/selectionInformation_enhancedexttpcvis.root")
     };
 
     TTree* t_data = (TTree*)f_data->Get("numuselection/analysis_tree");
@@ -27,7 +36,6 @@ void make_data_trackfrac_ek_plot(){
     for (int i = 0; i < detvarsfiles.size(); i++){
         detvarstrees.push_back((TTree*)detvarsfiles.at(i)->Get("numuselection/analysis_tree"));
     }
-
     
     // deal with onbeam
     TH1D* num_onbeam   = new TH1D("num_onbeam",   ";Proton candidate E_{k};Track-like fraction",nbins, bins);
@@ -85,7 +93,7 @@ void make_data_trackfrac_ek_plot(){
     }
 
     for (int i = 0 ; i < num_cv->GetNbinsX(); i++){
-        num_cv->SetBinError(i, std::sqrt(std::pow(num_cv->GetBinError(i),2)+errors[i]));
+        num_cv->SetBinError(i, std::sqrt(/*std::pow(num_cv->GetBinError(i),2)+*/errors[i]));
     }
 
     TCanvas *c1 = new TCanvas();
@@ -110,7 +118,7 @@ void make_data_trackfrac_ek_plot(){
 
     TLegend *leg = new TLegend(0.6, 0.18, 0.85, 0.28);
     leg->AddEntry(num_onbeam, "On-beam data");
-    leg->AddEntry(num_cv, "CV + stat. + syst.");
+    leg->AddEntry(num_cv, "CV + syst.");
     leg->Draw("same");
 
     c1->SaveAs("trackfrac_ek.pdf");
