@@ -392,7 +392,7 @@ namespace numusel{
 
     int entry = -1;
     
-    for (size_t i = startentry/2; i < ewin->GetEntries(); i++){
+    for (size_t i = startentry; i < ewin->GetEntries(); i++){
 
       ewin->GetEntry(i);
 

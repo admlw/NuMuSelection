@@ -193,7 +193,7 @@ namespace numusel{
                 int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event, entry);
                 //_treehandler.SetEWTreeVars(ewin, ewvars);
                 _treehandler.PrepareTreeForWriting(ewin);
-                ewin->GetEntry(thisEntry);
+                //ewin->GetEntry(thisEntry);
                 ewout->Fill();
               }
 
@@ -251,7 +251,7 @@ namespace numusel{
     for (int i = 0; i < vars->pfp_pdgCode->size(); i++){
 
       double val = -1;
-      if (std::abs(vars->pfp_pdgCode->at(i)) == 11)
+      if (std::abs(vars->pfp_pdgCode->at(i)) == 13)
         val = 1;
       else val = 0;
 
@@ -647,6 +647,10 @@ namespace numusel{
 
     }
 
+    proton_range_energy_func->Delete();
+    muon_range_energy_func->Delete();
+    muon_mcs_energy_func->Delete();
+
   }
 
   void SelectionMaker::PushBack2DVectors(std::vector<std::vector<std::pair<double, double>>>* m_stagex, var_list* vars, bool isHasPID){
@@ -823,6 +827,10 @@ namespace numusel{
 
 
     }
+
+    proton_range_energy_func->Delete();
+    muon_range_energy_func->Delete();
+    muon_mcs_energy_func->Delete();
 
   }
 

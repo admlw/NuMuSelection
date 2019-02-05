@@ -148,7 +148,7 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
 
       float test_val = input_histograms.at(i)->GetBinContent(j);
 
-      if (test_val/peak_val < 0.3){
+      if (test_val/peak_val < 0.2){
         low_val = input_histograms.at(i)->GetBinCenter(j);
         break;
       }
@@ -157,16 +157,23 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
 
       float test_val = input_histograms.at(i)->GetBinContent(j);
 
-      if (test_val/peak_val < 0.3){
+      if (test_val/peak_val < 0.2){
         high_val = input_histograms.at(i)->GetBinCenter(j);
         break;
       }
     }
 
-    TF1* fittingFunction = new TF1("fittingFunction", "gaus(0)*exp(3)", -1, 1);
-    fittingFunction->SetParameters(1.0, peak_bin_val, 1.0);
+    TF1* fittingFunction = new TF1("fittingFunction", CrystalBall, -1, 1, 4);
+    fittingFunction->SetNpx(1000);
+    fittingFunction->SetParameters(100,0.01,peak_bin_val,5);
+    //fittingFunction->SetParameters(1.0, peak_bin_val, 1.0);
 
-    input_histograms.at(i)->Fit(fittingFunction, "I", "", low_val, high_val);
+    if (pdg ==2212 && ( i == 3 || i == 4))
+         input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.075, 0.075);  
+    else if (pdg == 2212 && i == 5)
+         input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.077, 0.045);  
+    else
+        input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.25, 0.25);
 
 
     float resolution = std::abs(fittingFunction->GetParameter(2));
@@ -197,8 +204,23 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
     gr->SetTitle(";True Muon Energy;Resolution (%)");
 
   gr->SetMarkerStyle(20);
-  gr->GetYaxis()->SetRangeUser(0,100);
+  gr->GetYaxis()->SetRangeUser(0,30);
   gr->Draw("ap");
+
+  TF1* res_fitter = new TF1("res_fitter", ResolutionFunction, -1, 1, 3);
+  res_fitter->SetParameters(1,1,1);
+
+  gr->Fit(res_fitter, "I", "", 0.025, 1.2);
+  float a = gr->GetFunction("res_fitter")->GetParameter(0);
+  float b = gr->GetFunction("res_fitter")->GetParameter(1);
+  float c = gr->GetFunction("res_fitter")->GetParameter(2);
+
+  TString res = Form("#frac{#sigma_{E}}{E} = %0.2f + #frac{%0.2f}{#sqrt{E(GeV)}} + #frac{%0.2f}{E(GeV)}", a, b, c);
+
+  TPaveText* pavetext = new TPaveText(0.5, 0.65, 0.85, 0.85, "NDC");
+  pavetext->AddText(res.Data());
+  pavetext->SetFillColor(kWhite);
+  pavetext->Draw("same");
 
   c_gr->SaveAs((std::string("plots/")+std::string(input_histograms.at(0)->GetName())+"_resolutions.pdf").c_str());
   c_gr->SaveAs((std::string("plots/")+std::string(input_histograms.at(0)->GetName())+"_resolutions.png").c_str());
@@ -210,7 +232,7 @@ int main(){
 
   // pull out TTrees from provided TFiles
   // input trees are set in Configuration.h
-  TFile* inputfile = new TFile("selectedEvents_sim.root", "READ");
+  TFile* inputfile = new TFile("selectedEvents_bnbcos.root", "READ");
   TTree* t_simulation = (TTree*)inputfile->Get("simulation");
 
   // initialise variables and trees
@@ -223,6 +245,7 @@ int main(){
   //------------------------------------
   // loop simulation
   //------------------------------------
+
 
   TH2D* range_mom_mcs_mom_contained = new TH2D("range_mom_mcs_mom_contained", ";Momentum from Range (GeV); Momentum from MCS (GeV)", 50, 0, 2, 50, 0, 2);
   TH2D* true_energy_range_energy_proton = new TH2D("true_energy_range_energy_proton", "Protons;E_{k}^{True} (GeV); E_{k}^{Reco, range}", 100, 0.0, 0.6, 100, 0.0, 0.6);
@@ -241,22 +264,28 @@ int main(){
   std::vector<TH1D*> muon_mcs_contained_resolution_histograms;
   std::vector<TH1D*> muon_mcs_uncontained_resolution_histograms;
 
+  int nbins_p[7] = {30,150,100,150,150,120};
+  int nbins_mu_c = 120;
+  int nbins_mu_u[6] = {80, 80, 80, 40, 80, 80};
+
+  float bin_low = -0.6;
+  float bin_high = 0.6;
   for (int i = 0; i < proton_binVals.size(); i++){
 
     TString binRange = Form("%0.2fto%0.2f", proton_binVals.at(i).at(0), proton_binVals.at(i).at(1));
-    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";(E_k^{range}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.5, 0.5));
+    proton_resolution_histograms.push_back(new TH1D(std::string("proton_resolution_histograms_"+binRange).c_str(), ";(E_k^{true}-E_{k}^{range})/E_{k}^{true};N candidates", nbins_p[i], bin_low, bin_high));
 
   }
 
   for (int i = 0; i < muon_binVals.size(); i++){
 
     TString binRange = Form("%0.2fto%0.2f", muon_binVals.at(i).at(0), muon_binVals.at(i).at(1));
-    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.755));
-    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";(E_k^{range}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.75, 0.75));
-    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
-    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
-    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", 50, -0.75, 0.75));
-    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";(E_k^{MCS}-E_{k}^{true})/E_{k}^{true};N candidates", 50, -0.75, 0.75));
+    muon_range_resolution_histograms.push_back(new TH1D(std::string("muon_range_resolution_histograms_"+binRange).c_str(), ";;", nbins_mu_c, bin_low, bin_high));
+    muon_range_contained_resolution_histograms.push_back(new TH1D(std::string("muon_range_contained_resolution_histograms_"+binRange).c_str(), ";(E_k^{true}-E_{k}^{range})/E_{k}^{true};N candidates", nbins_mu_c, bin_low, bin_high));
+    muon_range_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_range_uncontained_resolution_histograms_"+binRange).c_str(), ";;", nbins_mu_u[i], bin_low, bin_high));
+    muon_mcs_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_resolution_histograms_"+binRange).c_str(), ";;", nbins_mu_c, bin_low, bin_high));
+    muon_mcs_contained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_contained_resolution_histograms_"+binRange).c_str(), ";;", nbins_mu_c, -1.0, 1.0));
+    muon_mcs_uncontained_resolution_histograms.push_back(new TH1D(std::string("muon_mcs_uncontained_resolution_histograms_"+binRange).c_str(), ";(E_k^{true}-E_{k}^{MCS})/E_{k}^{true};N candidates", nbins_mu_u[i], bin_low, bin_high));
 
   }
 
@@ -277,7 +306,7 @@ int main(){
         float true_energy = simulation_vars->true_match_starte->at(j) - 0.938;
 
         float range_energy = simulation_vars->track_range_energy_passumption->at(j);
-        float resolution = (range_energy - true_energy)/true_energy;
+        float resolution = (true_energy-range_energy)/true_energy;
 
         for (int k = 0 ; k < proton_binVals.size(); k++){
 
@@ -316,8 +345,8 @@ int main(){
         true_energy_range_energy_muon->Fill(true_energy, range_energy);
         true_energy_mcs_energy_muon->Fill(true_energy, mcs_energy);
 
-        float range_resolution = (range_energy - true_energy)/true_energy;
-        float mcs_resolution = (mcs_energy - true_energy)/true_energy;
+        float range_resolution = (true_energy-range_energy)/true_energy;
+        float mcs_resolution = (true_energy-mcs_energy)/true_energy;
 
         for (int k = 0 ; k < muon_binVals.size(); k++){
 

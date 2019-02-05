@@ -92,7 +92,7 @@ int main(){
 
   // initialise output trees
 
-  TFile *outfile_sim = new TFile("selectedEvents_sim.root", "RECREATE");
+  TFile *outfile_sim = new TFile(std::string("selectedEvents_"+_config.var+".root").c_str(), "RECREATE");
   outfile_sim->cd();
   TTree *t_simulation_out = (TTree*)t_simulation->CloneTree(0);
   t_simulation_out->Branch("reconstructed_neutrino_energy_calib", &simulation_vars->reconstructedNeutrinoEnergyCalib);
@@ -158,8 +158,11 @@ int main(){
   // loop simulation
   //------------------------------------
 
-  std::cout << "[MDSCP] Beginning simulation loop..." << std::endl;
+  std::cout << "[DPP] Beginning simulation loop..." << std::endl;
+  std::cout << "[DPP] Simulation file has " << t_simulation->GetEntries() << " entries" << std::endl;
   for (int i = 0; i < t_simulation->GetEntries(); i++){
+
+    if (i%1000 == 0) std::cout << i << "/" << t_simulation->GetEntries() << std::endl;
 
     if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
 
@@ -227,7 +230,7 @@ int main(){
   // loop dirt
   //------------------------------------
 
-  std::cout << "[MDSCP] Beginning dirt loop..." << std::endl;
+  std::cout << "[DPP] Beginning dirt loop..." << std::endl;
   for (int i = 0; i < t_dirt->GetEntries(); i++){
 
     if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
@@ -262,7 +265,7 @@ int main(){
   // loop onbeam
   //------------------------------------
 
-  std::cout << "[MDSCP] Beginning onbeam loop..." << std::endl;
+  std::cout << "[DPP] Beginning onbeam loop..." << std::endl;
   for (int i = 0; i < t_onbeam->GetEntries(); i++){
 
     if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
@@ -306,7 +309,7 @@ int main(){
   // loop offbeam
   //------------------------------------
 
-  std::cout << "[MDSCP] Beginning offbeam loop..." << std::endl;
+  std::cout << "[DPP] Beginning offbeam loop..." << std::endl;
   for (int i = 0; i < t_offbeam->GetEntries(); i++){
 
     if (_config.QuickDev == true && i > _config.QuickDevEvents) continue;
