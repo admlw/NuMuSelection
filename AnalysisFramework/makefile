@@ -14,11 +14,15 @@ DoEnergyRecoStudies: DoEnergyRecoStudies.cxx EnergyReco.cxx TreeHandler.cxx
 SplitTree: SplitTree.cxx TreeHandler.cxx
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
-all: DoProducePlots DoEnergyRecoStudies SplitTree
+SortTree: SortTree.cxx
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+
+all: DoProducePlots DoEnergyRecoStudies SplitTree SortTree
 
 clean:
 	rm DoProducePlots
 	rm DoEnergyRecoStudies
 	rm SplitTree
+	rm SortTree
 	rm plots/*.png
 	rm plots/*.pdf

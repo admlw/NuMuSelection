@@ -188,12 +188,14 @@ namespace numusel{
               //infile->GetEntry(entry);
               outfile->Fill();
 
+              int thisEntry = 0;
               if (ewin != nullptr && _config.DoEventWeightMatching == true){
+                int pastentry = thisEntry;
                 _treehandler.PrepareTreeForSearching(ewin);
-                int thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event, entry);
+                thisEntry = _treehandler.FindEntryFromEvent(ewin, ewvars, vars->run, vars->subrun, vars->event, pastentry);
                 //_treehandler.SetEWTreeVars(ewin, ewvars);
                 _treehandler.PrepareTreeForWriting(ewin);
-                //ewin->GetEntry(thisEntry);
+                ewin->GetEntry(thisEntry);
                 ewout->Fill();
               }
 

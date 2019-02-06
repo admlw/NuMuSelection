@@ -391,7 +391,7 @@ namespace numusel{
   int TreeHandler::FindEntryFromEvent(TTree* ewin, ew_list* ewvars, int run, int subrun, int event, int startentry){
 
     int entry = -1;
-    
+  
     for (size_t i = startentry; i < ewin->GetEntries(); i++){
 
       ewin->GetEntry(i);

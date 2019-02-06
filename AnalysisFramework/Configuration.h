@@ -100,9 +100,9 @@ namespace numusel{
       std::string s_dirt       = "/uboone/data/users/alister1/numuSelection/files/190125/dirt_selectionInformation.root";
       double dirtPOT = 1.68796e+21;
       
-      std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/old/BNBCOS_nominal_devdataset_eventweight.root";
+      std::string s_ew         = "/uboone/data/users/alister1/numuSelection/files/190125/ew_bnbcos.root";
 
-      std::string s_ew_dirt    = "/uboone/data/users/alister1/numuSelection/files/old/BNBCOS_nominal_devdataset_eventweight.root";
+      std::string s_ew_dirt    = "/uboone/data/users/alister1/numuSelection/files/190125/ew_bnbcos.root";
 
 
       double offbeamscaling = onbeam_E1DCNT_wcut/offbeam_EXT;
@@ -112,10 +112,10 @@ namespace numusel{
       bool DoPIDForShowers = true;
       bool DoPIDForTracks = true;
 
-      bool DoEventWeightMatching = false;
+      bool DoEventWeightMatching = true;
 
       // makes plots for track distributions separated by true pdg
-      bool MakeTrackPlots = false;
+      bool MakeTrackPlots = true;
       // this places a cut on the track variables, which is defined in 
       // SelectionMaker::PushBackTrackCutVar
       bool UseTrackCut = false;

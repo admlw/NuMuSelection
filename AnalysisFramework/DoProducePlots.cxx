@@ -65,8 +65,8 @@ int main(){
   TTree* t_offbeam    = (TTree*)(new TFile(_config.s_offbeam.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_simulation = (TTree*)(new TFile(_config.s_simulation.c_str(), "read"))->Get("numuselection/analysis_tree");
   TTree* t_dirt       = (TTree*)(new TFile(_config.s_dirt.c_str(), "read"))->Get("numuselection/analysis_tree");
-  TTree* t_ew         = (TTree*)(new TFile(_config.s_ew.c_str(), "read"))->Get("ew_tree");
-  TTree* t_ew_dirt    = (TTree*)(new TFile(_config.s_ew_dirt.c_str(), "read"))->Get("ew_tree");
+  TTree* t_ew         = (TTree*)(new TFile(_config.s_ew.c_str(), "read"))->Get("tree");
+  TTree* t_ew_dirt    = (TTree*)(new TFile(_config.s_ew_dirt.c_str(), "read"))->Get("tree");
 
   // initialise variables and trees
   var_list onbeam_vars_tmp;

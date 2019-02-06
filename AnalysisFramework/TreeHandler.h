@@ -9,6 +9,7 @@
 
 // ROOT
 #include "TTree.h"
+#include "TDirectory.h"
 
 // local
 #include "DataTypes.h"
