@@ -36,9 +36,9 @@
         <workdir>&resilient_dir;&name;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>10</numjobs>
-        <numevents>50</numevents>
-        <maxfilesperjob>1</maxfilesperjob>
+        <numjobs>1000</numjobs>
+        <numevents>500</numevents>
+        <maxfilesperjob>10</maxfilesperjob>
         <memory>6000</memory>
         <datatier>numusel</datatier>
         <schema>root</schema>

@@ -3,10 +3,10 @@
 <!-- project details -->
 <!DOCTYPE project [
 <!ENTITY release "v06_26_01_28">
-<!ENTITY name "numusel_showersAsTracks_dirt_subset1">
-<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;">
-<!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/">
-<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/numusel/&name;_data">
+<!ENTITY name "eventweight">
+<!ENTITY scratch_dir "/pnfs/uboone/scratch/users/alister1/EVENTWEIGHT/eventweight">
+<!ENTITY resilient_dir "/pnfs/uboone/resilient/users/alister1/EVENTWEIGHT/eventweight">
+<!ENTITY data_dir "/pnfs/uboone/scratch/users/alister1/EVENTWEIGHT/eventweight_bookdir">
 ]>
 
 <job>
@@ -28,20 +28,20 @@
         <local>/pnfs/uboone/resilient/users/alister1/ubcode_v06_26_01_28.tar</local>
     </larsoft>
 
-    <!-- ubxsec -->
-    <stage name="numusel">
-        <inputdef>prodgenie_bnb_dirt_nu_cosmic_uboone_mcc8_reco_mcc8.23_ccinfilter_subset1</inputdef>
-        <fcl>run_numu_analyser_withcalibration_withparticleid.fcl</fcl>
+    <!-- NuMu Selection Stage -->
+    <stage name="ew">
+        <inputlist>/pnfs/uboone/scratch/users/alister1/split_tree/split_tree.list</inputlist>
+        <fcl>run_numu_treereader_source.fcl</fcl>
         <bookdir>&data_dir;</bookdir>
-        <workdir>&resilient_dir;&name;</workdir>
+        <workdir>&resilient_dir;</workdir>
         <outdir>&scratch_dir;</outdir>
         <logdir>&scratch_dir;</logdir>
-        <numjobs>10</numjobs>
+        <numjobs>716</numjobs>
         <numevents>50</numevents>
         <maxfilesperjob>1</maxfilesperjob>
-        <memory>6000</memory>
-        <datatier>numusel</datatier>
-        <schema>root</schema>
+        <memory>8000</memory>
+        <datatier>eventweight</datatier>
+        <schema>gridftp</schema>
    </stage>
 
 </project>
