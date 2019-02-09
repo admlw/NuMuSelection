@@ -168,10 +168,8 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
     fittingFunction->SetParameters(100,0.01,peak_bin_val,5);
     //fittingFunction->SetParameters(1.0, peak_bin_val, 1.0);
 
-    if (pdg ==2212 && ( i == 3 || i == 4))
-         input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.075, 0.075);  
-    else if (pdg == 2212 && i == 5)
-         input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.077, 0.045);  
+    if (pdg == 2212)
+         input_histograms.at(i)->Fit(fittingFunction, "I", "", proton_fitRange.at(i).at(0), proton_fitRange.at(i).at(1));  
     else
         input_histograms.at(i)->Fit(fittingFunction, "I", "", -0.25, 0.25);
 
@@ -196,6 +194,8 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
   }
 
   TCanvas *c_gr = new TCanvas();
+
+  gStyle->SetOptFit(1100);
   TGraphErrors *gr = new TGraphErrors(input_histograms.size(), resolutions_x, resolutions, err_x, err_y);
   
   if (pdg == 2212)
@@ -207,10 +207,19 @@ void doFit(std::vector<TH1D*> input_histograms, int pdg){
   gr->GetYaxis()->SetRangeUser(0,30);
   gr->Draw("ap");
 
-  TF1* res_fitter = new TF1("res_fitter", ResolutionFunction, -1, 1, 3);
-  res_fitter->SetParameters(1,1,1);
+  gStyle->SetOptFit(0);
 
-  gr->Fit(res_fitter, "I", "", 0.025, 1.2);
+  TF1* res_fitter = new TF1("res_fitter", ResolutionFunction, 0, 1000, 3);
+  res_fitter->SetParameters(1.0,10.0,10.0);
+  res_fitter->SetParLimits(0, 0, 10000);
+  res_fitter->SetParLimits(1, 0, 10000);
+  res_fitter->SetParLimits(2, 0, 10000);
+
+  if (pdg == 13)
+    gr->Fit(res_fitter, "I", "", 0.01, 1.2);
+  else if (pdg = 2212)
+    gr->Fit(res_fitter, "", "", 0.01, 1.0);
+
   float a = gr->GetFunction("res_fitter")->GetParameter(0);
   float b = gr->GetFunction("res_fitter")->GetParameter(1);
   float c = gr->GetFunction("res_fitter")->GetParameter(2);
@@ -232,7 +241,7 @@ int main(){
 
   // pull out TTrees from provided TFiles
   // input trees are set in Configuration.h
-  TFile* inputfile = new TFile("selectedEvents_bnbcos.root", "READ");
+  TFile* inputfile = new TFile("selectedEvents_bnbcos_bup.root", "READ");
   TTree* t_simulation = (TTree*)inputfile->Get("simulation");
 
   // initialise variables and trees
@@ -263,10 +272,6 @@ int main(){
   std::vector<TH1D*> muon_mcs_resolution_histograms;
   std::vector<TH1D*> muon_mcs_contained_resolution_histograms;
   std::vector<TH1D*> muon_mcs_uncontained_resolution_histograms;
-
-  int nbins_p[7] = {30,150,100,150,150,120};
-  int nbins_mu_c = 120;
-  int nbins_mu_u[6] = {80, 80, 80, 40, 80, 80};
 
   float bin_low = -0.6;
   float bin_high = 0.6;
