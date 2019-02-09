@@ -9,4 +9,5 @@ plots/
 DoEnergyRecoStudies
 DoProducePlots
 SplitTree
+SortTree
 SBNFitConstructor
