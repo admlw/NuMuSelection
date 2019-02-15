@@ -11,11 +11,13 @@ void plot_nue_spectrum(){
     TTree* nuecc = (TTree*)_file_nueintrinsic->Get("nu_e_cc");
     TTree* nuecc0pinp = (TTree*)_file_nueintrinsic->Get("nu_e_cc0pinp");
 
-    const int n_bins = 11;
-    float miniboone_binning[n_bins+1] = {0.2, 0.3, 0.375, 0.475, 0.550, 0.675, 0.800, 0.950, 1.100, 1.300, 1.500, 3.00};
-    TH1D* h_bnb_nc = new TH1D("h_bnb_nc", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
+    TFile* _file_cov = new TFile("/uboone/app/users/alister1/NumuNueFitter/covariance_matrices.root", "read");
+
+    const int n_bins = 8;
+    float miniboone_binning[n_bins+1] = {0.2, 0.550, 0.675, 0.800, 0.950, 1.100, 1.300, 1.500, 3.00};
+    TH1D* h_bnb_nc = new TH1D("h_bnb_nc", ";Reconstructed Neutrino energy (GeV);Selected Events", n_bins, miniboone_binning);
     TH1D* h_bnb_numu = new TH1D("h_bnb_numu", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
-    TH1D* h_bnb_cosmic = new TH1D("h_bnb_cosmic", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
+    TH1D* h_bnb_cosmic = new TH1D("h_bnb_cosmic", ";Reconstructed Neutrino energy (GeV);Selected Events", n_bins, miniboone_binning);
     TH1D* h_outfv = new TH1D("h_outfv", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
     TH1D* h_contaminated = new TH1D("h_contaminated", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
     TH1D* h_nuecc = new TH1D("h_nuecc", ";Reconstructed Neutrino energy (GeV);", n_bins, miniboone_binning);
@@ -63,6 +65,14 @@ void plot_nue_spectrum(){
     hs->Add(h_nuecc);
     hs->Add(h_nuecc0pinp);
 
+    TH1D* h_tot = (TH1D*)h_bnb_cosmic->Clone("h_tot");
+    h_tot->Add(h_contaminated);
+    h_tot->Add(h_outfv);
+    h_tot->Add(h_bnb_nc);
+    h_tot->Add(h_bnb_numu);
+    h_tot->Add(h_nuecc);
+    h_tot->Add(h_nuecc0pinp);
+
     TCanvas *c1 = new TCanvas("c1", "c1", 600, 500);
     TPad *ptop = new TPad("ptop", "", 0.0005, 0.1, 0.995, 0.995);
     ptop->SetTopMargin(0.23);
@@ -89,4 +99,39 @@ void plot_nue_spectrum(){
     leg_1->Draw("same");
     leg_2->Draw("same");
 
+    c1->SaveAs("nue_stack.pdf");
+
+    // plot errors
+    TCanvas *c2 = new TCanvas("c2", "c2", 600, 400);
+    h_tot->SetFillStyle(0);
+    h_tot->SetLineColor(kBlack);
+    h_tot->SetLineWidth(2);
+    
+    TH1D* h_tot_stat_syst = (TH1D*)h_tot->Clone("h_tot_stat_syst");
+    TH2D* h_cov = (TH2D*)_file_cov->Get("h_const_FULL_matrix");
+    for (int i_b = 1; i_b < h_tot->GetNbinsX()+1; i_b++){
+
+        float stat_error = std::sqrt(h_tot->GetBinContent(i_b));
+        float statplussyst_error =  std::sqrt(h_cov->GetBinContent(i_b, i_b)); 
+        float syst_error = std::sqrt(std::pow(statplussyst_error, 2) - std::pow(stat_error,2));
+
+        std::cout << "bin " << i_b << " has " << h_tot->GetBinContent(i_b) << " entries " << std::endl;
+        std::cout << "bin " << i_b << " has stat error: " << stat_error << std::endl;
+        std::cout << "bin " << i_b << " has stat frac error: " << std::sqrt(h_tot->GetBinContent(i_b))/h_tot_stat_syst->GetBinContent(i_b) << std::endl;
+        std::cout << "bin " << i_b << " has stat+syst error: " << statplussyst_error << std::endl;
+        std::cout << "bin " << i_b << " has stat+syst frac error: " << std::sqrt(h_cov->GetBinContent(i_b, i_b))/h_tot_stat_syst->GetBinContent(i_b) << std::endl;
+        h_tot_stat_syst->SetBinError(i_b, std::sqrt(h_cov->GetBinContent(i_b,i_b)));
+        std::cout << "bin " << i_b << " has syst error: " << syst_error << std::endl; 
+        std::cout << "bin " << i_b << " has syst frac error: " << syst_error/h_tot->GetBinContent(i_b) << std::endl; 
+
+    }
+   
+    h_tot_stat_syst->Draw("histE1");
+    h_tot->Draw("histE1same");
+
+    TLegend *leg = new TLegend(0.15, 0.83, 0.5, 0.88);
+    leg->AddEntry(h_tot, "Stat.+Syst.", "lp");
+    leg->Draw("same");
+
+    c2->SaveAs("nue_statsyst.pdf");
 }
